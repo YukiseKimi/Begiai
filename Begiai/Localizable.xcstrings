@@ -1,6 +1,54 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Board.None" : {
+      "comment" : "On a station's departure board when no train leaves from it today or tomorrow.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No trains in the timetable"
+          }
+        }
+      }
+    },
+    "Board.StartsHere" : {
+      "comment" : "On a station's departure board: this train begins its trip at this station, so seats are free.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starts here"
+          }
+        }
+      }
+    },
+    "Board.StationHint" : {
+      "comment" : "VoiceOver hint of a station marker on the map.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows the next departures."
+          }
+        }
+      }
+    },
+    "Board.Tomorrow" : {
+      "comment" : "Divider on a station's departure board before the trains of the next day.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tomorrow"
+          }
+        }
+      }
+    },
     "Filter.All" : {
       "comment" : "Line filter in the map panel: show every line.",
       "extractionState" : "manual",

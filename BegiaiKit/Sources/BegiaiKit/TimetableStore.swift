@@ -22,6 +22,7 @@ public final class TimetableStore {
     public private(set) var timetable: Timetable?
     public private(set) var engine: MotionEngine?
     public private(set) var tracks: [Track] = []
+    public private(set) var bigStations: Set<Int> = []
 
     public init() {}
 
@@ -38,10 +39,13 @@ public final class TimetableStore {
                 return Track(id: index, line: line, coordinates: coordinates)
             }
             self.timetable = timetable
-            engine = MotionEngine(timetable: timetable)
+            let engine = MotionEngine(timetable: timetable)
+            self.engine = engine
+            bigStations = engine.bigStations()
             state = .ready
         } catch {
-            Logger(subsystem: "app.begiai.Begiai", category: "timetable").error("The timetable did not load: \(String(describing: error), privacy: .public)")
+            Logger(subsystem: "app.begiai.Begiai", category: "timetable").error(
+                "The timetable did not load: \(String(describing: error), privacy: .public)")
             state = .failed(String(describing: error))
         }
     }

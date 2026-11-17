@@ -38,7 +38,10 @@ struct MapScreen {
         journey.wait(for: journey.element(A11yID.Map.train), "a train", on: "Map", file: file, line: line)
         let aboveThePanel = journey.app.frame.height * 0.45
         let trains = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
-        guard let train = trains.first(where: { $0.isHittable && $0.frame.midY < aboveThePanel }) else {
+        let stations = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.station).allElementsBoundByIndex
+            .map(\.frame)
+        let clear = { (train: XCUIElement) in stations.allSatisfy { !$0.intersects(train.frame) } }
+        guard let train = trains.first(where: { $0.isHittable && $0.frame.midY < aboveThePanel && clear($0) }) else {
             XCTFail("Map: no train shows above the panel", file: file, line: line)
             return ""
         }
@@ -53,5 +56,18 @@ struct MapScreen {
 
     func expectLines(file: StaticString = #filePath, line: UInt = #line) {
         journey.wait(for: journey.element(A11yID.Map.runningCount), "the running count", on: "Map", file: file, line: line)
+    }
+
+    func openStationAboveThePanel(file: StaticString = #filePath, line: UInt = #line) -> String {
+        journey.wait(for: journey.element(A11yID.Map.station), "a station", on: "Map", file: file, line: line)
+        let aboveThePanel = journey.app.frame.height * 0.45
+        let stations = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.station).allElementsBoundByIndex
+        guard let station = stations.first(where: { $0.isHittable && $0.frame.midY < aboveThePanel }) else {
+            XCTFail("Map: no station shows above the panel", file: file, line: line)
+            return ""
+        }
+        let name = station.label
+        station.tap()
+        return name
     }
 }

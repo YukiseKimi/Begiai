@@ -23,14 +23,8 @@ struct LineRow: View {
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier(A11yID.Map.lineName)
             Spacer()
-            Button(action: toggleStar) {
-                Image(systemName: starred ? "star.fill" : "star")
-                    .foregroundStyle(starred ? .yellow : .secondary)
-                    .frame(width: 44, height: 44)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text(starred ? .starRemove(line: line.name) : .starAdd(line: line.name)))
-            .accessibilityIdentifier(A11yID.Map.lineStar)
+            StarButton(name: line.name, starred: starred, toggle: toggleStar)
+                .accessibilityIdentifier(A11yID.Map.lineStar)
         }
     }
 }
