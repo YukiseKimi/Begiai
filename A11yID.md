@@ -15,6 +15,7 @@ Generated from `Begiai/A11yID.swift` by `script/test.sh a11y`. Do not edit.
 | `train.back` | the Lines button on a train's page | Train |
 | `train.follow` | the Follow button on a train's page | Train |
 | `train.stop` | each stop in a train's stop list | Train |
+| `map.firstTrain` | the first train on the night card | Map |
 | `map.station` | each station marker on the map | Map |
 | `board.title` | the station name on its board | Board |
 | `board.back` | the Lines button on a station board | Board |

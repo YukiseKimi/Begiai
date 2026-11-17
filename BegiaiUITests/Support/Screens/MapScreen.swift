@@ -70,4 +70,13 @@ struct MapScreen {
         station.tap()
         return name
     }
+
+    func expectFirstTrain(file: StaticString = #filePath, line: UInt = #line) {
+        let card = journey.wait(
+            for: journey.element(A11yID.Map.firstTrain), "the first train", on: "Map at night",
+            file: file, line: line)
+        XCTAssertTrue(card.label.contains("→"), "Map at night: the card reads \(card.label)", file: file, line: line)
+        let trains = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train)
+        XCTAssertEqual(trains.count, 0, "Map at night: \(trains.count) trains show", file: file, line: line)
+    }
 }

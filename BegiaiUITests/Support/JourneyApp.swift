@@ -2,9 +2,14 @@ import XCTest
 
 @MainActor
 struct JourneyApp {
-    static let sealedNow = "2026-11-17T15:55:00Z"
+    nonisolated static let sealedNow = "2026-11-17T15:55:00Z"
 
     let app = XCUIApplication()
+    private let clock = Clock()
+
+    private final class Clock {
+        var now = JourneyApp.sealedNow
+    }
 
     enum Opening {
         case map
@@ -16,21 +21,19 @@ struct JourneyApp {
         }
     }
 
-    func launch(
-        _ opening: Opening = .map, flags: [String] = [],
-        file: StaticString = #filePath, line: UInt = #line
-    ) {
-        start(opening, arguments: ["--reset"] + flags, file: file, line: line)
+    func launch(_ opening: Opening = .map, at now: String = sealedNow, file: StaticString = #filePath, line: UInt = #line) {
+        clock.now = now
+        start(opening, now: now, arguments: ["--reset"], file: file, line: line)
     }
 
     func relaunch(_ opening: Opening = .map, file: StaticString = #filePath, line: UInt = #line) {
         app.terminate()
-        start(opening, arguments: [], file: file, line: line)
+        start(opening, now: clock.now, arguments: [], file: file, line: line)
     }
 
-    private func start(_ opening: Opening, arguments: [String], file: StaticString, line: UInt) {
+    private func start(_ opening: Opening, now: String, arguments: [String], file: StaticString, line: UInt) {
         FailureScreens.watch()
-        app.launchArguments = ["--sealed", "--now", Self.sealedNow] + arguments
+        app.launchArguments = ["--sealed", "--now", now] + arguments
         app.launch()
         wait(for: element(opening.page), "the opening's page", on: "Launch", timeout: 15, file: file, line: line)
     }

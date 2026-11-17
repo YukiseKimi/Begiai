@@ -229,6 +229,30 @@
         }
       }
     },
+    "Night.First" : {
+      "comment" : "On the night card: the first train of the morning, with its time, first station and last station.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First train: %1$(time)@ %2$(origin)@ → %3$(destination)@"
+          }
+        }
+      }
+    },
+    "Night.Title" : {
+      "comment" : "Title of the card in the map panel when no train runs, usually at night.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No trains run now"
+          }
+        }
+      }
+    },
     "Panel.Resize" : {
       "comment" : "VoiceOver label of the handle that makes the map panel taller or shorter.",
       "extractionState" : "manual",

@@ -35,6 +35,21 @@ extension MotionEngine {
         return Array(rows.sorted { $0.time < $1.time }.prefix(limit))
     }
 
+    public func firstTrain(after date: Date) -> (time: Date, origin: String, destination: String)? {
+        let today = ServiceDate(date)
+        let candidates = [today.adding(days: -1), today, today.adding(days: 1)].compactMap {
+            day -> (time: Date, origin: String, destination: String)? in
+            let zero = day.timetableZero
+            return timetable.trips(on: day).compactMap { index -> (time: Date, origin: String, destination: String)? in
+                let stops = timetable.trips[index].stops
+                let time = zero.addingTimeInterval(schedule(of: index).departures[0])
+                guard time >= date else { return nil }
+                return (time, timetable.stations[stops[0].station].name, timetable.stations[stops[stops.count - 1].station].name)
+            }.min { $0.time < $1.time }
+        }
+        return candidates.min { $0.time < $1.time }
+    }
+
     public func bigStations(minimumTrips: Int = 10, spacingMetres: Double = 25_000) -> Set<Int> {
         var count = Array(repeating: 0, count: timetable.stations.count)
         for trip in timetable.trips {

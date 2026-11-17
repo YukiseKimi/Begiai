@@ -88,10 +88,12 @@ struct MapTab: View {
                                     toggleStar(.station, name: store.timetable?.stations[station].name ?? "")
                                 }
                             case nil:
-                                VStack(spacing: 10) {
-                                    RunningHeader(count: trains.count)
-                                    LineFilterPicker(filter: $filter)
-                                        .padding(.horizontal)
+                                if !trains.isEmpty {
+                                    VStack(spacing: 10) {
+                                        RunningHeader(count: trains.count)
+                                        LineFilterPicker(filter: $filter)
+                                            .padding(.horizontal)
+                                    }
                                 }
                             }
                         } content: {
@@ -103,7 +105,11 @@ struct MapTab: View {
                             case .station(let station):
                                 LEDBoard(departures: engine.departures(from: station, at: time.now))
                             case nil:
-                                lineList(engine: engine, trains: trains)
+                                if trains.isEmpty, let first = engine.firstTrain(after: time.now) {
+                                    FirstTrainCard(time: first.time, origin: first.origin, destination: first.destination)
+                                } else {
+                                    lineList(engine: engine, trains: trains)
+                                }
                             }
                         }
                         .frame(maxHeight: .infinity, alignment: .bottom)

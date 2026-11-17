@@ -47,4 +47,28 @@ struct DepartureTests {
         #expect(next?.id.stop == 2)
         #expect(next?.tomorrow == false)
     }
+
+    @Test func atNightTheFirstTrainIsTheEarliestDepartureOfTheMorning() throws {
+        let twoAM = ThreeStops.day.timetableZero.addingTimeInterval(2 * 3600)
+        let first = try #require(engine.firstTrain(after: twoAM))
+        #expect(Vilnius.calendar.dateComponents([.day, .hour, .minute], from: first.time) == DateComponents(day: 17, hour: 8, minute: 0))
+        #expect((first.origin, first.destination) == ("S0", "S3"))
+    }
+
+    @Test func lateInTheEveningTheFirstTrainIsTomorrows() throws {
+        let late = ThreeStops.day.timetableZero.addingTimeInterval(23 * 3600)
+        let first = try #require(engine.firstTrain(after: late))
+        #expect(Vilnius.calendar.component(.day, from: first.time) == 18)
+    }
+
+    @Test func justAfterMidnightTheFirstTrainCanBeYesterdaysLateTrip() throws {
+        var timetable = ThreeStops.timetable
+        for index in timetable.trips[0].stops.indices {
+            timetable.trips[0].stops[index].arrival += 16 * 3600 + 40 * 60
+            timetable.trips[0].stops[index].departure += 16 * 3600 + 40 * 60
+        }
+        let quarterPastMidnight = ThreeStops.day.adding(days: 1).timetableZero.addingTimeInterval(15 * 60)
+        let first = try #require(MotionEngine(timetable: timetable).firstTrain(after: quarterPastMidnight))
+        #expect(Vilnius.calendar.dateComponents([.day, .hour, .minute], from: first.time) == DateComponents(day: 18, hour: 0, minute: 40))
+    }
 }
