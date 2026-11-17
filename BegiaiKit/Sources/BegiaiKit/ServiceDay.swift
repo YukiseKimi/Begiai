@@ -85,7 +85,8 @@ extension Timetable {
             return trips(on: day).compactMap { index -> RunningTrip? in
                 let stops = trips[index].stops
                 guard seconds >= Double(stops[0].departure),
-                      seconds < max(Double(stops[stops.count - 1].arrival), end(index)) else { return nil }
+                    seconds < max(Double(stops[stops.count - 1].arrival), end(index))
+                else { return nil }
                 return RunningTrip(trip: index, day: day, seconds: seconds)
             }
         }

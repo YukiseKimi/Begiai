@@ -55,7 +55,10 @@ public struct MotionEngine: Sendable {
         let now = running.seconds
         let last = stops.count - 1
         let phase: TrainState.Phase
-        var metres: Double, speed = 0.0, lastStop: Int, nextStop: Int
+        var metres: Double
+        var speed = 0.0
+        var lastStop: Int
+        var nextStop: Int
         if now < departures[0] {
             (phase, metres, lastStop, nextStop) = (.boarding, stops[0].metres, 0, min(1, last))
         } else if now >= arrivals[last] {
@@ -66,15 +69,17 @@ public struct MotionEngine: Sendable {
             if now < departures[k] {
                 (phase, metres, lastStop, nextStop) = (.atStation, stops[k].metres, k, min(k + 1, last))
             } else {
-                let motion = SpeedProfile.distance(length: stops[k + 1].metres - stops[k].metres,
-                                                   duration: arrivals[k + 1] - departures[k],
-                                                   elapsed: now - departures[k])
+                let motion = SpeedProfile.distance(
+                    length: stops[k + 1].metres - stops[k].metres,
+                    duration: arrivals[k + 1] - departures[k],
+                    elapsed: now - departures[k])
                 (phase, metres, speed, lastStop, nextStop) = (.running, stops[k].metres + motion.metres, motion.speed, k, k + 1)
             }
         }
         guard let point = timetable.shapes[trip.shape].point(atMetres: metres) else { return nil }
-        return TrainState(trip: running.trip, day: running.day, phase: phase, metres: metres, coordinate: point.coordinate,
-                          heading: point.heading, speed: speed, lastStop: lastStop, nextStop: nextStop)
+        return TrainState(
+            trip: running.trip, day: running.day, phase: phase, metres: metres, coordinate: point.coordinate,
+            heading: point.heading, speed: speed, lastStop: lastStop, nextStop: nextStop)
     }
 
     static func times(of trip: Trip) -> (arrivals: [Double], departures: [Double]) {

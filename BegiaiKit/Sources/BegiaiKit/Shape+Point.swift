@@ -4,12 +4,14 @@ extension Shape {
     public func point(atMetres wanted: Double) -> (coordinate: Coordinate, heading: Double)? {
         guard points.count > 1 else { return nil }
         let metres = min(length, max(0, wanted))
-        var low = 0, high = points.count - 1
+        var low = 0
+        var high = points.count - 1
         while high - low > 1 {
             let middle = (low + high) / 2
             if points[middle].metres <= metres { low = middle } else { high = middle }
         }
-        let a = points[low], b = points[high]
+        let a = points[low]
+        let b = points[high]
         let span = b.metres - a.metres
         let u = span > 0 ? (metres - a.metres) / span : 0
         let coordinate = Coordinate(
@@ -18,7 +20,8 @@ extension Shape {
         var (from, to) = (low, high)
         while from > 0, points[from].coordinate == points[to].coordinate { from -= 1 }
         while to < points.count - 1, points[from].coordinate == points[to].coordinate { to += 1 }
-        let start = points[from].coordinate, end = points[to].coordinate
+        let start = points[from].coordinate
+        let end = points[to].coordinate
         let east = (end.longitude - start.longitude) * cos(start.latitude * .pi / 180)
         let north = end.latitude - start.latitude
         let heading = (atan2(east, north) * 180 / .pi + 360).truncatingRemainder(dividingBy: 360)

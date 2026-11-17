@@ -20,9 +20,11 @@ extension MotionEngine {
     public func lineSummaries(at date: Date, trains: [TrainState], starred: Set<String> = []) -> [LineSummary] {
         let lines = timetable.lines
         var now = Array(repeating: 0, count: lines.count)
-        for train in trains { now[timetable.trips[train.trip].line] += 1 }
+        for train in trains where now.indices.contains(timetable.trips[train.trip].line) { now[timetable.trips[train.trip].line] += 1 }
         var today = Array(repeating: 0, count: lines.count)
-        for trip in timetable.trips(on: ServiceDate(date)) { today[timetable.trips[trip].line] += 1 }
+        for trip in timetable.trips(on: ServiceDate(date)) where today.indices.contains(timetable.trips[trip].line) {
+            today[timetable.trips[trip].line] += 1
+        }
         return lines.indices
             .map {
                 LineSummary(id: $0, name: lines[$0].name, international: lines[$0].international, trainsNow: now[$0], tripsToday: today[$0])

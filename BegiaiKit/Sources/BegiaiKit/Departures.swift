@@ -14,6 +14,12 @@ public struct Departure: Identifiable, Equatable, Sendable {
     public let tomorrow: Bool
 }
 
+public struct FirstTrain: Equatable, Sendable {
+    public let time: Date
+    public let origin: String
+    public let destination: String
+}
+
 extension MotionEngine {
     public func departures(from station: Int, at date: Date, limit: Int = 8) -> [Departure] {
         let today = ServiceDate(date)
@@ -35,16 +41,18 @@ extension MotionEngine {
         return Array(rows.sorted { $0.time < $1.time }.prefix(limit))
     }
 
-    public func firstTrain(after date: Date) -> (time: Date, origin: String, destination: String)? {
+    public func firstTrain(after date: Date) -> FirstTrain? {
         let today = ServiceDate(date)
         let candidates = [today.adding(days: -1), today, today.adding(days: 1)].compactMap {
-            day -> (time: Date, origin: String, destination: String)? in
+            day -> FirstTrain? in
             let zero = day.timetableZero
-            return timetable.trips(on: day).compactMap { index -> (time: Date, origin: String, destination: String)? in
+            return timetable.trips(on: day).compactMap { index -> FirstTrain? in
                 let stops = timetable.trips[index].stops
                 let time = zero.addingTimeInterval(schedule(of: index).departures[0])
                 guard time >= date else { return nil }
-                return (time, timetable.stations[stops[0].station].name, timetable.stations[stops[stops.count - 1].station].name)
+                return FirstTrain(
+                    time: time, origin: timetable.stations[stops[0].station].name,
+                    destination: timetable.stations[stops[stops.count - 1].station].name)
             }.min { $0.time < $1.time }
         }
         return candidates.min { $0.time < $1.time }

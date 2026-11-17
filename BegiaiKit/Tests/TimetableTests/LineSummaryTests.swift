@@ -30,6 +30,14 @@ struct LineSummaryTests {
         #expect(names(.international, []) == ["Busy"])
         #expect(names(.starred, ["Quiet"]) == ["Quiet"])
     }
+
+    @Test func aTripWithAnUnknownLineIsLeftOutOfTheCounts() {
+        var timetable = TwoLines.timetable
+        timetable.trips[0].line = 9
+        let engine = MotionEngine(timetable: timetable)
+        let date = TwoLines.day.timetableZero.addingTimeInterval(8 * 3600 + 60)
+        #expect(engine.lineSummaries(at: date, trains: engine.trains(at: date)).map(\.trainsNow).reduce(0, +) == 2)
+    }
 }
 
 enum TwoLines {
