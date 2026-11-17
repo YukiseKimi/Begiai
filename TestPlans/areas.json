@@ -2,16 +2,32 @@
   "areas": [
     {
       "id": "timetable",
-      "paths": ["BegiaiKit/Sources/BegiaiKit/", "Begiai/Testing/"],
-      "unit": ["TimetableTests"],
-      "journeys": ["LaunchJourney"],
-      "devices": ["iPhone 17 Pro"],
+      "paths": [
+        "BegiaiKit/Sources/BegiaiKit/",
+        "Begiai/Testing/",
+        "Begiai/"
+      ],
+      "unit": [
+        "TimetableTests"
+      ],
+      "journeys": [
+        "LaunchJourney"
+      ],
+      "devices": [
+        "iPhone 17 Pro"
+      ],
       "wayIn": "the first screen"
     },
     {
       "id": "bundle",
-      "paths": ["BegiaiKit/Sources/BundleBuilder/", "BegiaiKit/Sources/BundleTool/", "script/bundle.sh"],
-      "unit": ["BundleTests"],
+      "paths": [
+        "BegiaiKit/Sources/BundleBuilder/",
+        "BegiaiKit/Sources/BundleTool/",
+        "script/bundle.sh"
+      ],
+      "unit": [
+        "BundleTests"
+      ],
       "journeys": [],
       "devices": [],
       "wayIn": "script/bundle.sh"

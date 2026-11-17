@@ -1,20 +1,21 @@
+import BegiaiKit
 import SwiftUI
 
 struct RootView: View {
+    let store: TimetableStore
+
     var body: some View {
         TabView {
             Tab(.tabMap, systemImage: "map") {
-                Color.clear
-                    .accessibilityIdentifier(A11yID.Map.page)
+                MapTab(store: store)
             }
             Tab(.tabLineDiagram, systemImage: "point.topleft.down.to.point.bottomright.curvepath") {
-                Color.clear
-                    .accessibilityIdentifier(A11yID.LineDiagram.page)
+                LineDiagramTab()
             }
         }
     }
 }
 
 #Preview {
-    RootView()
+    RootView(store: TimetableStore())
 }

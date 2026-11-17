@@ -1,15 +1,53 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Map.LoadFailed" : {
+      "comment" : "Shown on the map when the app cannot read its shipped timetable.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The timetable could not load"
+          }
+        }
+      }
+    },
+    "Map.LoadFailedDetail" : {
+      "comment" : "Second line under Map.LoadFailed: what the user can do.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update Bėgiai from the App Store."
+          }
+        }
+      }
+    },
     "Tab.LineDiagram" : {
       "comment" : "Title of the tab that shows one line as a vertical diagram of its stations.",
       "extractionState" : "manual",
-      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Line Diagram" } } }
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Line Diagram"
+          }
+        }
+      }
     },
     "Tab.Map" : {
       "comment" : "Title of the tab that shows the trains on a map.",
       "extractionState" : "manual",
-      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Map" } } }
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Map"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
