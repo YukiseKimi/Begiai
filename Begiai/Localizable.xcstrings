@@ -1,6 +1,78 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Filter.All" : {
+      "comment" : "Line filter in the map panel: show every line.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All"
+          }
+        }
+      }
+    },
+    "Filter.International" : {
+      "comment" : "Line filter in the map panel: show only lines that cross the border.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "International"
+          }
+        }
+      }
+    },
+    "Filter.Label" : {
+      "comment" : "VoiceOver name of the segmented control that filters the lines in the map panel.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lines to show"
+          }
+        }
+      }
+    },
+    "Filter.Starred" : {
+      "comment" : "Line filter in the map panel: show only the lines and stations the user starred.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starred"
+          }
+        }
+      }
+    },
+    "Line.TrainsNow" : {
+      "comment" : "In a line row: how many trains of the line run now. count is the number.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%1$(count)lld train now"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%1$(count)lld trains now"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "Map.LoadFailed" : {
       "comment" : "Shown on the map when the app cannot read its shipped timetable.",
       "extractionState" : "manual",
@@ -81,6 +153,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "→ %1$(station)@"
+          }
+        }
+      }
+    },
+    "Panel.Resize" : {
+      "comment" : "VoiceOver label of the handle that makes the map panel taller or shorter.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resize the panel"
           }
         }
       }

@@ -21,7 +21,9 @@ struct TrainCapsule: View {
                 .shadow(color: color.opacity(atStation ? 0.6 : 0), radius: atStation ? 6 : 0)
                 .phaseAnimator(atStation && !reduceMotion ? [false, true] : [false]) { content, wide in
                     content.scaleEffect(wide ? 1.15 : 1)
-                } animation: { _ in .easeInOut(duration: 0.8) }
+                } animation: { _ in
+                    .easeInOut(duration: 0.8)
+                }
             if showsLabel, let destination {
                 Text(.mapTrainTo(station: destination))
                     .font(.caption2.weight(.medium))

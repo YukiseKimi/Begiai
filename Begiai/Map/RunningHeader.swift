@@ -13,9 +13,6 @@ struct RunningHeader: View {
                 .foregroundStyle(.secondary)
         }
         .font(.subheadline.weight(.semibold))
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .glassEffect()
     }
 }
 
