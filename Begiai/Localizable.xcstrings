@@ -1,0 +1,16 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Tab.LineDiagram" : {
+      "comment" : "Title of the tab that shows one line as a vertical diagram of its stations.",
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Line Diagram" } } }
+    },
+    "Tab.Map" : {
+      "comment" : "Title of the tab that shows the trains on a map.",
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Map" } } }
+    }
+  },
+  "version" : "1.0"
+}

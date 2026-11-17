@@ -1,0 +1,12 @@
+{
+  "areas": [
+    {
+      "id": "timetable",
+      "paths": ["BegiaiKit/Sources/BegiaiKit/", "Begiai/Testing/"],
+      "unit": ["TimetableTests"],
+      "journeys": ["LaunchJourney"],
+      "devices": ["iPhone 17 Pro"],
+      "wayIn": "the first screen"
+    }
+  ]
+}

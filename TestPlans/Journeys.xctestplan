@@ -1,0 +1,13 @@
+{
+  "configurations" : [
+    { "id" : "6C1D7B0E-1B0A-4C55-9C8B-0A1F4E2D9A11", "name" : "Default", "options" : { } }
+  ],
+  "defaultOptions" : {
+    "systemAttachmentLifetime" : "deleteOnSuccess",
+    "uiTestingScreenshotsLifetime" : "deleteOnSuccess"
+  },
+  "testTargets" : [
+    { "target" : { "containerPath" : "container:Begiai.xcodeproj", "identifier" : "5028A72230AC935200E1E62B", "name" : "BegiaiUITests" } }
+  ],
+  "version" : 1
+}
