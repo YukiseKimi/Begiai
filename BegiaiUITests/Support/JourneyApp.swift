@@ -16,10 +16,21 @@ struct JourneyApp {
         }
     }
 
-    func launch(_ opening: Opening = .map, flags: [String] = [],
-                file: StaticString = #filePath, line: UInt = #line) {
+    func launch(
+        _ opening: Opening = .map, flags: [String] = [],
+        file: StaticString = #filePath, line: UInt = #line
+    ) {
+        start(opening, arguments: ["--reset"] + flags, file: file, line: line)
+    }
+
+    func relaunch(_ opening: Opening = .map, file: StaticString = #filePath, line: UInt = #line) {
+        app.terminate()
+        start(opening, arguments: [], file: file, line: line)
+    }
+
+    private func start(_ opening: Opening, arguments: [String], file: StaticString, line: UInt) {
         FailureScreens.watch()
-        app.launchArguments = ["--sealed", "--reset", "--now", Self.sealedNow] + flags
+        app.launchArguments = ["--sealed", "--now", Self.sealedNow] + arguments
         app.launch()
         wait(for: element(opening.page), "the opening's page", on: "Launch", timeout: 15, file: file, line: line)
     }
@@ -29,10 +40,13 @@ struct JourneyApp {
     }
 
     @discardableResult
-    func wait(for element: XCUIElement, _ what: String, on screen: String, timeout: TimeInterval = 10,
-              file: StaticString = #filePath, line: UInt = #line) -> XCUIElement {
-        XCTAssertTrue(element.exists || element.waitForExistence(timeout: timeout),
-                      "\(screen): \(what) never appeared", file: file, line: line)
+    func wait(
+        for element: XCUIElement, _ what: String, on screen: String, timeout: TimeInterval = 10,
+        file: StaticString = #filePath, line: UInt = #line
+    ) -> XCUIElement {
+        XCTAssertTrue(
+            element.exists || element.waitForExistence(timeout: timeout),
+            "\(screen): \(what) never appeared", file: file, line: line)
         return element
     }
 

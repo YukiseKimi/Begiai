@@ -1,8 +1,13 @@
 import BegiaiKit
 import Foundation
+import SwiftData
+import os
 
-enum HermeticLaunch {
-    static func timeSource(bundle: Bundle = .main, arguments: [String] = ProcessInfo.processInfo.arguments) -> any TimeSource {
+struct HermeticLaunch {
+    let time: any TimeSource
+    let starFolder: URL?
+
+    static func read(bundle: Bundle = .main, arguments: [String] = ProcessInfo.processInfo.arguments) -> HermeticLaunch {
         let allowed = bundle.object(forInfoDictionaryKey: "BegiaiSealedLaunch") as? String == "YES"
         let launch: SealedLaunch?
         do {
@@ -10,8 +15,25 @@ enum HermeticLaunch {
         } catch {
             fatalError("Sealed launch: \(error)")
         }
-        guard let now = launch?.now else { return SystemTime() }
-        return FixedTime(now: now)
+        guard let launch else { return HermeticLaunch(time: SystemTime(), starFolder: nil) }
+        let folder = FileManager.default.temporaryDirectory.appending(path: "BegiaiSealed", directoryHint: .isDirectory)
+        if launch.reset { try? FileManager.default.removeItem(at: folder) }
+        let time: any TimeSource = launch.now.map { FixedTime(now: $0) } ?? SystemTime()
+        return HermeticLaunch(time: time, starFolder: folder)
+    }
+
+    func starContainer() -> ModelContainer {
+        do {
+            return try StarStorage.container(sealedFolder: starFolder)
+        } catch {
+            Logger(subsystem: "app.begiai.Begiai", category: "stars")
+                .fault("The star store did not open; stars stay in memory: \(String(describing: error), privacy: .public)")
+            do {
+                return try ModelContainer(for: Star.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+            } catch {
+                fatalError("No star store can open: \(error)")
+            }
+        }
     }
 }
 

@@ -4,7 +4,8 @@ enum A11yID {
         static let runningCount = "map.runningCount"
         static let train = "map.train"
         static let panel = "map.panel"
-        static let lineRow = "map.lineRow"
+        static let lineName = "map.lineName"
+        static let lineStar = "map.lineStar"
         static let filter = "map.filter"
     }
 
@@ -23,7 +24,8 @@ enum A11yID {
         Entry(id: Map.runningCount, element: "the count of trains running now", screen: "Map"),
         Entry(id: Map.train, element: "each train on the map", screen: "Map"),
         Entry(id: Map.panel, element: "the handle of the line panel", screen: "Map"),
-        Entry(id: Map.lineRow, element: "each line row in the panel", screen: "Map"),
+        Entry(id: Map.lineName, element: "the name and train count of each line row", screen: "Map"),
+        Entry(id: Map.lineStar, element: "the star button in each line row", screen: "Map"),
         Entry(id: Map.filter, element: "the All, Starred and International filter", screen: "Map"),
         Entry(id: LineDiagram.page, element: "the Line Diagram tab's content", screen: "Line Diagram"),
     ]

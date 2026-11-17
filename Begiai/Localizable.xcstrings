@@ -49,6 +49,30 @@
         }
       }
     },
+    "Line.NoneStarred" : {
+      "comment" : "Title shown when the Starred filter is on and the user starred nothing.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No starred lines"
+          }
+        }
+      }
+    },
+    "Line.NoneStarredDetail" : {
+      "comment" : "Second line under Line.NoneStarred.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap the star on a line to keep it at the top."
+          }
+        }
+      }
+    },
     "Line.TrainsNow" : {
       "comment" : "In a line row: how many trains of the line run now. count is the number.",
       "extractionState" : "manual",
@@ -165,6 +189,30 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Resize the panel"
+          }
+        }
+      }
+    },
+    "Star.Add" : {
+      "comment" : "VoiceOver label of the star button on a line that is not starred yet. line is the line's name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Star %1$(line)@"
+          }
+        }
+      }
+    },
+    "Star.Remove" : {
+      "comment" : "VoiceOver label of the star button on a starred line. line is the line's name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove the star from %1$(line)@"
           }
         }
       }

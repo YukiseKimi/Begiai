@@ -11,7 +11,8 @@
         "TimetableTests"
       ],
       "journeys": [
-        "LaunchJourney"
+        "LaunchJourney",
+        "StarJourney"
       ],
       "devices": [
         "iPhone 17 Pro"

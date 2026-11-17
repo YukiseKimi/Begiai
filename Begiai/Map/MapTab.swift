@@ -1,6 +1,8 @@
 import BegiaiKit
 import MapKit
+import SwiftData
 import SwiftUI
+import os
 
 struct MapTab: View {
     let store: TimetableStore
@@ -11,6 +13,8 @@ struct MapTab: View {
     @State private var panelHeight: PanelHeight = .half
     @State private var panelTotal: CGFloat = 700
     @State private var filter: LineFilter = .all
+    @Environment(\.modelContext) private var modelContext
+    @Query private var stars: [Star]
 
     var body: some View {
         TimelineView(
@@ -70,15 +74,29 @@ struct MapTab: View {
     }
 
     private func lineList(engine: MotionEngine, trains: [TrainState]) -> some View {
-        let lines = engine.lineSummaries(at: time.now, trains: trains).filter {
-            filter.includes($0, starred: [])
+        let starred = Set(stars.filter { $0.kind == StarKind.line.rawValue }.map(\.name))
+        let lines = engine.lineSummaries(at: time.now, trains: trains, starred: starred).filter {
+            filter.includes($0, starred: starred)
         }
         return List(lines) { line in
-            LineRow(line: line)
-                .listRowBackground(Color.clear)
+            LineRow(line: line, starred: starred.contains(line.name)) {
+                do {
+                    try withAnimation { try modelContext.toggleStar(.line, name: line.name, at: time.now) }
+                } catch {
+                    modelContext.rollback()
+                    Logger(subsystem: "app.begiai.Begiai", category: "stars")
+                        .error("A star did not save: \(String(describing: error), privacy: .public)")
+                }
+            }
+            .listRowBackground(Color.clear)
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
+        .overlay {
+            if lines.isEmpty, filter == .starred {
+                ContentUnavailableView(.lineNoneStarred, systemImage: "star", description: Text(.lineNoneStarredDetail))
+            }
+        }
     }
 
     private func capsule(for train: TrainState) -> some View {

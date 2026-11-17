@@ -28,4 +28,9 @@ with each failure and a `rerun:` line.
 
 Areas and their unit targets and journeys: `TestPlans/areas.json`.
 The sealed launch (`--sealed --reset --now <ISO time>`) works only when the Info.plist key
-`BegiaiSealedLaunch` is `YES` (Debug). It pins the clock. `--reset` is accepted, and does nothing until the app keeps data.
+`BegiaiSealedLaunch` is `YES` (Debug). It pins the clock and keeps the stars in a temporary folder; `--reset` empties that folder.
+
+## Gotcha
+
+An `.accessibilityIdentifier` on a container replaces the identifiers of the views inside it,
+so journeys stop finding them. Put identifiers on leaf views only.
