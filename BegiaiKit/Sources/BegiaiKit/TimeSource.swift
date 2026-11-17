@@ -2,6 +2,11 @@ import Foundation
 
 public protocol TimeSource: Sendable {
     var now: Date { get }
+    var isPinned: Bool { get }
+}
+
+extension TimeSource {
+    public var isPinned: Bool { false }
 }
 
 public struct SystemTime: TimeSource {

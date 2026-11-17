@@ -11,6 +11,7 @@ public enum BundleError: Error, CustomStringConvertible {
     case missingStation(String)
     case missingShape(String)
     case badTime(String)
+    case noCalendar
 
     public var description: String {
         switch self {
@@ -18,6 +19,7 @@ public enum BundleError: Error, CustomStringConvertible {
         case .missingStation(let id): "stop_times names stop \(id), which stops.txt does not have"
         case .missingShape(let id): "trips.txt names shape \(id), which shapes.txt does not have"
         case .badTime(let text): "a stop time is not HH:MM:SS: \(text)"
+        case .noCalendar: "the feed has neither calendar.txt nor calendar_dates.txt"
         }
     }
 }
@@ -144,10 +146,15 @@ public struct BundleBuilder {
     private func readStopTimes(_ folder: URL, trips: Set<String>) throws -> [String: [StopTime]] {
         var times: [String: [StopTime]] = [:]
         let marker = Array("\(agency)_".utf8)
-        try CSVFile(url: folder.appending(path: "stop_times.txt")).rows(where: { $0.contains(marker) }) { row in
+        let file = try CSVFile(url: folder.appending(path: "stop_times.txt"))
+        let markedIDs = trips.allSatisfy { $0.utf8.starts(with: marker) }
+        try file.rows(where: { !markedIDs || $0.contains(marker) }) { row in
             let trip = row["trip_id"]
             guard trips.contains(trip) else { return }
-            let arrival = try seconds(row["arrival_time"]), departure = try seconds(row["departure_time"])
+            let arrivalText = row["arrival_time"].isEmpty ? row["departure_time"] : row["arrival_time"]
+            let departureText = row["departure_time"].isEmpty ? arrivalText : row["departure_time"]
+            if arrivalText.isEmpty { return }
+            let arrival = try seconds(arrivalText), departure = try seconds(departureText)
             times[trip, default: []].append(StopTime(stop: row["stop_id"], sequence: Int(row["stop_sequence"]) ?? 0,
                                                      arrival: arrival, departure: departure))
         }
@@ -184,20 +191,24 @@ public struct BundleBuilder {
     private func readServices(_ folder: URL, ids: [String]) throws -> [Service] {
         let wanted = Set(ids)
         var calendar: [String: Service] = [:]
-        try CSVFile(url: folder.appending(path: "calendar.txt")).rows { row in
+        let calendarFile = folder.appending(path: "calendar.txt"), datesFile = folder.appending(path: "calendar_dates.txt")
+        let hasCalendar = FileManager.default.fileExists(atPath: calendarFile.path)
+        let hasDates = FileManager.default.fileExists(atPath: datesFile.path)
+        guard hasCalendar || hasDates else { throw BundleError.noCalendar }
+        if hasCalendar { try CSVFile(url: calendarFile).rows { row in
             let id = row["service_id"]
             guard wanted.contains(id) else { return }
             let days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map { row[$0] }.joined()
             calendar[id] = Service(weekdays: days, start: Int(row["start_date"]) ?? 0, end: Int(row["end_date"]) ?? 0,
                                    added: [], removed: [])
-        }
-        try CSVFile(url: folder.appending(path: "calendar_dates.txt")).rows { row in
+        } }
+        if hasDates { try CSVFile(url: datesFile).rows { row in
             let id = row["service_id"]
             guard wanted.contains(id), let date = Int(row["date"]) else { return }
             var service = calendar[id] ?? Service(weekdays: "0000000", start: 0, end: 0, added: [], removed: [])
             if row["exception_type"] == "1" { service.added.append(date) } else { service.removed.append(date) }
             calendar[id] = service
-        }
+        } }
         return ids.map { id in
             var service = calendar[id] ?? Service(weekdays: "0000000", start: 0, end: 0, added: [], removed: [])
             service.added.sort()

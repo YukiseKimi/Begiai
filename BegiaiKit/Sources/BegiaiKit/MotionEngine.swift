@@ -1,6 +1,11 @@
 import Foundation
 
-public struct TrainState: Equatable, Sendable {
+public struct TrainState: Equatable, Sendable, Identifiable {
+    public struct ID: Hashable, Sendable {
+        public let trip: Int
+        public let day: ServiceDate
+    }
+
     public enum Phase: Equatable, Sendable {
         case boarding
         case atStation
@@ -17,6 +22,8 @@ public struct TrainState: Equatable, Sendable {
     public let speed: Double
     public let lastStop: Int
     public let nextStop: Int
+
+    public var id: ID { ID(trip: trip, day: day) }
 }
 
 public struct MotionEngine: Sendable {
@@ -25,19 +32,22 @@ public struct MotionEngine: Sendable {
     public static let minimumRun = 30.0
 
     public let timetable: Timetable
+    private let schedules: [(arrivals: [Double], departures: [Double])]
 
     public init(timetable: Timetable) {
         self.timetable = timetable
+        schedules = timetable.trips.map(Self.times)
     }
 
     public func trains(at date: Date) -> [TrainState] {
-        timetable.runningTrips(at: date).map(state)
+        timetable.runningTrips(at: date, until: { schedules[$0].arrivals.last ?? 0 }).compactMap(state)
     }
 
-    public func state(of running: RunningTrip) -> TrainState {
+    public func state(of running: RunningTrip) -> TrainState? {
         let trip = timetable.trips[running.trip]
         let stops = trip.stops
-        let (arrivals, departures) = times(of: trip)
+        guard stops.count >= 2 else { return nil }
+        let (arrivals, departures) = schedules[running.trip]
         let now = running.seconds
         let last = stops.count - 1
         let phase: TrainState.Phase
@@ -58,12 +68,12 @@ public struct MotionEngine: Sendable {
                 (phase, metres, speed, lastStop, nextStop) = (.running, stops[k].metres + motion.metres, motion.speed, k, k + 1)
             }
         }
-        let point = timetable.shapes[trip.shape].point(atMetres: metres)
+        guard let point = timetable.shapes[trip.shape].point(atMetres: metres) else { return nil }
         return TrainState(trip: running.trip, day: running.day, phase: phase, metres: metres, coordinate: point.coordinate,
                           heading: point.heading, speed: speed, lastStop: lastStop, nextStop: nextStop)
     }
 
-    func times(of trip: Trip) -> (arrivals: [Double], departures: [Double]) {
+    static func times(of trip: Trip) -> (arrivals: [Double], departures: [Double]) {
         let stops = trip.stops
         var arrivals = stops.map { Double($0.arrival) }
         var departures = stops.map { Double($0.departure) }

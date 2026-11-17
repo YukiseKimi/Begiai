@@ -17,4 +17,5 @@ enum HermeticLaunch {
 
 private struct FixedTime: TimeSource {
     let now: Date
+    var isPinned: Bool { true }
 }

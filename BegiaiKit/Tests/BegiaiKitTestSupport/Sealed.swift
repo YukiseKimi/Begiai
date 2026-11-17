@@ -3,12 +3,8 @@ import Foundation
 import Testing
 
 public enum SealedWorld {
-    public static let day: Date = {
-        var parts = DateComponents()
-        parts.year = 2026; parts.month = 11; parts.day = 17
-        parts.hour = 17; parts.minute = 55
-        return Vilnius.calendar.date(from: parts)!
-    }()
+    public static let now = "2026-11-17T15:55:00Z"
+    public static let day = try! Date(now, strategy: .iso8601)
 }
 
 public final class PinnedTime: TimeSource, @unchecked Sendable {

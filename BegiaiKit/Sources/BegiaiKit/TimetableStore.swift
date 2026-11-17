@@ -1,6 +1,7 @@
 import CoreLocation
 import Foundation
 import Observation
+import os
 
 @MainActor
 @Observable
@@ -40,6 +41,7 @@ public final class TimetableStore {
             engine = MotionEngine(timetable: timetable)
             state = .ready
         } catch {
+            Logger(subsystem: "app.begiai.Begiai", category: "timetable").error("The timetable did not load: \(String(describing: error), privacy: .public)")
             state = .failed(String(describing: error))
         }
     }

@@ -14,12 +14,6 @@ struct ServiceDayTests {
         #expect(running == [RunningTrip(trip: 0, day: tuesday, seconds: 24 * 3600 + 20 * 60)])
     }
 
-    @Test func aTrainJustAfterMidnightShowsBeforeMidnight() {
-        let timetable = TinyTimetable.make(trips: [("early", "1111111", 3 * 60, 60 * 60)])
-        let fiveToMidnight = tuesday.adding(days: 1).midnight.addingTimeInterval(-5 * 60)
-        #expect(timetable.runningTrips(at: fiveToMidnight).map(\.day) == [tuesday.adding(days: 1)])
-    }
-
     @Test func onTheNightTheClocksGoBackATrainStillLeavesAtItsTimetableTime() {
         let clocksBack = ServiceDate(year: 2026, month: 10, day: 25)
         let timetable = TinyTimetable.make(trips: [("morning", "1111111", 10 * 3600, 11 * 3600)])

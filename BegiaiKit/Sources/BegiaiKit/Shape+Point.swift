@@ -1,8 +1,8 @@
 import Foundation
 
 extension Shape {
-    public func point(atMetres wanted: Double) -> (coordinate: Coordinate, heading: Double) {
-        guard points.count > 1 else { return (points.first?.coordinate ?? Coordinate(latitude: 0, longitude: 0), 0) }
+    public func point(atMetres wanted: Double) -> (coordinate: Coordinate, heading: Double)? {
+        guard points.count > 1 else { return nil }
         let metres = min(length, max(0, wanted))
         var low = 0, high = points.count - 1
         while high - low > 1 {

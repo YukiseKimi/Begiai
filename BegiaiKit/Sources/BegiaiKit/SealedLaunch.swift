@@ -7,6 +7,7 @@ public enum LaunchFlag: String, CaseIterable, Sendable {
 }
 
 public struct SealedLaunch: Equatable, Sendable {
+
     public var now: Date?
     public var reset: Bool
 

@@ -63,6 +63,23 @@ struct BundleBuilderTests {
         #expect(throws: BundleError.self) { try BundleBuilder().build(feed: feed, feedDate: 20261117) }
     }
 
+    @Test func aStopWithNoTimesIsLeftOutInsteadOfFailingTheBundle() throws {
+        let feed = try SmallFeed(trips: [
+            .init(id: "90_pass", stops: [("A", "08:00:00"), ("B", ""), ("C", "08:10:00")]),
+        ]).write()
+        let (timetable, _) = try BundleBuilder().build(feed: feed, feedDate: 20261117)
+        #expect(timetable.trips[0].stops.count == 2)
+    }
+
+    @Test func aFeedWithNoCalendarFails() throws {
+        let feed = try SmallFeed(trips: [
+            .init(id: "90_long", stops: [("A", "08:00:00"), ("C", "08:10:00")]),
+        ]).write()
+        try FileManager.default.removeItem(at: feed.appending(path: "calendar.txt"))
+        try FileManager.default.removeItem(at: feed.appending(path: "calendar_dates.txt"))
+        #expect(throws: BundleError.self) { try BundleBuilder().build(feed: feed, feedDate: 20261117) }
+    }
+
     @Test func aSectionFasterThan160KilometresAnHourIsFlagged() throws {
         let feed = try SmallFeed(trips: [
             .init(id: "90_fast", stops: [("A", "08:00:00"), ("C", "08:01:00")]),

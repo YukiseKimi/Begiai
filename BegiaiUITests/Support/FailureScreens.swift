@@ -12,6 +12,10 @@ final class FailureScreens: NSObject, @MainActor XCTestObservation {
         XCTestObservationCenter.shared.addTestObserver(shared)
     }
 
+    func testCaseWillStart(_ testCase: XCTestCase) {
+        saved.remove(testCase.name)
+    }
+
     func testCase(_ testCase: XCTestCase, didRecord issue: XCTIssue) {
         guard saved.insert(testCase.name).inserted else { return }
         for (index, screen) in XCUIScreen.screens.enumerated() {

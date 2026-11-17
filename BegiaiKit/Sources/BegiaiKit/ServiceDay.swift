@@ -62,28 +62,30 @@ extension Service {
     }
 }
 
-extension Timetable {
-    public static let shownBeforeDeparture = 600.0
-    public static let shownAfterArrival = 90.0
+private struct DuplicateKey: Hashable {
+    let code: String
+    let station: Int
+    let departure: Int
+}
 
+extension Timetable {
     public func trips(on day: ServiceDate) -> [Int] {
-        var seen: Set<String> = []
+        var seen: Set<DuplicateKey> = []
         return trips.indices.filter { index in
             let trip = trips[index]
-            guard services[trip.service].runs(on: day), let first = trip.stops.first else { return false }
-            return seen.insert("\(trip.code)|\(first.station)|\(first.departure)").inserted
+            guard trip.stops.count >= 2, services[trip.service].runs(on: day) else { return false }
+            return seen.insert(DuplicateKey(code: trip.code, station: trip.stops[0].station, departure: trip.stops[0].departure)).inserted
         }
     }
 
-    public func runningTrips(at date: Date) -> [RunningTrip] {
+    public func runningTrips(at date: Date, until end: (Int) -> Double = { _ in 0 }) -> [RunningTrip] {
         let today = ServiceDate(date)
-        return [today.adding(days: -1), today, today.adding(days: 1)].flatMap { day in
+        return [today.adding(days: -1), today].flatMap { day in
             let seconds = date.timeIntervalSince(day.timetableZero)
             return trips(on: day).compactMap { index -> RunningTrip? in
                 let stops = trips[index].stops
-                guard stops.count >= 2, let first = stops.first, let last = stops.last,
-                      seconds >= Double(first.departure) - Self.shownBeforeDeparture,
-                      seconds <= Double(last.arrival) + Self.shownAfterArrival else { return nil }
+                guard seconds >= Double(stops[0].departure),
+                      seconds < max(Double(stops[stops.count - 1].arrival), end(index)) else { return nil }
                 return RunningTrip(trip: index, day: day, seconds: seconds)
             }
         }

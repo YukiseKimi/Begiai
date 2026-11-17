@@ -25,26 +25,43 @@ struct MotionEngineTests {
         }
     }
 
-    @Test func aTrainNeverLeavesAStationBeforeItsDeparture() {
+    @Test func aTrainNeverLeavesAStationBeforeItsDeparture() throws {
         let engine = MotionEngine(timetable: ThreeStops.timetable)
-        let state = engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 10 * 60 - 1))
+        let state = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 10 * 60 - 1)))
         #expect(state.phase == .atStation)
         #expect(state.metres == 50_000)
     }
 
-    @Test func aTrainStandsAtAStationEvenWhenTheTimetableGivesOneTime() {
+    @Test func aTrainStandsAtAStationEvenWhenTheTimetableGivesOneTime() throws {
         let engine = MotionEngine(timetable: ThreeStops.timetable)
-        let state = engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 30 * 60 - 10))
+        let state = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 30 * 60 - 10)))
         #expect(state.phase == .atStation)
         #expect(state.lastStop == 2)
     }
 
-    @Test func aRunningTrainIsBetweenItsTwoStations() {
+    @Test func aRunningTrainIsBetweenItsTwoStations() throws {
         let engine = MotionEngine(timetable: ThreeStops.timetable)
-        let state = engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 5 * 60))
+        let state = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 5 * 60)))
         #expect(state.phase == .running)
         #expect(state.metres > 0 && state.metres < 50_000)
         #expect((state.lastStop, state.nextStop) == (0, 1))
+    }
+
+    @Test func aTrainOnAFastSectionDoesNotBorrowTimeToStand() throws {
+        var timetable = ThreeStops.timetable
+        timetable.trips[0].stops[2].arrival = 8 * 3600 + 13 * 60
+        timetable.trips[0].stops[2].departure = 8 * 3600 + 13 * 60
+        let engine = MotionEngine(timetable: timetable)
+        let state = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 13 * 60 - 10)))
+        #expect(state.phase == .running)
+    }
+
+    @Test func theMapShowsOnlyTrainsBetweenDepartureAndArrival() {
+        let engine = MotionEngine(timetable: ThreeStops.timetable)
+        let start = ThreeStops.day.timetableZero
+        #expect(engine.trains(at: start.addingTimeInterval(8 * 3600 - 60)).isEmpty)
+        #expect(engine.trains(at: start.addingTimeInterval(8 * 3600 + 60)).count == 1)
+        #expect(engine.trains(at: start.addingTimeInterval(8 * 3600 + 40 * 60 + 1)).isEmpty)
     }
 }
 

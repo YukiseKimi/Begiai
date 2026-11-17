@@ -1,4 +1,5 @@
 import BegiaiKit
+import BegiaiKitTestSupport
 import Foundation
 import Testing
 
@@ -10,7 +11,7 @@ struct SealedLaunchTests {
     }
 
     @Test func theSealedLaunchPinsTheClock() throws {
-        let launch = try SealedLaunch.read(arguments: ["Begiai", "--sealed", "--reset", "--now", "2026-11-17T15:55:00Z"], allowed: true)
+        let launch = try SealedLaunch.read(arguments: ["Begiai", "--sealed", "--reset", "--now", SealedWorld.now], allowed: true)
         #expect(launch == SealedLaunch(now: Date(timeIntervalSince1970: 1_794_930_900), reset: true))
     }
 

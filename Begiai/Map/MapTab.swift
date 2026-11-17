@@ -10,14 +10,14 @@ struct MapTab: View {
     @State private var cameraHeading = 0.0
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: reduceMotion || !cityZoom ? 1 : 1.0 / 30)) { _ in
-            let trains = store.engine?.trains(at: time.now).filter { $0.phase == .running || $0.phase == .atStation } ?? []
+        TimelineView(.animation(minimumInterval: reduceMotion || !cityZoom ? 1 : 1.0 / 30, paused: time.isPinned)) { _ in
+            let trains = store.engine?.trains(at: time.now) ?? []
             Map(initialPosition: .region(.lithuania)) {
                 ForEach(store.tracks) { track in
                     MapPolyline(coordinates: track.coordinates)
                         .stroke(LinePalette.color(forLine: track.line), lineWidth: 3)
                 }
-                ForEach(trains, id: \.key) { train in
+                ForEach(trains) { train in
                     Annotation("", coordinate: train.coordinate.location, anchor: .center) {
                         capsule(for: train)
                     }
@@ -37,7 +37,9 @@ struct MapTab: View {
             }
         }
         .overlay {
-            if case .failed = store.state {
+            if store.state == .loading {
+                ProgressView()
+            } else if case .failed = store.state {
                 ContentUnavailableView(.mapLoadFailed, systemImage: "tram", description: Text(.mapLoadFailedDetail))
             }
         }
@@ -51,10 +53,6 @@ struct MapTab: View {
         return TrainCapsule(color: LinePalette.color(forLine: trip?.line ?? 0), heading: train.heading - cameraHeading,
                             destination: destination, atStation: train.phase == .atStation, showsLabel: cityZoom)
     }
-}
-
-extension TrainState {
-    var key: String { "\(trip)@\(day)" }
 }
 
 extension Coordinate {
