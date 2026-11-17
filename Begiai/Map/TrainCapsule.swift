@@ -7,6 +7,7 @@ struct TrainCapsule: View {
     let destination: String?
     let atStation: Bool
     let showsLabel: Bool
+    var chosen = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -17,7 +18,8 @@ struct TrainCapsule: View {
                 .rotationEffect(.degrees(heading))
                 .frame(width: 26, height: 14)
                 .background(color, in: .capsule)
-                .overlay(Capsule().stroke(.white, lineWidth: 1.5))
+                .overlay(Capsule().stroke(.white, lineWidth: chosen ? 3 : 1.5))
+                .scaleEffect(chosen ? 1.3 : 1)
                 .shadow(color: color.opacity(atStation ? 0.6 : 0), radius: atStation ? 6 : 0)
                 .phaseAnimator(atStation && !reduceMotion ? [false, true] : [false]) { content, wide in
                     content.scaleEffect(wide ? 1.15 : 1)

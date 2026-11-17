@@ -33,4 +33,25 @@ struct MapScreen {
         XCTAssertEqual(
             names.allElementsBoundByIndex.map(\.label), [name], "Map (Starred): the list is not just \(name)", file: file, line: line)
     }
+
+    func openFirstTrain(file: StaticString = #filePath, line: UInt = #line) -> String {
+        journey.wait(for: journey.element(A11yID.Map.train), "a train", on: "Map", file: file, line: line)
+        let aboveThePanel = journey.app.frame.height * 0.45
+        let trains = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
+        guard let train = trains.first(where: { $0.isHittable && $0.frame.midY < aboveThePanel }) else {
+            XCTFail("Map: no train shows above the panel", file: file, line: line)
+            return ""
+        }
+        let label = train.label
+        train.tap()
+        guard let range = label.range(of: "Train to "), let end = label.range(of: ", scheduled") else {
+            XCTFail("Map: a train reads \(label)", file: file, line: line)
+            return ""
+        }
+        return String(label[range.upperBound..<end.lowerBound])
+    }
+
+    func expectLines(file: StaticString = #filePath, line: UInt = #line) {
+        journey.wait(for: journey.element(A11yID.Map.runningCount), "the running count", on: "Map", file: file, line: line)
+    }
 }

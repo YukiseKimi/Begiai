@@ -240,6 +240,126 @@
           }
         }
       }
+    },
+    "Train.At" : {
+      "comment" : "On a train's page while the train stands at a station: the station and the time it leaves.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At %1$(station)@, leaves at %2$(time)@"
+          }
+        }
+      }
+    },
+    "Train.Back" : {
+      "comment" : "Button on a train's page that goes back to the list of lines.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lines"
+          }
+        }
+      }
+    },
+    "Train.Estimated" : {
+      "comment" : "Note on every train page: why the position is an estimate.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estimated from the timetable. LTG Link publishes no live positions."
+          }
+        }
+      }
+    },
+    "Train.Follow" : {
+      "comment" : "Button on a train's page that keeps the map centred on the train.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Follow"
+          }
+        }
+      }
+    },
+    "Train.Following" : {
+      "comment" : "The Follow button while the map follows the train.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Following"
+          }
+        }
+      }
+    },
+    "Train.Gone" : {
+      "comment" : "Shown on a train's page after the train reaches its last station.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This train has finished its trip."
+          }
+        }
+      }
+    },
+    "Train.In" : {
+      "comment" : "After a time on a train's page: how many minutes from now. minutes is the number.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "in %1$(minutes)lld min"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "in %1$(minutes)lld min"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Train.Next" : {
+      "comment" : "On a train's page: the next station and the time the train is due there.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next: %1$(station)@ at %2$(time)@"
+          }
+        }
+      }
+    },
+    "Train.Title" : {
+      "comment" : "Title of a train's page: its first departure time, first station and last station.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$(time)@ %2$(origin)@ → %3$(destination)@"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

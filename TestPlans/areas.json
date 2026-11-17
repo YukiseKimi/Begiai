@@ -12,7 +12,8 @@
       ],
       "journeys": [
         "LaunchJourney",
-        "StarJourney"
+        "StarJourney",
+        "TrainJourney"
       ],
       "devices": [
         "iPhone 17 Pro"

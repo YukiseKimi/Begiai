@@ -39,6 +39,10 @@ public struct MotionEngine: Sendable {
         schedules = timetable.trips.map(Self.times)
     }
 
+    public func schedule(of trip: Int) -> (arrivals: [Double], departures: [Double]) {
+        schedules[trip]
+    }
+
     public func trains(at date: Date) -> [TrainState] {
         timetable.runningTrips(at: date, until: { schedules[$0].arrivals.last ?? 0 }).compactMap(state)
     }

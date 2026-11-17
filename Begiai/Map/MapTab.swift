@@ -10,9 +10,13 @@ struct MapTab: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var cityZoom = false
     @State private var cameraHeading = 0.0
+    @State private var cameraDistance = 400_000.0
     @State private var panelHeight: PanelHeight = .half
     @State private var panelTotal: CGFloat = 700
     @State private var filter: LineFilter = .all
+    @State private var position: MapCameraPosition = .region(.lithuania)
+    @State private var selected: TrainState.ID?
+    @State private var following = false
     @Environment(\.modelContext) private var modelContext
     @Query private var stars: [Star]
 
@@ -21,8 +25,10 @@ struct MapTab: View {
             .animation(minimumInterval: reduceMotion || !cityZoom ? 1 : 1.0 / 30, paused: time.isPinned)
         ) { _ in
             let trains = store.engine?.trains(at: time.now) ?? []
+            let chosen = trains.first { $0.id == selected }
+            let timeline = chosen.flatMap { train in store.engine.map { $0.timeline(of: train) } }
             ZStack(alignment: .bottom) {
-                Map(initialPosition: .region(.lithuania)) {
+                Map(position: $position) {
                     ForEach(store.tracks) { track in
                         MapPolyline(coordinates: track.coordinates)
                             .stroke(LinePalette.color(forLine: track.line), lineWidth: 3)
@@ -39,19 +45,44 @@ struct MapTab: View {
                 .onMapCameraChange { context in
                     cityZoom = context.camera.distance < 80_000
                     cameraHeading = context.camera.heading
+                    cameraDistance = context.camera.distance
+                }
+                .onChange(of: FollowTarget(following: following, coordinate: chosen?.coordinate), initial: true) {
+                    _, target in
+                    guard target.following, let coordinate = target.coordinate else { return }
+                    position = .camera(
+                        MapCamera(
+                            centerCoordinate: coordinate.location, distance: min(cameraDistance, 25_000),
+                            heading: cameraHeading))
+                }
+                .onChange(of: selected) { following = false }
+                .onChange(of: position.positionedByUser) { _, byUser in
+                    if byUser { following = false }
                 }
                 .safeAreaPadding(.bottom, store.state == .ready ? panelHeight.points(in: panelTotal) : 0)
                 .ignoresSafeArea()
                 if store.state == .ready, let engine = store.engine {
                     GeometryReader { proxy in
                         LinePanel(height: $panelHeight, total: proxy.size.height) {
-                            VStack(spacing: 10) {
-                                RunningHeader(count: trains.count)
-                                LineFilterPicker(filter: $filter)
-                                    .padding(.horizontal)
+                            if selected != nil {
+                                TrainPage(timeline: timeline, color: color(of: chosen), now: time.now, following: $following) {
+                                    selected = nil
+                                }
+                            } else {
+                                VStack(spacing: 10) {
+                                    RunningHeader(count: trains.count)
+                                    LineFilterPicker(filter: $filter)
+                                        .padding(.horizontal)
+                                }
                             }
                         } content: {
-                            lineList(engine: engine, trains: trains)
+                            if selected != nil {
+                                if let timeline {
+                                    StopList(timeline: timeline, color: color(of: chosen))
+                                }
+                            } else {
+                                lineList(engine: engine, trains: trains)
+                            }
                         }
                         .frame(maxHeight: .infinity, alignment: .bottom)
                     }
@@ -105,9 +136,20 @@ struct MapTab: View {
             store.timetable?.stations.indices.contains(stop.station) == true
                 ? store.timetable?.stations[stop.station].name : nil
         }
-        return TrainCapsule(
-            color: LinePalette.color(forLine: trip?.line ?? 0), heading: train.heading - cameraHeading,
-            destination: destination, atStation: train.phase == .atStation, showsLabel: cityZoom)
+        return Button {
+            selected = train.id
+            if panelHeight == .peek { panelHeight = .half }
+        } label: {
+            TrainCapsule(
+                color: color(of: train), heading: train.heading - cameraHeading,
+                destination: destination, atStation: train.phase == .atStation, showsLabel: cityZoom,
+                chosen: train.id == selected)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func color(of train: TrainState?) -> Color {
+        LinePalette.color(forLine: train.flatMap { store.timetable?.trips[$0.trip].line } ?? 0)
     }
 }
 
@@ -127,4 +169,9 @@ extension MKCoordinateRegion {
     @Previewable @State var store = TimetableStore()
     MapTab(store: store)
         .task { await store.load(from: Bundle.main.bundleURL.appending(path: "timetable.json")) }
+}
+
+private struct FollowTarget: Equatable {
+    let following: Bool
+    let coordinate: Coordinate?
 }
