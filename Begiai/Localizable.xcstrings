@@ -25,6 +25,66 @@
         }
       }
     },
+    "Map.RunningNow" : {
+      "comment" : "Header on the map: how many trains run now. count is the number of trains.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%1$(count)lld train running now"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%1$(count)lld trains running now"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Map.Scheduled" : {
+      "comment" : "Shown after the train count: every position comes from the timetable, with no live data.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scheduled"
+          }
+        }
+      }
+    },
+    "Map.TrainLabel" : {
+      "comment" : "VoiceOver label of a train on the map. station is the train's last station.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Train to %1$(station)@, scheduled"
+          }
+        }
+      }
+    },
+    "Map.TrainTo" : {
+      "comment" : "Label beside a train on the map at city zoom. station is the train's last station.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "→ %1$(station)@"
+          }
+        }
+      }
+    },
     "Tab.LineDiagram" : {
       "comment" : "Title of the tab that shows one line as a vertical diagram of its stations.",
       "extractionState" : "manual",
