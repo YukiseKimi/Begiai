@@ -62,7 +62,9 @@ struct MapScreen {
         journey.wait(for: journey.element(A11yID.Map.station), "a station", on: "Map", file: file, line: line)
         let aboveThePanel = journey.app.frame.height * 0.45
         let stations = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.station).allElementsBoundByIndex
-        guard let station = stations.first(where: { $0.isHittable && $0.frame.midY < aboveThePanel }) else {
+        let trains = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex.map(\.frame)
+        let clear = { (station: XCUIElement) in trains.allSatisfy { !$0.intersects(station.frame) } }
+        guard let station = stations.first(where: { $0.isHittable && $0.frame.midY < aboveThePanel && clear($0) }) else {
             XCTFail("Map: no station shows above the panel", file: file, line: line)
             return ""
         }
@@ -78,5 +80,30 @@ struct MapScreen {
         XCTAssertTrue(card.label.contains("→"), "Map at night: the card reads \(card.label)", file: file, line: line)
         let trains = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train)
         XCTAssertEqual(trains.count, 0, "Map at night: \(trains.count) trains show", file: file, line: line)
+    }
+
+    private var springboard: XCUIApplication { XCUIApplication(bundleIdentifier: "com.apple.springboard") }
+
+    func expectNoLocationPrompt(file: StaticString = #filePath, line: UInt = #line) {
+        journey.wait(for: journey.element(A11yID.Map.runningCount), "the running count", on: "Map", file: file, line: line)
+        XCTAssertFalse(
+            springboard.alerts.firstMatch.exists || journey.app.alerts.firstMatch.exists,
+            "Map: a prompt shows before any tap", file: file, line: line)
+    }
+
+    func tapLocate(file: StaticString = #filePath, line: UInt = #line) {
+        journey.wait(for: journey.element(A11yID.Map.locate), "the Locate button", on: "Map", file: file, line: line).tap()
+    }
+
+    func expectLocationPrompt(file: StaticString = #filePath, line: UInt = #line) {
+        let shown = XCTNSPredicateExpectation(
+            predicate: NSPredicate { _, _ in self.springboard.alerts.firstMatch.exists || self.journey.app.alerts.firstMatch.exists },
+            object: nil)
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [shown], timeout: 10), .completed, "Map: the location prompt never appeared",
+            file: file, line: line)
+        let alert = springboard.alerts.firstMatch.exists ? springboard.alerts.firstMatch : journey.app.alerts.firstMatch
+        XCTAssertGreaterThanOrEqual(alert.buttons.count, 2, "Map: the prompt offers no choice", file: file, line: line)
+        alert.buttons.element(boundBy: 1).tap()
     }
 }

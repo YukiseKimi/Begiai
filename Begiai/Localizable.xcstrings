@@ -169,6 +169,18 @@
         }
       }
     },
+    "Map.Locate" : {
+      "comment" : "VoiceOver label of the button that centres the map on the user's location.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show my location"
+          }
+        }
+      }
+    },
     "Map.RunningNow" : {
       "comment" : "Header on the map: how many trains run now. count is the number of trains.",
       "extractionState" : "manual",

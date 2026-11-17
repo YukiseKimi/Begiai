@@ -9,6 +9,7 @@ enum A11yID {
         static let filter = "map.filter"
         static let station = "map.station"
         static let firstTrain = "map.firstTrain"
+        static let locate = "map.locate"
     }
 
     enum Train {
@@ -47,6 +48,7 @@ enum A11yID {
         Entry(id: Train.back, element: "the Lines button on a train's page", screen: "Train"),
         Entry(id: Train.follow, element: "the Follow button on a train's page", screen: "Train"),
         Entry(id: Train.stop, element: "each stop in a train's stop list", screen: "Train"),
+        Entry(id: Map.locate, element: "the Locate button on the map", screen: "Map"),
         Entry(id: Map.firstTrain, element: "the first train on the night card", screen: "Map"),
         Entry(id: Map.station, element: "each station marker on the map", screen: "Map"),
         Entry(id: Board.title, element: "the station name on its board", screen: "Board"),

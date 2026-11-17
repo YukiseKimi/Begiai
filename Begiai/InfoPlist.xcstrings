@@ -1,0 +1,18 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "NSLocationWhenInUseUsageDescription" : {
+      "comment" : "Shown when the user taps Locate on the map for the first time.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bėgiai shows where you are on the map. Your location stays on this iPhone and is never stored."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

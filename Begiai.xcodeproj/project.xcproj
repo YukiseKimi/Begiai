@@ -66,6 +66,7 @@
         "GENERATE_INFOPLIST_FILE": "YES",
         "INFOPLIST_FILE": "Config/Begiai-Info.plist",
         "INFOPLIST_KEY_CFBundleDisplayName": "Bėgiai",
+        "INFOPLIST_KEY_NSLocationWhenInUseUsageDescription": "Bėgiai shows where you are on the map. Your location stays on this iPhone and is never stored.",
         "INFOPLIST_KEY_UIApplicationSceneManifest_Generation": "YES",
         "INFOPLIST_KEY_UILaunchScreen_Generation": "YES",
         "INFOPLIST_KEY_UISupportedInterfaceOrientations": "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight",

@@ -17,6 +17,7 @@ struct MapTab: View {
     @State private var position: MapCameraPosition = .region(.lithuania)
     @State private var selection: PanelSelection?
     @State private var following = false
+    @Namespace private var mapScope
     @Environment(\.modelContext) private var modelContext
     @Query private var stars: [Star]
 
@@ -28,7 +29,8 @@ struct MapTab: View {
             let chosen = trains.first { selection == .train($0.id) }
             let timeline = chosen.flatMap { train in store.engine.map { $0.timeline(of: train) } }
             ZStack(alignment: .bottom) {
-                Map(position: $position) {
+                Map(position: $position, scope: mapScope) {
+                    UserAnnotation()
                     ForEach(store.tracks) { track in
                         MapPolyline(coordinates: track.coordinates)
                             .stroke(LinePalette.color(forLine: track.line), lineWidth: 3)
@@ -50,6 +52,9 @@ struct MapTab: View {
                     }
                 }
                 .mapStyle(.standard(emphasis: .muted, pointsOfInterest: .excludingAll))
+                .mapControls {
+                    MapScaleView()
+                }
                 .accessibilityIdentifier(A11yID.Map.page)
                 .onMapCameraChange { context in
                     cityZoom = context.camera.distance < 80_000
@@ -70,6 +75,14 @@ struct MapTab: View {
                 }
                 .safeAreaPadding(.bottom, store.state == .ready ? panelHeight.points(in: panelTotal) : 0)
                 .ignoresSafeArea()
+                .overlay(alignment: .topTrailing) {
+                    VStack(spacing: 10) {
+                        LocateButton(position: $position) { following = false }
+                        MapCompass(scope: mapScope)
+                    }
+                    .padding()
+                }
+                .mapScope(mapScope)
                 if store.state == .ready, let engine = store.engine {
                     GeometryReader { proxy in
                         LinePanel(height: $panelHeight, total: proxy.size.height) {

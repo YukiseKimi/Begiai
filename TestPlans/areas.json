@@ -15,7 +15,8 @@
         "StarJourney",
         "TrainJourney",
         "StationJourney",
-        "NightJourney"
+        "NightJourney",
+        "LocateJourney"
       ],
       "devices": [
         "iPhone 17 Pro"
