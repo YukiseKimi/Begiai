@@ -1,0 +1,173 @@
+{
+ "source": "ltg-engine.js sectionDistance, prototype of 16 Nov 2026",
+ "cases": [
+  {
+   "metres": 15900,
+   "seconds": 240,
+   "elapsed": 0,
+   "covered": 0
+  },
+  {
+   "metres": 15900,
+   "seconds": 240,
+   "elapsed": 24,
+   "covered": 318
+  },
+  {
+   "metres": 15900,
+   "seconds": 240,
+   "elapsed": 60,
+   "covered": 1987.5
+  },
+  {
+   "metres": 15900,
+   "seconds": 240,
+   "elapsed": 120,
+   "covered": 7950
+  },
+  {
+   "metres": 15900,
+   "seconds": 240,
+   "elapsed": 180,
+   "covered": 13912.5
+  },
+  {
+   "metres": 15900,
+   "seconds": 240,
+   "elapsed": 216,
+   "covered": 15582
+  },
+  {
+   "metres": 15900,
+   "seconds": 240,
+   "elapsed": 240,
+   "covered": 15900
+  },
+  {
+   "metres": 9000,
+   "seconds": 480,
+   "elapsed": 0,
+   "covered": 0
+  },
+  {
+   "metres": 9000,
+   "seconds": 480,
+   "elapsed": 48,
+   "covered": 627.333
+  },
+  {
+   "metres": 9000,
+   "seconds": 480,
+   "elapsed": 120,
+   "covered": 2070.614
+  },
+  {
+   "metres": 9000,
+   "seconds": 480,
+   "elapsed": 240,
+   "covered": 4476.082
+  },
+  {
+   "metres": 9000,
+   "seconds": 480,
+   "elapsed": 360,
+   "covered": 6881.55
+  },
+  {
+   "metres": 9000,
+   "seconds": 480,
+   "elapsed": 432,
+   "covered": 8324.83
+  },
+  {
+   "metres": 9000,
+   "seconds": 480,
+   "elapsed": 480,
+   "covered": 9000
+  },
+  {
+   "metres": 36196,
+   "seconds": 1380,
+   "elapsed": 0,
+   "covered": 0
+  },
+  {
+   "metres": 36196,
+   "seconds": 1380,
+   "elapsed": 138,
+   "covered": 3123.105
+  },
+  {
+   "metres": 36196,
+   "seconds": 1380,
+   "elapsed": 345,
+   "covered": 8722.358
+  },
+  {
+   "metres": 36196,
+   "seconds": 1380,
+   "elapsed": 690,
+   "covered": 18054.448
+  },
+  {
+   "metres": 36196,
+   "seconds": 1380,
+   "elapsed": 1035,
+   "covered": 27386.537
+  },
+  {
+   "metres": 36196,
+   "seconds": 1380,
+   "elapsed": 1242,
+   "covered": 32985.791
+  },
+  {
+   "metres": 36196,
+   "seconds": 1380,
+   "elapsed": 1380,
+   "covered": 36196
+  },
+  {
+   "metres": 2000,
+   "seconds": 60,
+   "elapsed": 0,
+   "covered": 0
+  },
+  {
+   "metres": 2000,
+   "seconds": 60,
+   "elapsed": 6,
+   "covered": 40
+  },
+  {
+   "metres": 2000,
+   "seconds": 60,
+   "elapsed": 15,
+   "covered": 250
+  },
+  {
+   "metres": 2000,
+   "seconds": 60,
+   "elapsed": 30,
+   "covered": 1000
+  },
+  {
+   "metres": 2000,
+   "seconds": 60,
+   "elapsed": 45,
+   "covered": 1750
+  },
+  {
+   "metres": 2000,
+   "seconds": 60,
+   "elapsed": 54,
+   "covered": 1960
+  },
+  {
+   "metres": 2000,
+   "seconds": 60,
+   "elapsed": 60,
+   "covered": 2000
+  }
+ ]
+}

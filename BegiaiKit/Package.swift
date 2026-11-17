@@ -17,7 +17,7 @@ let package = Package(
             dependencies: ["BegiaiKit"],
             path: "Tests/BegiaiKitTestSupport"
         ),
-        .testTarget(name: "TimetableTests", dependencies: ["BegiaiKit", "BegiaiKitTestSupport"]),
+        .testTarget(name: "TimetableTests", dependencies: ["BegiaiKit", "BegiaiKitTestSupport"], resources: [.copy("Fixtures")]),
         .testTarget(name: "BundleTests", dependencies: ["BundleBuilder", "BegiaiKitTestSupport"]),
     ],
     swiftLanguageModes: [.v6]

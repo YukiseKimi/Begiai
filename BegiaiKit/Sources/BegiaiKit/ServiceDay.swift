@@ -81,7 +81,7 @@ extension Timetable {
             let seconds = date.timeIntervalSince(day.timetableZero)
             return trips(on: day).compactMap { index -> RunningTrip? in
                 let stops = trips[index].stops
-                guard let first = stops.first, let last = stops.last,
+                guard stops.count >= 2, let first = stops.first, let last = stops.last,
                       seconds >= Double(first.departure) - Self.shownBeforeDeparture,
                       seconds <= Double(last.arrival) + Self.shownAfterArrival else { return nil }
                 return RunningTrip(trip: index, day: day, seconds: seconds)
