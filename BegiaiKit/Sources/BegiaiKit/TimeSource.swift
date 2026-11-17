@@ -12,9 +12,9 @@ public struct SystemTime: TimeSource {
 public enum Vilnius {
     public static let timeZone = TimeZone(identifier: "Europe/Vilnius")!
 
-    public static var calendar: Calendar {
+    public static let calendar: Calendar = {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = timeZone
         return calendar
-    }
+    }()
 }
