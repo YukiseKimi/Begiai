@@ -18,7 +18,8 @@ script/test.sh <lane>
                               the UI journeys on $BEGIAI_SIM (a simulator UDID)
   build                       Release, unsigned, and the sealed-launch check
   a11y [--check]              writes A11yID.md from A11yID.swift, or checks it
-  all                         a11y --check, unit, build, journey
+  check                       a11y --check, unit, build: the check before each commit
+  all                         check, then journey
 USAGE
   exit 2
 }
@@ -55,7 +56,7 @@ lane_unit() {
   local code=$?
   if [[ $code == 124 ]]; then grep TIMEOUT "$log"; exit 124; fi
   local count
-  count=$(grep -oE 'Test run with [0-9]+ test' "$log" | grep -oE '[0-9]+' | tail -1)
+  count=$(grep -oE 'Test run with [0-9]+ test' "$log" | grep -oE '[0-9]+' | paste -sd+ - | bc)
   if [[ $code == 0 ]]; then
     echo "GREEN ${count:-0} tests · unit · $((SECONDS - start)) s"
   else
@@ -142,6 +143,7 @@ case $lane in
   unit) lock; lane_unit "$@" ;;
   journey) lock; lane_journey "$@" ;;
   build) lock; lane_build ;;
+  check) lock; lane_a11y --check && lane_unit && lane_build ;;
   all) lock; lane_a11y --check && lane_unit && lane_build && lane_journey ;;
   *) usage ;;
 esac

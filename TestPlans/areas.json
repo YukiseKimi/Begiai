@@ -7,6 +7,14 @@
       "journeys": ["LaunchJourney"],
       "devices": ["iPhone 17 Pro"],
       "wayIn": "the first screen"
+    },
+    {
+      "id": "bundle",
+      "paths": ["BegiaiKit/Sources/BundleBuilder/", "BegiaiKit/Sources/BundleTool/", "script/bundle.sh"],
+      "unit": ["BundleTests"],
+      "journeys": [],
+      "devices": [],
+      "wayIn": "script/bundle.sh"
     }
   ]
 }
