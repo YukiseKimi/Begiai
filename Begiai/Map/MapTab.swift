@@ -108,8 +108,8 @@ struct MapTab: View {
 
     private var pace: TrainsModel.Pace {
         if time.isPinned || scenePhase != .active { return .still }
-        if reduceMotion || lowPower || !trains.cityZoom || !trains.trainInSight { return .second }
-        return .smooth
+        if reduceMotion || lowPower || !trains.trainInSight { return .every(.seconds(1)) }
+        return .every(trains.frame)
     }
 
     private func lineList(engine: MotionEngine, now: Date) -> some View {

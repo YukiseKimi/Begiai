@@ -9,21 +9,21 @@ import Observation
 @Observable
 final class TrainsModel {
     enum Pace: Hashable {
-        /// 30 frames a second: city zoom, with a train in sight.
-        case smooth
-        /// Once a second: country zoom, no train in sight, Reduce Motion or Low Power Mode.
-        case second
-        /// Once, then no more: a pinned clock, or the app not on screen.
+        /// An update after each interval.
+        case every(Duration)
+        /// One update, then no more: a pinned clock, or the app not on screen.
         case still
 
         var interval: Duration? {
             switch self {
-            case .smooth: .seconds(1.0 / 30)
-            case .second: .seconds(1)
+            case .every(let interval): interval
             case .still: nil
             }
         }
     }
+
+    /// The frame intervals the map can use, shortest first.
+    private static let frames: [Duration] = [30, 15, 10, 5, 2, 1].map { (perSecond: Double) in .seconds(1 / perSecond) }
 
     private(set) var moving: [TrainState] = []
     private(set) var settled: [TrainState] = []
@@ -32,12 +32,25 @@ final class TrainsModel {
     private(set) var cityZoom = false
     private(set) var trainInSight = false
     private(set) var region: MKCoordinateRegion?
+    /// The longest frame at which a train in sight moves no more than half a point each frame.
+    private(set) var frame = Duration.seconds(1)
 
     func look(at region: MKCoordinateRegion, distance: Double) {
         let city = distance < 80_000
         if city != cityZoom { cityZoom = city }
         self.region = region
+        let frame = Self.frame(for: region)
+        if frame != self.frame { self.frame = frame }
         lookForTrains()
+    }
+
+    /// A train at 160 km/h, on a map about 400 points wide, moves this many points each second.
+    /// The frame is the longest that keeps each step at or below half a point.
+    private static func frame(for region: MKCoordinateRegion) -> Duration {
+        let metresWide = region.span.longitudeDelta * 111_320 * cos(region.center.latitude * .pi / 180)
+        let pointsPerSecond = (160 / 3.6) / (metresWide / 400)
+        let longest = Duration.seconds(min(0.5 / pointsPerSecond, 1))
+        return frames.last { $0 <= longest } ?? frames[0]
     }
 
     func run(engine: MotionEngine, time: any TimeSource, pace: Pace) async {
