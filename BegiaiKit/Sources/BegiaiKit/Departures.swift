@@ -23,16 +23,15 @@ public struct FirstTrain: Equatable, Sendable {
 extension MotionEngine {
     public func departures(from station: Int, at date: Date, limit: Int = 8) -> [Departure] {
         let today = ServiceDate(date)
-        let rows = [today.adding(days: -1), today, today.adding(days: 1)].flatMap { day in
-            let zero = day.timetableZero
-            return timetable.trips(on: day).flatMap { index -> [Departure] in
+        let rows = [today.adding(days: -1), today, today.adding(days: 1)].map(day).flatMap { day in
+            day.trips.flatMap { index -> [Departure] in
                 let stops = timetable.trips[index].stops
                 return stops.indices.dropLast().compactMap { at -> Departure? in
                     guard stops[at].station == station else { return nil }
-                    let time = zero.addingTimeInterval(schedule(of: index).departures[at])
+                    let time = day.zero.addingTimeInterval(schedule(of: index).departures[at])
                     guard time >= date else { return nil }
                     return Departure(
-                        id: Departure.ID(trip: index, day: day, stop: at), time: time,
+                        id: Departure.ID(trip: index, day: day.date, stop: at), time: time,
                         destination: timetable.stations[stops[stops.count - 1].station].name,
                         startsHere: at == 0, tomorrow: ServiceDate(time) > today)
                 }
@@ -43,12 +42,11 @@ extension MotionEngine {
 
     public func firstTrain(after date: Date) -> FirstTrain? {
         let today = ServiceDate(date)
-        let candidates = [today.adding(days: -1), today, today.adding(days: 1)].compactMap {
+        let candidates = [today.adding(days: -1), today, today.adding(days: 1)].map(day).compactMap {
             day -> FirstTrain? in
-            let zero = day.timetableZero
-            return timetable.trips(on: day).compactMap { index -> FirstTrain? in
+            day.trips.compactMap { index -> FirstTrain? in
                 let stops = timetable.trips[index].stops
-                let time = zero.addingTimeInterval(schedule(of: index).departures[0])
+                let time = day.zero.addingTimeInterval(schedule(of: index).departures[0])
                 guard time >= date else { return nil }
                 return FirstTrain(
                     time: time, origin: timetable.stations[stops[0].station].name,

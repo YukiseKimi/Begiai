@@ -33,6 +33,22 @@ struct ServiceDayTests {
         #expect(timetable.trips(on: tuesday) == [0])
     }
 
+    @Test func theEngineAgreesWithTheTimetableHourByHourThroughAWeekAndBack() {
+        let timetable = TinyTimetable.make(trips: [
+            ("weekday", "1111100", 8 * 3600, 9 * 3600), ("late", "1111111", 23 * 3600 + 30 * 60, 24 * 3600 + 50 * 60),
+            ("sunday", "0000001", 12 * 3600, 13 * 3600),
+        ])
+        let engine = MotionEngine(timetable: timetable)
+        let hours = Array(0..<(8 * 24)) + (0..<(8 * 24)).reversed()
+        for hour in hours {
+            let date = tuesday.midnight.addingTimeInterval(Double(hour) * 3600 + 15 * 60)
+            let expected = timetable.runningTrips(at: date, until: { engine.schedule(of: $0).arrivals.last ?? 0 })
+            #expect(engine.trains(at: date).map { "\($0.trip)@\($0.day)" } == expected.map { "\($0.trip)@\($0.day)" })
+            let today = timetable.trips(on: ServiceDate(date)).count
+            #expect(engine.lineSummaries(at: date, trains: []).map(\.tripsToday).reduce(0, +) == today)
+        }
+    }
+
     @Test func aWeekdayServiceDoesNotRunOnSunday() {
         let timetable = TinyTimetable.make(trips: [("weekday", "1111100", 8 * 3600, 9 * 3600)])
         #expect(timetable.trips(on: tuesday) == [0])

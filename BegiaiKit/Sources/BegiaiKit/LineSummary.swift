@@ -21,10 +21,7 @@ extension MotionEngine {
         let lines = timetable.lines
         var now = Array(repeating: 0, count: lines.count)
         for train in trains where now.indices.contains(timetable.trips[train.trip].line) { now[timetable.trips[train.trip].line] += 1 }
-        var today = Array(repeating: 0, count: lines.count)
-        for trip in timetable.trips(on: ServiceDate(date)) where today.indices.contains(timetable.trips[trip].line) {
-            today[timetable.trips[trip].line] += 1
-        }
+        let today = day(ServiceDate(date)).tripsPerLine
         return lines.indices
             .map {
                 LineSummary(id: $0, name: lines[$0].name, international: lines[$0].international, trainsNow: now[$0], tripsToday: today[$0])

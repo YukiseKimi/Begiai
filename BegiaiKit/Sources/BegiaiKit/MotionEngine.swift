@@ -33,6 +33,7 @@ public struct MotionEngine: Sendable {
 
     public let timetable: Timetable
     private let schedules: [(arrivals: [Double], departures: [Double])]
+    private let days = DayCache()
 
     public init(timetable: Timetable) {
         self.timetable = timetable
@@ -44,7 +45,11 @@ public struct MotionEngine: Sendable {
     }
 
     public func trains(at date: Date) -> [TrainState] {
-        timetable.runningTrips(at: date, until: { schedules[$0].arrivals.last ?? 0 }).compactMap(state)
+        timetable.runningTrips(at: date, until: { schedules[$0].arrivals.last ?? 0 }, days: day).compactMap(state)
+    }
+
+    func day(_ date: ServiceDate) -> ServiceDay {
+        days.day(date, in: timetable)
     }
 
     public func state(of running: RunningTrip) -> TrainState? {
