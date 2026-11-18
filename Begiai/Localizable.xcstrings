@@ -97,6 +97,186 @@
         }
       }
     },
+    "Frequency.Gap.HourRange" : {
+      "comment" : "A range of gaps between trains in hours, used inside the frequency text.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$(low)lld–%2$(high)lld h"
+          }
+        }
+      }
+    },
+    "Frequency.Gap.Hours" : {
+      "comment" : "A gap between trains in hours, used inside the frequency text.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$(hours)lld h"
+          }
+        }
+      }
+    },
+    "Frequency.Gap.MinuteRange" : {
+      "comment" : "A range of gaps between trains in minutes, used inside the frequency text.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$(low)lld–%2$(high)lld min"
+          }
+        }
+      }
+    },
+    "Frequency.Gap.Minutes" : {
+      "comment" : "A gap between trains in minutes, used inside the frequency text.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$(minutes)lld min"
+          }
+        }
+      }
+    },
+    "Frequency.Line" : {
+      "comment" : "Line Diagram: the rush-hour text, then the midday text, for example “Every 30–60 min at rush hour · every 2 h midday”.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$(rush)@ · %2$(midday)@"
+          }
+        }
+      }
+    },
+    "Frequency.Midday.Every" : {
+      "comment" : "Line Diagram, after the rush-hour text and “·”: how often trains leave 10–15. gap is a time such as “2 h”.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "every %1$(gap)@ midday"
+          }
+        }
+      }
+    },
+    "Frequency.Midday.None" : {
+      "comment" : "Line Diagram, after the rush-hour text and “·”: no train leaves 10–15.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "no train midday"
+          }
+        }
+      }
+    },
+    "Frequency.Midday.One" : {
+      "comment" : "Line Diagram, after the rush-hour text and “·”: only one train leaves 10–15.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 train midday"
+          }
+        }
+      }
+    },
+    "Frequency.Midday.Trains" : {
+      "comment" : "Line Diagram, after the rush-hour text and “·”: count trains leave 10–15.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%1$(count)lld train midday"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%1$(count)lld trains midday"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Frequency.Rush.Every" : {
+      "comment" : "Line Diagram: how often trains leave the line's first station 06–09 and 16–19. gap is a time such as “30–60 min”.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every %1$(gap)@ at rush hour"
+          }
+        }
+      }
+    },
+    "Frequency.Rush.None" : {
+      "comment" : "Line Diagram: no train leaves the line's first station 06–09 and 16–19.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No train at rush hour"
+          }
+        }
+      }
+    },
+    "Frequency.Rush.One" : {
+      "comment" : "Line Diagram: only one train leaves the line's first station 06–09 and 16–19.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 train at rush hour"
+          }
+        }
+      }
+    },
+    "Frequency.Rush.Trains" : {
+      "comment" : "Line Diagram: count trains leave the first station 06–09 and 16–19, but never two in the same period, so there is no gap to show.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%1$(count)lld train at rush hour"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%1$(count)lld trains at rush hour"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "Line.NoneStarred" : {
       "comment" : "Title shown when the Starred filter is on and the user starred nothing.",
       "extractionState" : "manual",

@@ -73,6 +73,31 @@ enum FourStations {
     }
 }
 
+@Suite("Line frequency", .sealed, .timeLimit(.minutes(1)))
+struct LineFrequencyTests {
+    let tuesday = ServiceDate(year: 2026, month: 11, day: 17)
+
+    @Test func theGapsAtRushHourAndMiddayComeFromTheFirstEnd() {
+        let hours = [6.0, 6.5, 7.5, 16, 17, 11, 13]
+        let timetable = TinyTimetable.make(trips: hours.enumerated().map { ("t\($0)", "1111111", Int($1 * 3600), Int($1 * 3600) + 3600) })
+        let frequency = MotionEngine(timetable: timetable).frequency(of: 0, on: tuesday)
+        #expect(frequency.rush == .every(30...60))
+        #expect(frequency.midday == .every(120...120))
+    }
+
+    @Test func oneOrNoDepartureInAPeriodSaysSo() {
+        let timetable = TinyTimetable.make(trips: [("morning", "1111111", 7 * 3600, 8 * 3600)])
+        let frequency = MotionEngine(timetable: timetable).frequency(of: 0, on: tuesday)
+        #expect(frequency.rush == .one)
+        #expect(frequency.midday == .noTrain)
+    }
+
+    @Test func aServiceThatDoesNotRunThatDayDoesNotCount() {
+        let timetable = TinyTimetable.make(trips: [("a", "1111111", 11 * 3600, 12 * 3600), ("weekend", "0000011", 12 * 3600, 13 * 3600)])
+        #expect(MotionEngine(timetable: timetable).frequency(of: 0, on: tuesday).midday == .one)
+    }
+}
+
 @Suite("A chosen train", .sealed, .timeLimit(.minutes(1)))
 struct ChosenTrainTests {
     let engine = MotionEngine(timetable: FourStations.timetable)
@@ -83,5 +108,20 @@ struct ChosenTrainTests {
         let later = try #require(engine.train(id, at: zero.addingTimeInterval(8 * 3600 + 25 * 60)))
         #expect(later.lastStop == 2)
         #expect(engine.train(id, at: zero.addingTimeInterval(8 * 3600 + 31 * 60)) == nil)
+    }
+}
+
+@Suite("Line frequency, edge cases", .sealed, .timeLimit(.minutes(1)))
+struct LineFrequencyEdgeTests {
+    let tuesday = ServiceDate(year: 2026, month: 11, day: 17)
+
+    @Test func oneTrainInEachRushPeriodIsTwoTrains() {
+        let timetable = TinyTimetable.make(trips: [("morning", "1111111", 7 * 3600, 8 * 3600), ("evening", "1111111", 17 * 3600, 18 * 3600)])
+        #expect(MotionEngine(timetable: timetable).frequency(of: 0, on: tuesday).rush == .trains(2))
+    }
+
+    @Test func twoTrainsAMinuteApartAreNeverZeroMinutesApart() {
+        let timetable = TinyTimetable.make(trips: [("a", "1111111", 7 * 3600, 8 * 3600), ("b", "1111111", 7 * 3600 + 120, 8 * 3600), ("c", "1111111", 8 * 3600, 9 * 3600)])
+        #expect(MotionEngine(timetable: timetable).frequency(of: 0, on: tuesday).rush == .every(5...60))
     }
 }

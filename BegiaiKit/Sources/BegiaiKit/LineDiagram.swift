@@ -80,3 +80,53 @@ public struct LineDiagram: Sendable {
         return order + left
     }
 }
+
+/// How often the trains of a line leave its first end, at rush hour and at midday.
+public struct LineFrequency: Equatable, Sendable {
+    public enum Period: Equatable, Sendable {
+        case noTrain
+        case one
+        /// More than one train, but never two in one block of hours, so there is no gap.
+        case trains(Int)
+        /// The shortest and the longest gap between two departures, in minutes, to the nearest 5
+        /// and never under 5.
+        case every(ClosedRange<Int>)
+    }
+
+    /// 06:00–09:00 and 16:00–19:00.
+    public let rush: Period
+    /// 10:00–15:00.
+    public let midday: Period
+
+    public init(rush: Period, midday: Period) {
+        self.rush = rush
+        self.midday = midday
+    }
+}
+
+extension MotionEngine {
+    static let rushHours = [6..<9, 16..<19]
+    static let middayHours = [10..<15]
+
+    public func frequency(of line: Int, on date: ServiceDate) -> LineFrequency {
+        guard let end = timetable.lines[line].ends.first else { return LineFrequency(rush: .noTrain, midday: .noTrain) }
+        let departures = day(date).trips.compactMap { trip -> Double? in
+            let stops = timetable.trips[trip].stops
+            guard timetable.trips[trip].line == line,
+                let at = stops.indices.dropLast().first(where: { stops[$0].station == end })
+            else { return nil }
+            return schedule(of: trip).departures[at]
+        }
+        .sorted()
+        func period(_ hours: [Range<Int>]) -> LineFrequency.Period {
+            let groups = hours.map { range in departures.filter { range.contains(Int($0) / 3600) } }
+            let gaps = groups.flatMap { group in zip(group, group.dropFirst()).map { max(5, Int((($1 - $0) / 300).rounded()) * 5) } }
+            guard let shortest = gaps.min(), let longest = gaps.max() else {
+                let count = groups.joined().count
+                return count == 0 ? .noTrain : count == 1 ? .one : .trains(count)
+            }
+            return .every(shortest...longest)
+        }
+        return LineFrequency(rush: period(Self.rushHours), midday: period(Self.middayHours))
+    }
+}

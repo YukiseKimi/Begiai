@@ -28,6 +28,10 @@ enum A11yID {
 
     enum LineDiagram {
         static let page = "lineDiagram.page"
+        static let chip = "lineDiagram.chip"
+        static let frequency = "lineDiagram.frequency"
+        static let station = "lineDiagram.station"
+        static let train = "lineDiagram.train"
     }
 
     struct Entry {
@@ -55,6 +59,10 @@ enum A11yID {
         Entry(id: Board.back, element: "the Lines button on a station board", screen: "Board"),
         Entry(id: Board.row, element: "each departure on a station board", screen: "Board"),
         Entry(id: Board.star, element: "the star button of a station board", screen: "Board"),
-        Entry(id: LineDiagram.page, element: "the Line Diagram tab's content", screen: "Line Diagram"),
+        Entry(id: LineDiagram.page, element: "the name of the line on the Line Diagram tab", screen: "Line Diagram"),
+        Entry(id: LineDiagram.chip, element: "each line chip at the top of the Line Diagram", screen: "Line Diagram"),
+        Entry(id: LineDiagram.frequency, element: "how often the trains of the chosen line leave", screen: "Line Diagram"),
+        Entry(id: LineDiagram.station, element: "each station on the line diagram", screen: "Line Diagram"),
+        Entry(id: LineDiagram.train, element: "each train on the line diagram", screen: "Line Diagram"),
     ]
 }
