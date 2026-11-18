@@ -8,131 +8,84 @@ struct MapTab: View {
     let store: TimetableStore
     @Environment(\.timeSource) private var time
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var cityZoom = false
-    @State private var cameraHeading = 0.0
-    @State private var cameraDistance = 400_000.0
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var trains = TrainsModel()
+    @State private var lowPower = ProcessInfo.processInfo.isLowPowerModeEnabled
     @State private var panelHeight: PanelHeight = .half
     @State private var panelTotal: CGFloat = 700
     @State private var filter: LineFilter = .all
     @State private var position: MapCameraPosition = .region(.lithuania)
     @State private var selection: PanelSelection?
     @State private var following = false
-    @Namespace private var mapScope
     @Environment(\.modelContext) private var modelContext
     @Query private var stars: [Star]
 
     var body: some View {
-        TimelineView(
-            .animation(minimumInterval: reduceMotion || !cityZoom ? 1 : 1.0 / 30, paused: time.isPinned)
-        ) { _ in
-            let trains = store.engine?.trains(at: time.now) ?? []
-            let chosen = trains.first { selection == .train($0.id) }
-            let timeline = chosen.flatMap { train in store.engine.map { $0.timeline(of: train) } }
-            ZStack(alignment: .bottom) {
-                Map(position: $position, scope: mapScope) {
-                    UserAnnotation()
-                    ForEach(store.tracks) { track in
-                        MapPolyline(coordinates: track.coordinates)
-                            .stroke(LinePalette.color(forLine: track.line), lineWidth: 3)
-                    }
-                    ForEach(visibleStations, id: \.offset) { station, info in
-                        Annotation("", coordinate: info.coordinate.location, anchor: .center) {
-                            StationMarker(name: info.name, chosen: selection == .station(station), compact: !cityZoom) {
-                                selection = .station(station)
-                                if panelHeight == .peek { panelHeight = .half }
+        let chosen = chosenTrain
+        let timeline = chosen.flatMap { train in store.engine.map { $0.timeline(of: train) } }
+        ZStack(alignment: .bottom) {
+            TrainsMap(
+                store: store, trains: trains, position: $position, selection: $selection, following: $following,
+                panelHeight: $panelHeight, bottomInset: store.state == .ready ? panelHeight.points(in: panelTotal) : 0
+            )
+            if store.state == .ready, let engine = store.engine, let now = trains.now {
+                GeometryReader { proxy in
+                    LinePanel(height: $panelHeight, total: proxy.size.height) {
+                        switch selection {
+                        case .train:
+                            TrainPage(timeline: timeline, color: color(of: chosen), now: now, following: $following) {
+                                selection = nil
                             }
-                        }
-                        .annotationTitles(.hidden)
-                    }
-                    ForEach(trains) { train in
-                        Annotation("", coordinate: train.coordinate.location, anchor: .center) {
-                            capsule(for: train)
-                        }
-                        .annotationTitles(.hidden)
-                    }
-                }
-                .mapStyle(.standard(emphasis: .muted, pointsOfInterest: .excludingAll))
-                .mapControls {
-                    MapScaleView()
-                }
-                .accessibilityIdentifier(A11yID.Map.page)
-                .onMapCameraChange { context in
-                    cityZoom = context.camera.distance < 80_000
-                    cameraHeading = context.camera.heading
-                    cameraDistance = context.camera.distance
-                }
-                .onChange(of: FollowTarget(following: following, coordinate: chosen?.coordinate), initial: true) {
-                    _, target in
-                    guard target.following, let coordinate = target.coordinate else { return }
-                    position = .camera(
-                        MapCamera(
-                            centerCoordinate: coordinate.location, distance: min(cameraDistance, 25_000),
-                            heading: cameraHeading))
-                }
-                .onChange(of: selection) { following = false }
-                .onChange(of: position.positionedByUser) { _, byUser in
-                    if byUser { following = false }
-                }
-                .safeAreaPadding(.bottom, store.state == .ready ? panelHeight.points(in: panelTotal) : 0)
-                .ignoresSafeArea()
-                .overlay(alignment: .topTrailing) {
-                    VStack(spacing: 10) {
-                        LocateButton(position: $position) { following = false }
-                        MapCompass(scope: mapScope)
-                    }
-                    .padding()
-                }
-                .mapScope(mapScope)
-                if store.state == .ready, let engine = store.engine {
-                    GeometryReader { proxy in
-                        LinePanel(height: $panelHeight, total: proxy.size.height) {
-                            switch selection {
-                            case .train:
-                                TrainPage(timeline: timeline, color: color(of: chosen), now: time.now, following: $following) {
-                                    selection = nil
-                                }
-                            case .station(let station):
-                                StationHeader(
-                                    name: store.timetable?.stations[station].name ?? "",
-                                    starred: starredNames(.station).contains(store.timetable?.stations[station].name ?? "")
-                                ) {
-                                    selection = nil
-                                } toggleStar: {
-                                    toggleStar(.station, name: store.timetable?.stations[station].name ?? "")
-                                }
-                            case nil:
-                                if !trains.isEmpty {
-                                    VStack(spacing: 10) {
-                                        RunningHeader(count: trains.count)
-                                        LineFilterPicker(filter: $filter)
-                                            .padding(.horizontal)
-                                    }
-                                }
+                        case .station(let station):
+                            StationHeader(
+                                name: store.timetable?.stations[station].name ?? "",
+                                starred: starredNames(.station).contains(store.timetable?.stations[station].name ?? "")
+                            ) {
+                                selection = nil
+                            } toggleStar: {
+                                toggleStar(.station, name: store.timetable?.stations[station].name ?? "")
                             }
-                        } content: {
-                            switch selection {
-                            case .train:
-                                if let timeline {
-                                    StopList(timeline: timeline, color: color(of: chosen))
-                                }
-                            case .station(let station):
-                                LEDBoard(departures: engine.departures(from: station, at: time.now))
-                            case nil:
-                                if trains.isEmpty, let first = engine.firstTrain(after: time.now) {
-                                    FirstTrainCard(time: first.time, origin: first.origin, destination: first.destination)
-                                } else {
-                                    lineList(engine: engine, trains: trains)
+                        case nil:
+                            if !trains.settled.isEmpty {
+                                VStack(spacing: 10) {
+                                    RunningHeader(count: trains.settled.count)
+                                    LineFilterPicker(filter: $filter)
+                                        .padding(.horizontal)
                                 }
                             }
                         }
-                        .frame(maxHeight: .infinity, alignment: .bottom)
+                    } content: {
+                        switch selection {
+                        case .train:
+                            if let timeline {
+                                StopList(timeline: timeline, color: color(of: chosen))
+                            }
+                        case .station(let station):
+                            LEDBoard(departures: engine.departures(from: station, at: now))
+                        case nil:
+                            if trains.settled.isEmpty, let first = engine.firstTrain(after: now) {
+                                FirstTrainCard(time: first.time, origin: first.origin, destination: first.destination)
+                            } else {
+                                lineList(engine: engine, now: now)
+                            }
+                        }
                     }
-                    .onGeometryChange(for: CGFloat.self) {
-                        $0.size.height
-                    } action: {
-                        panelTotal = $0
-                    }
+                    .frame(maxHeight: .infinity, alignment: .bottom)
                 }
+                .onGeometryChange(for: CGFloat.self) {
+                    $0.size.height
+                } action: {
+                    panelTotal = $0
+                }
+            }
+        }
+        .task(id: TrainsRun(ready: store.engine != nil, pace: pace)) {
+            guard let engine = store.engine else { return }
+            await trains.run(engine: engine, time: time, pace: pace)
+        }
+        .task {
+            for await _ in NotificationCenter.default.notifications(named: .NSProcessInfoPowerStateDidChange) {
+                lowPower = ProcessInfo.processInfo.isLowPowerModeEnabled
             }
         }
         .overlay {
@@ -145,9 +98,23 @@ struct MapTab: View {
         }
     }
 
-    private func lineList(engine: MotionEngine, trains: [TrainState]) -> some View {
+    /// The chosen train at the panel's time, worked out from its ID, so that a train that
+    /// started less than a second ago has its page at once.
+    private var chosenTrain: TrainState? {
+        guard case .train(let id) = selection, let engine = store.engine, let now = trains.now else { return nil }
+        let train = engine.state(of: RunningTrip(trip: id.trip, day: id.day, seconds: now.timeIntervalSince(id.day.timetableZero)))
+        return train?.phase == .arrived ? nil : train
+    }
+
+    private var pace: TrainsModel.Pace {
+        if time.isPinned || scenePhase != .active { return .still }
+        if reduceMotion || lowPower || !trains.cityZoom || !trains.trainInSight { return .second }
+        return .smooth
+    }
+
+    private func lineList(engine: MotionEngine, now: Date) -> some View {
         let starred = starredNames(.line)
-        let lines = engine.lineSummaries(at: time.now, trains: trains, starred: starred).filter {
+        let lines = engine.lineSummaries(at: now, trains: trains.settled, starred: starred).filter {
             filter.includes($0, starred: starred)
         }
         return List(lines) { line in
@@ -165,13 +132,6 @@ struct MapTab: View {
         }
     }
 
-    private var visibleStations: [(offset: Int, element: Station)] {
-        guard let timetable = store.timetable else { return [] }
-        return timetable.stations.enumerated().filter { station, _ in
-            cityZoom || store.bigStations.contains(station) || selection == .station(station)
-        }.map { $0 }
-    }
-
     private func starredNames(_ kind: StarKind) -> Set<String> {
         Set(stars.filter { $0.kind == kind.rawValue }.map(\.name))
     }
@@ -184,24 +144,6 @@ struct MapTab: View {
             Logger(subsystem: "app.begiai.Begiai", category: "stars")
                 .error("A star did not save: \(String(describing: error), privacy: .public)")
         }
-    }
-
-    private func capsule(for train: TrainState) -> some View {
-        let trip = store.timetable?.trips[train.trip]
-        let destination = trip?.stops.last.flatMap { stop in
-            store.timetable?.stations.indices.contains(stop.station) == true
-                ? store.timetable?.stations[stop.station].name : nil
-        }
-        return Button {
-            selection = .train(train.id)
-            if panelHeight == .peek { panelHeight = .half }
-        } label: {
-            TrainCapsule(
-                color: color(of: train), heading: train.heading - cameraHeading,
-                destination: destination, atStation: train.phase == .atStation, showsLabel: cityZoom,
-                chosen: selection == .train(train.id))
-        }
-        .buttonStyle(.plain)
     }
 
     private func color(of train: TrainState?) -> Color {
@@ -227,9 +169,9 @@ extension MKCoordinateRegion {
         .task { await store.load(from: Bundle.main.bundleURL.appending(path: "timetable.json")) }
 }
 
-private struct FollowTarget: Equatable {
-    let following: Bool
-    let coordinate: Coordinate?
+private struct TrainsRun: Equatable {
+    let ready: Bool
+    let pace: TrainsModel.Pace
 }
 
 enum PanelSelection: Equatable {
