@@ -52,6 +52,13 @@ public struct MotionEngine: Sendable {
         days.day(date, in: timetable)
     }
 
+    /// The train with this ID at a moment, so that a chosen train stays chosen as it moves.
+    /// Nil once it arrives.
+    public func train(_ id: TrainState.ID, at date: Date) -> TrainState? {
+        let train = state(of: RunningTrip(trip: id.trip, day: id.day, seconds: date.timeIntervalSince(id.day.timetableZero)))
+        return train?.phase == .arrived ? nil : train
+    }
+
     public func state(of running: RunningTrip) -> TrainState? {
         let trip = timetable.trips[running.trip]
         let stops = trip.stops

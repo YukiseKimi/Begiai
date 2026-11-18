@@ -102,8 +102,7 @@ struct MapTab: View {
     /// started less than a second ago has its page at once.
     private var chosenTrain: TrainState? {
         guard case .train(let id) = selection, let engine = store.engine, let now = trains.now else { return nil }
-        let train = engine.state(of: RunningTrip(trip: id.trip, day: id.day, seconds: now.timeIntervalSince(id.day.timetableZero)))
-        return train?.phase == .arrived ? nil : train
+        return engine.train(id, at: now)
     }
 
     private var pace: TrainsModel.Pace {
