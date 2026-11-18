@@ -6,6 +6,10 @@ import os
 struct HermeticLaunch {
     let time: any TimeSource
     let starFolder: URL?
+    /// Where `@AppStorage` keeps the app's settings: a suite of its own in a sealed launch.
+    let settings: UserDefaults
+
+    private static let sealedSettings = "app.begiai.Begiai.sealed"
 
     static func read(bundle: Bundle = .main, arguments: [String] = ProcessInfo.processInfo.arguments) -> HermeticLaunch {
         let allowed = bundle.object(forInfoDictionaryKey: "BegiaiSealedLaunch") as? String == "YES"
@@ -15,11 +19,15 @@ struct HermeticLaunch {
         } catch {
             fatalError("Sealed launch: \(error)")
         }
-        guard let launch else { return HermeticLaunch(time: SystemTime(), starFolder: nil) }
+        guard let launch else { return HermeticLaunch(time: SystemTime(), starFolder: nil, settings: .standard) }
         let folder = FileManager.default.temporaryDirectory.appending(path: "BegiaiSealed", directoryHint: .isDirectory)
-        if launch.reset { try? FileManager.default.removeItem(at: folder) }
+        guard let settings = UserDefaults(suiteName: sealedSettings) else { fatalError("Sealed launch: no settings suite") }
+        if launch.reset {
+            try? FileManager.default.removeItem(at: folder)
+            settings.removePersistentDomain(forName: sealedSettings)
+        }
         let time: any TimeSource = launch.now.map { FixedTime(now: $0) } ?? SystemTime()
-        return HermeticLaunch(time: time, starFolder: folder)
+        return HermeticLaunch(time: time, starFolder: folder, settings: settings)
     }
 
     func starContainer() -> ModelContainer {

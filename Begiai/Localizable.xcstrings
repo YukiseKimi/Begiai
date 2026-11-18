@@ -49,6 +49,42 @@
         }
       }
     },
+    "Diagram.NoLines" : {
+      "comment" : "Shown on the Line Diagram tab when the timetable has no lines.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No lines"
+          }
+        }
+      }
+    },
+    "Diagram.TrainAt" : {
+      "comment" : "VoiceOver label of a train on the line diagram while it stands at a station.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Train to %1$(station)@, at %2$(at)@, scheduled"
+          }
+        }
+      }
+    },
+    "Diagram.TrainBetween" : {
+      "comment" : "VoiceOver label of a train on the line diagram while it runs. station is its last station; from and to are the stations on each side.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Train to %1$(station)@, between %2$(from)@ and %3$(to)@, scheduled"
+          }
+        }
+      }
+    },
     "Filter.All" : {
       "comment" : "Line filter in the map panel: show every line.",
       "extractionState" : "manual",

@@ -10,7 +10,7 @@ struct RootView: View {
                 MapTab(store: store)
             }
             Tab(.tabLineDiagram, systemImage: "point.topleft.down.to.point.bottomright.curvepath") {
-                LineDiagramTab()
+                LineDiagramTab(store: store)
             }
         }
     }

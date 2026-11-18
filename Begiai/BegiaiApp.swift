@@ -16,6 +16,7 @@ struct BegiaiApp: App {
         WindowGroup {
             RootView(store: store)
                 .environment(\.timeSource, launch.time)
+                .defaultAppStorage(launch.settings)
                 .task {
                     await store.load(from: Bundle.main.bundleURL.appending(path: "timetable.json"))
                 }

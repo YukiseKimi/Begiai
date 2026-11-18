@@ -2,7 +2,6 @@ import BegiaiKit
 import MapKit
 import SwiftData
 import SwiftUI
-import os
 
 struct MapTab: View {
     let store: TimetableStore
@@ -136,13 +135,7 @@ struct MapTab: View {
     }
 
     private func toggleStar(_ kind: StarKind, name: String) {
-        do {
-            try withAnimation { try modelContext.toggleStar(kind, name: name, at: time.now) }
-        } catch {
-            modelContext.rollback()
-            Logger(subsystem: "app.begiai.Begiai", category: "stars")
-                .error("A star did not save: \(String(describing: error), privacy: .public)")
-        }
+        modelContext.toggleStarOrRollBack(kind, name: name, at: time.now)
     }
 
     private func color(of train: TrainState?) -> Color {

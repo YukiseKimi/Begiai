@@ -1,0 +1,69 @@
+import XCTest
+
+@MainActor
+struct LineDiagramScreen {
+    let journey: JourneyApp
+
+    func open(file: StaticString = #filePath, line: UInt = #line) {
+        let tab = journey.wait(
+            for: journey.app.tabBars.buttons.element(boundBy: 1), "the Line Diagram tab", on: "Tabs", file: file, line: line)
+        tab.tap()
+        journey.wait(for: journey.element(A11yID.LineDiagram.page), "the name of the line", on: "Line Diagram", file: file, line: line)
+    }
+
+    /// The name of the line that the diagram shows.
+    var lineName: String { journey.element(A11yID.LineDiagram.page).label }
+
+    func expectALineWithItsTrains(file: StaticString = #filePath, line: UInt = #line) {
+        journey.wait(for: journey.element(A11yID.LineDiagram.frequency), "the frequency of the line", on: "Line Diagram", file: file, line: line)
+        let stations = journey.app.descendants(matching: .any).matching(identifier: A11yID.LineDiagram.station)
+        XCTAssertGreaterThanOrEqual(stations.count, 2, "Line Diagram: \(stations.count) stations, not 2 or more", file: file, line: line)
+        let train = journey.wait(for: journey.element(A11yID.LineDiagram.train), "a train", on: "Line Diagram", file: file, line: line)
+        XCTAssertTrue(
+            train.label.contains("between") || train.label.contains(", at "),
+            "Line Diagram: the train says “\(train.label)”, not where it is", file: file, line: line)
+    }
+
+    /// Taps a chip other than the one that shows, and gives the name of its line.
+    @discardableResult
+    func chooseAnotherLine(file: StaticString = #filePath, line: UInt = #line) -> String {
+        let chips = journey.app.descendants(matching: .any).matching(identifier: A11yID.LineDiagram.chip)
+        journey.wait(for: chips.firstMatch, "a line chip", on: "Line Diagram", file: file, line: line)
+        let current = lineName
+        let other = chips.allElementsBoundByIndex.first { $0.label != current && $0.isHittable }
+        guard let other else {
+            XCTFail("Line Diagram: no other line chip to tap", file: file, line: line)
+            return current
+        }
+        let name = other.label
+        other.tap()
+        let title = journey.element(A11yID.LineDiagram.page)
+        let shown = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", name), object: title)
+        XCTAssertEqual(XCTWaiter.wait(for: [shown], timeout: 5), .completed, "Line Diagram: the line did not change to \(name)", file: file, line: line)
+        return name
+    }
+
+    func expectLine(_ name: String, file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertEqual(lineName, name, "Line Diagram: it opened on \(lineName), not on \(name)", file: file, line: line)
+    }
+
+    /// Taps the first train, and gives the name of its last station.
+    func openATrain(file: StaticString = #filePath, line: UInt = #line) -> String {
+        let train = journey.wait(for: journey.element(A11yID.LineDiagram.train), "a train", on: "Line Diagram", file: file, line: line)
+        let destination = train.label.dropFirst("Train to ".count).prefix { $0 != "," }
+        train.tap()
+        return String(destination)
+    }
+
+    /// Taps the first station, and gives its name.
+    func openAStation(file: StaticString = #filePath, line: UInt = #line) -> String {
+        let station = journey.wait(for: journey.element(A11yID.LineDiagram.station), "a station", on: "Line Diagram", file: file, line: line)
+        let name = station.label
+        station.tap()
+        return name
+    }
+
+    func expectNoFollowButton(file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertFalse(journey.element(A11yID.Train.follow).exists, "Line Diagram: the train page has a Follow button", file: file, line: line)
+    }
+}

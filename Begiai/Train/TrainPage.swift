@@ -5,7 +5,8 @@ struct TrainPage: View {
     let timeline: TrainTimeline?
     let color: Color
     let now: Date
-    @Binding var following: Bool
+    /// Nil where nothing can follow the train: the page then shows no Follow button.
+    var following: Binding<Bool>?
     let close: () -> Void
 
     var body: some View {
@@ -20,18 +21,18 @@ struct TrainPage: View {
                 }
                 .accessibilityIdentifier(A11yID.Train.back)
                 Spacer()
-                if timeline != nil {
+                if timeline != nil, let following {
                     Button {
-                        following.toggle()
+                        following.wrappedValue.toggle()
                     } label: {
                         Label {
-                            Text(following ? .trainFollowing : .trainFollow)
+                            Text(following.wrappedValue ? .trainFollowing : .trainFollow)
                         } icon: {
                             Image(systemName: "location.fill")
                         }
                     }
                     .buttonStyle(.bordered)
-                    .tint(following ? color : .secondary)
+                    .tint(following.wrappedValue ? color : .secondary)
                     .accessibilityIdentifier(A11yID.Train.follow)
                 }
             }

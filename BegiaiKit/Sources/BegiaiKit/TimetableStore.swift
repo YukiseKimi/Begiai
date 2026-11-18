@@ -23,6 +23,8 @@ public final class TimetableStore {
     public private(set) var engine: MotionEngine?
     public private(set) var tracks: [Track] = []
     public private(set) var bigStations: Set<Int> = []
+    /// The diagram of each line, by line index.
+    public private(set) var diagrams: [LineDiagram] = []
 
     public init() {}
 
@@ -42,6 +44,7 @@ public final class TimetableStore {
             let engine = MotionEngine(timetable: timetable)
             self.engine = engine
             bigStations = engine.bigStations()
+            diagrams = timetable.lines.indices.map { LineDiagram(line: $0, timetable: timetable) }
             state = .ready
         } catch {
             Logger(subsystem: "app.begiai.Begiai", category: "timetable").error(
