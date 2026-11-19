@@ -46,7 +46,7 @@ struct TrackRunTests {
 
     @Test func theShippedTimetableDrawsTheVilniusKaunasRailOnceForSeveralLines() throws {
         let url = URL(filePath: #filePath).deletingLastPathComponent()
-            .appending(path: "../../../Begiai/timetable.json").standardizedFileURL
+            .appending(path: "../../../Fixtures/timetable-20261117.json").standardizedFileURL
         let timetable = try JSONDecoder().decode(Timetable.self, from: Data(contentsOf: url))
         let runs = timetable.trackRuns()
         let kaunas = try #require(timetable.lines.firstIndex { $0.name == "Vilnius – Kaunas" })

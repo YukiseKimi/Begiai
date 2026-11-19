@@ -3,6 +3,10 @@ import XCTest
 @MainActor
 struct JourneyApp {
     nonisolated static let sealedNow = "2026-11-17T15:55:00Z"
+    /// The timetable of 17 Nov 2026 that every journey uses, so a fresh shipped timetable
+    /// does not move the trains that the journeys expect. The simulator reads it in place.
+    nonisolated static let frozenTimetable = URL(filePath: #filePath)
+        .deletingLastPathComponent().appending(path: "../../Fixtures/timetable-20261117.json").standardizedFileURL.path
 
     let app = XCUIApplication()
     private let clock = Clock()
@@ -45,7 +49,7 @@ struct JourneyApp {
 
     private func start(_ opening: Opening, now: String, arguments: [String], file: StaticString, line: UInt) {
         FailureScreens.watch()
-        app.launchArguments = ["--sealed", "--now", now] + arguments
+        app.launchArguments = ["--sealed", "--now", now, "--timetable", Self.frozenTimetable] + arguments
         app.launch()
         wait(for: element(opening.page), "the opening's page", on: "Launch", timeout: 15, file: file, line: line)
     }

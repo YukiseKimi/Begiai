@@ -27,4 +27,12 @@ struct SealedLaunchTests {
         #expect(plain?.welcome == false)
         #expect(welcome?.welcome == true)
     }
+
+    @Test func aSealedLaunchCanLoadItsOwnTimetable() throws {
+        let launch = try SealedLaunch.read(arguments: ["Begiai", "--sealed", "--timetable", "/tmp/frozen.json"], allowed: true)
+        #expect(launch?.timetable == URL(filePath: "/tmp/frozen.json"))
+        #expect(throws: SealedLaunch.Failure.noTimetable("frozen.json")) {
+            try SealedLaunch.read(arguments: ["Begiai", "--sealed", "--timetable", "frozen.json"], allowed: true)
+        }
+    }
 }

@@ -20,7 +20,7 @@ struct BegiaiApp: App {
                 .defaultAppStorage(launch.settings)
                 .task { await TipJar.finishUnfinished() }
                 .task {
-                    let bundled = Bundle.main.bundleURL.appending(path: "timetable.json")
+                    let bundled = launch.timetable ?? Bundle.main.bundleURL.appending(path: "timetable.json")
                     let candidates = await launch.feed?.candidates(bundled: bundled) ?? [bundled]
                     await store.load(from: candidates)
                     guard let feed = launch.feed, let loaded = store.timetable?.feedDate else { return }
