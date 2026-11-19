@@ -721,6 +721,42 @@
         }
       }
     },
+    "Panel.Full" : {
+      "comment" : "VoiceOver value of the panel's handle: the panel covers almost all the map.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full"
+          }
+        }
+      }
+    },
+    "Panel.Half" : {
+      "comment" : "VoiceOver value of the panel's handle: the panel covers half the map.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Half"
+          }
+        }
+      }
+    },
+    "Panel.Peek" : {
+      "comment" : "VoiceOver value of the panel's handle: the panel is at its smallest height.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Small"
+          }
+        }
+      }
+    },
     "Panel.Resize" : {
       "comment" : "VoiceOver label of the handle that makes the map panel taller or shorter.",
       "extractionState" : "manual",
@@ -789,6 +825,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Map"
+          }
+        }
+      }
+    },
+    "Timetable.Loading" : {
+      "comment" : "Under the spinner on the Map and Line Diagram tabs while the timetable loads.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading the timetable"
           }
         }
       }

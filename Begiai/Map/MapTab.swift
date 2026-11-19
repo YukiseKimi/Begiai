@@ -93,7 +93,9 @@ struct MapTab: View {
         }
         .overlay {
             if store.state == .loading {
-                ProgressView()
+                ProgressView {
+                    Text(.timetableLoading)
+                }
             } else if case .failed = store.state {
                 ContentUnavailableView(
                     .mapLoadFailed, systemImage: "tram", description: Text(.mapLoadFailedDetail))
