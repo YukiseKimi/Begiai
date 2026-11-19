@@ -71,6 +71,7 @@ struct TrainsMap: View {
         .overlay(alignment: .topTrailing) {
             VStack(spacing: 10) {
                 LocateButton(position: $position) { following = false }
+                AboutButton(timetable: store.timetable)
                 MapCompass(scope: mapScope)
             }
             .padding()

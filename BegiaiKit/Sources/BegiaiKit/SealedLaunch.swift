@@ -4,16 +4,20 @@ public enum LaunchFlag: String, CaseIterable, Sendable {
     case sealed = "--sealed"
     case reset = "--reset"
     case now = "--now"
+    /// Shows the welcome sheet, which a sealed launch otherwise skips.
+    case welcome = "--welcome"
 }
 
 public struct SealedLaunch: Equatable, Sendable {
 
     public var now: Date?
     public var reset: Bool
+    public var welcome: Bool
 
-    public init(now: Date?, reset: Bool) {
+    public init(now: Date?, reset: Bool, welcome: Bool = false) {
         self.now = now
         self.reset = reset
+        self.welcome = welcome
     }
 
     public enum Failure: Error, Equatable {
@@ -33,6 +37,7 @@ public struct SealedLaunch: Equatable, Sendable {
             switch flag {
             case .sealed: break
             case .reset: launch.reset = true
+            case .welcome: launch.welcome = true
             case .now:
                 let text = rest.popFirst() ?? ""
                 guard let date = try? Date(text, strategy: .iso8601) else { throw .badTime(text) }

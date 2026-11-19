@@ -13,22 +13,29 @@ struct JourneyApp {
 
     enum Opening {
         case map
+        /// The welcome sheet of a first launch; it needs --welcome in a sealed launch.
+        case welcome
 
         var page: String {
             switch self {
             case .map: A11yID.Map.page
+            case .welcome: A11yID.Welcome.title
             }
         }
+
+        var arguments: [String] { self == .welcome ? ["--welcome"] : [] }
     }
 
     func launch(_ opening: Opening = .map, at now: String = sealedNow, file: StaticString = #filePath, line: UInt = #line) {
         clock.now = now
-        start(opening, now: now, arguments: ["--reset"], file: file, line: line)
+        start(opening, now: now, arguments: ["--reset"] + opening.arguments, file: file, line: line)
     }
 
-    func relaunch(_ opening: Opening = .map, file: StaticString = #filePath, line: UInt = #line) {
+    /// Starts the app again with its stars and settings. `welcome` asks for the welcome
+    /// sheet, which shows only if the user never closed it.
+    func relaunch(_ opening: Opening = .map, welcome: Bool = false, file: StaticString = #filePath, line: UInt = #line) {
         app.terminate()
-        start(opening, now: clock.now, arguments: [], file: file, line: line)
+        start(opening, now: clock.now, arguments: welcome ? ["--welcome"] : [], file: file, line: line)
     }
 
     private func start(_ opening: Opening, now: String, arguments: [String], file: StaticString, line: UInt) {

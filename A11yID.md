@@ -27,5 +27,12 @@ Generated from `Begiai/A11yID.swift` by `script/test.sh a11y`. Do not edit.
 | `lineDiagram.frequency` | how often the trains of the chosen line leave | Line Diagram |
 | `lineDiagram.station` | each station on the line diagram | Line Diagram |
 | `lineDiagram.train` | each train on the line diagram | Line Diagram |
+| `welcome.title` | the title of the welcome card that shows | Welcome |
+| `welcome.next` | the Next or Start button of the welcome sheet | Welcome |
+| `about.open` | the ⓘ button on the map | Map |
+| `about.close` | the close button of About | About |
+| `about.timetableDate` | the date of the timetable in use | About |
+| `about.source` | the link to the timetable source | About |
+| `about.unofficial` | the note that the app is not from LTG | About |
 | `notices.link` | the link to LTG Link's notices | Line Diagram, Train |
 | `timetable.stale` | the note that the timetable is old | Map, Line Diagram |

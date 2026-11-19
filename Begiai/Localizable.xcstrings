@@ -1,6 +1,174 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "About.AppTitle" : {
+      "comment" : "About: header of the section about the app itself.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The app"
+          }
+        }
+      }
+    },
+    "About.HowTitle" : {
+      "comment" : "About: header of the section that explains the marks.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How to read a train"
+          }
+        }
+      }
+    },
+    "About.LegendArrow" : {
+      "comment" : "About legend: the arrow on a train marker.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The arrow points the way the train goes."
+          }
+        }
+      }
+    },
+    "About.LegendStation" : {
+      "comment" : "About legend: the glow of a train at a station.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A train glows while it stands at a station."
+          }
+        }
+      }
+    },
+    "About.LegendTrain" : {
+      "comment" : "About legend: what a train marker is.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A capsule in the colour of its line is one train."
+          }
+        }
+      }
+    },
+    "About.Open" : {
+      "comment" : "Accessibility label of the ⓘ button on the map, which opens About.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About"
+          }
+        }
+      }
+    },
+    "About.Privacy" : {
+      "comment" : "About: the privacy promise.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Data Not Collected. Your stars stay on this iPhone, and the app sends nothing about you."
+          }
+        }
+      }
+    },
+    "About.SourceMap" : {
+      "comment" : "About: the source of the map.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Map: Apple Maps"
+          }
+        }
+      }
+    },
+    "About.SourceTimetable" : {
+      "comment" : "About: a link to the source of the timetable.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timetable: UAB LTG Link, through the open GTFS of visimarsrutai.lt"
+          }
+        }
+      }
+    },
+    "About.SourcesTitle" : {
+      "comment" : "About: header of the section about the data sources.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Data"
+          }
+        }
+      }
+    },
+    "About.TimetableDate" : {
+      "comment" : "About: the date of the timetable that the app uses, for example “19 Nov 2026”.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timetable from %(date)@"
+          }
+        }
+      }
+    },
+    "About.Title" : {
+      "comment" : "Title of the About sheet.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About Bėgiai"
+          }
+        }
+      }
+    },
+    "About.Unofficial" : {
+      "comment" : "About: the app is not made by the railway.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bėgiai is an unofficial app. It is not from LTG, LTG Link or LTG Infra."
+          }
+        }
+      }
+    },
+    "About.Version" : {
+      "comment" : "About: the app version and build, for example “0.1 (1)”.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version %(version)@"
+          }
+        }
+      }
+    },
     "Board.None" : {
       "comment" : "On a station's departure board when no train leaves from it today or tomorrow.",
       "extractionState" : "manual",
@@ -681,6 +849,102 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$(time)@ %2$(origin)@ → %3$(destination)@"
+          }
+        }
+      }
+    },
+    "Welcome.Estimate.Text" : {
+      "comment" : "Welcome card 1 text: why every position is an estimate.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LTG Link publishes no live positions. Bėgiai moves each train along its track from the timetable, so a late train still shows where it should be."
+          }
+        }
+      }
+    },
+    "Welcome.Estimate.Title" : {
+      "comment" : "Welcome card 1 title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trains move by estimate"
+          }
+        }
+      }
+    },
+    "Welcome.Follow.Text" : {
+      "comment" : "Welcome card 3 text: what a tap does.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Its page shows the next stop. Follow keeps it in the middle of the map. Star a line or a station to keep it at the top."
+          }
+        }
+      }
+    },
+    "Welcome.Follow.Title" : {
+      "comment" : "Welcome card 3 title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap a train to follow it"
+          }
+        }
+      }
+    },
+    "Welcome.Marks.Text" : {
+      "comment" : "Welcome card 2 text: how to read a train on the map.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each train is a capsule in its line's colour. The arrow points the way it goes, and it glows while the train stands at a station. Scheduled means: from the timetable."
+          }
+        }
+      }
+    },
+    "Welcome.Marks.Title" : {
+      "comment" : "Welcome card 2 title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What the marks mean"
+          }
+        }
+      }
+    },
+    "Welcome.Next" : {
+      "comment" : "Button on the welcome sheet: the next card.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next"
+          }
+        }
+      }
+    },
+    "Welcome.Start" : {
+      "comment" : "Button on the last welcome card: closes the sheet.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start"
           }
         }
       }

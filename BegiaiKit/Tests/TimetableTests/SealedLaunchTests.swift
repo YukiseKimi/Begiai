@@ -20,4 +20,11 @@ struct SealedLaunchTests {
             try SealedLaunch.read(arguments: ["Begiai", "--sealed", "--rest"], allowed: true)
         }
     }
+
+    @Test func aSealedLaunchShowsTheWelcomeOnlyWhenAsked() throws {
+        let plain = try SealedLaunch.read(arguments: ["Begiai", "--sealed"], allowed: true)
+        let welcome = try SealedLaunch.read(arguments: ["Begiai", "--sealed", "--welcome"], allowed: true)
+        #expect(plain?.welcome == false)
+        #expect(welcome?.welcome == true)
+    }
 }

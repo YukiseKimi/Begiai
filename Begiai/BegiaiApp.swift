@@ -15,7 +15,7 @@ struct BegiaiApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView(store: store)
+            RootView(store: store, mayWelcome: launch.mayWelcome)
                 .environment(\.timeSource, launch.time)
                 .defaultAppStorage(launch.settings)
                 .task {

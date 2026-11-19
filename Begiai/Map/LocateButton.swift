@@ -7,6 +7,7 @@ struct LocateButton: View {
     let willLocate: () -> Void
     @State private var session: CLServiceSession?
     @Environment(\.openURL) private var openURL
+    @ScaledMetric(relativeTo: .title3) private var size = 44.0
 
     var body: some View {
         Button {
@@ -20,7 +21,7 @@ struct LocateButton: View {
         } label: {
             Image(systemName: position.followsUserLocation ? "location.fill" : "location")
                 .font(.title3)
-                .frame(width: 44, height: 44)
+                .frame(width: size, height: size)
         }
         .buttonStyle(.plain)
         .glassEffect(in: .circle)

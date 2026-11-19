@@ -38,6 +38,19 @@ enum A11yID {
         static let stale = "timetable.stale"
     }
 
+    enum Welcome {
+        static let title = "welcome.title"
+        static let next = "welcome.next"
+    }
+
+    enum About {
+        static let open = "about.open"
+        static let close = "about.close"
+        static let timetableDate = "about.timetableDate"
+        static let source = "about.source"
+        static let unofficial = "about.unofficial"
+    }
+
     enum Notices {
         static let link = "notices.link"
     }
@@ -72,6 +85,13 @@ enum A11yID {
         Entry(id: LineDiagram.frequency, element: "how often the trains of the chosen line leave", screen: "Line Diagram"),
         Entry(id: LineDiagram.station, element: "each station on the line diagram", screen: "Line Diagram"),
         Entry(id: LineDiagram.train, element: "each train on the line diagram", screen: "Line Diagram"),
+        Entry(id: Welcome.title, element: "the title of the welcome card that shows", screen: "Welcome"),
+        Entry(id: Welcome.next, element: "the Next or Start button of the welcome sheet", screen: "Welcome"),
+        Entry(id: About.open, element: "the ⓘ button on the map", screen: "Map"),
+        Entry(id: About.close, element: "the close button of About", screen: "About"),
+        Entry(id: About.timetableDate, element: "the date of the timetable in use", screen: "About"),
+        Entry(id: About.source, element: "the link to the timetable source", screen: "About"),
+        Entry(id: About.unofficial, element: "the note that the app is not from LTG", screen: "About"),
         Entry(id: Notices.link, element: "the link to LTG Link's notices", screen: "Line Diagram, Train"),
         Entry(id: Timetable.stale, element: "the note that the timetable is old", screen: "Map, Line Diagram"),
     ]
