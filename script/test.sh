@@ -143,7 +143,10 @@ lane_build() {
   /usr/libexec/PlistBuddy -c 'Print :NSPrivacyAccessedAPITypes' "$app/PrivacyInfo.xcprivacy" > /dev/null 2>&1 ||
     { echo "RELEASE CHECK FAILED no PrivacyInfo.xcprivacy with NSPrivacyAccessedAPITypes in the app"; exit 65; }
   [[ ! -e "$app/Begiai.storekit" ]] || { echo "RELEASE CHECK FAILED the app ships a .storekit file"; exit 65; }
-  echo "GREEN build · Release $version · sealed launch off · privacy manifest · no encryption"
+  local icon
+  icon=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName' "$app/Info.plist" 2> /dev/null)
+  [[ $icon == AppIcon && -e "$app/Assets.car" ]] || { echo "RELEASE CHECK FAILED no AppIcon in the app (icon name '$icon')"; exit 65; }
+  echo "GREEN build · Release $version · app icon · sealed launch off · privacy manifest · no encryption"
 }
 
 lane=${1:-}; shift || true
