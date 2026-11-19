@@ -12,6 +12,14 @@ struct BoardScreen {
         XCTAssertTrue((1...8).contains(rows.count), "Board: \(rows.count) departures, not 1 to 8", file: file, line: line)
     }
 
+    func star(file: StaticString = #filePath, line: UInt = #line) {
+        journey.wait(for: journey.element(A11yID.Board.star), "the star", on: "Board", file: file, line: line).tap()
+    }
+
+    func back(file: StaticString = #filePath, line: UInt = #line) {
+        journey.wait(for: journey.element(A11yID.Board.back), "the Lines button", on: "Board", file: file, line: line).tap()
+    }
+
     /// Each departure within the hour says its minutes from now, and no later one does.
     /// `now` is the sealed time in Vilnius, as hours and minutes.
     /// With `busy`, at least one train leaves within the hour.

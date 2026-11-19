@@ -58,6 +58,16 @@ struct MapScreen {
         return String(label[range.upperBound..<end.lowerBound])
     }
 
+    /// A starred station shows above the lines with its next train, and a tap opens its board.
+    func openStarredStation(_ name: String, file: StaticString = #filePath, line: UInt = #line) {
+        let row = journey.wait(
+            for: journey.element(A11yID.Map.starredStation), "the starred station", on: "Map", file: file, line: line)
+        XCTAssertTrue(
+            row.label.hasPrefix(name) && (row.label.contains("Next: ") || row.label.contains("No trains")),
+            "Map: the starred station reads \(row.label)", file: file, line: line)
+        row.tap()
+    }
+
     func expectLines(file: StaticString = #filePath, line: UInt = #line) {
         journey.wait(for: journey.element(A11yID.Map.runningCount), "the running count", on: "Map", file: file, line: line)
     }

@@ -121,24 +121,52 @@ struct MapTab: View {
         }
         // The note scrolls with the lines, so at large text sizes it never pushes them off the panel.
         let staleSince = engine.timetable.staleSince(on: ServiceDate(now))
+        let stations = filter == .international ? [] : starredStations(in: engine.timetable)
         return List {
             if staleSince != nil {
                 StaleNote(since: staleSince)
                     .listRowBackground(Color.clear)
             }
-            ForEach(lines) { line in
-                LineRow(line: line, starred: starred.contains(line.name)) {
-                    toggleStar(.line, name: line.name)
+            if !stations.isEmpty {
+                Section {
+                    ForEach(stations, id: \.index) { station in
+                        StarredStationRow(
+                            name: station.name, next: engine.departures(from: station.index, at: now, limit: 1).first, now: now
+                        ) {
+                            selection = .station(station.index)
+                        }
+                        .listRowBackground(Color.clear)
+                    }
+                } header: {
+                    Text(.mapYourStations)
                 }
-                .listRowBackground(Color.clear)
+            }
+            Section {
+                ForEach(lines) { line in
+                    LineRow(line: line, starred: starred.contains(line.name)) {
+                        toggleStar(.line, name: line.name)
+                    }
+                    .listRowBackground(Color.clear)
+                }
+            } header: {
+                if !stations.isEmpty {
+                    Text(.mapLines)
+                }
             }
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .overlay {
-            if lines.isEmpty, filter == .starred {
+            if lines.isEmpty, stations.isEmpty, filter == .starred {
                 ContentUnavailableView(.lineNoneStarred, systemImage: "star", description: Text(.lineNoneStarredDetail))
             }
+        }
+    }
+
+    /// The starred stations that the timetable has, by name.
+    private func starredStations(in timetable: Timetable) -> [(index: Int, name: String)] {
+        starredNames(.station).sorted().compactMap { name in
+            timetable.stations.firstIndex { $0.name == name }.map { ($0, name) }
         }
     }
 

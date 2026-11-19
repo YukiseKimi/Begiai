@@ -506,13 +506,13 @@
       }
     },
     "Line.NoneStarredDetail" : {
-      "comment" : "Second line under Line.NoneStarred.",
+      "comment" : "Under the empty Starred filter: how to star a line or a station.",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tap the star on a line to keep it at the top."
+            "value" : "Tap the star on a line or a station to keep it at the top."
           }
         }
       }
@@ -537,6 +537,18 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "Map.Lines" : {
+      "comment" : "Header over the lines in the line list, when starred stations show above them.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lines"
           }
         }
       }
@@ -637,6 +649,18 @@
         }
       }
     },
+    "Map.YourStations" : {
+      "comment" : "Header over the starred stations at the top of the line list.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your stations"
+          }
+        }
+      }
+    },
     "Night.First" : {
       "comment" : "On the night card: the first train of the morning, with its time, first station and last station.",
       "extractionState" : "manual",
@@ -705,6 +729,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Remove the star from %1$(line)@"
+          }
+        }
+      }
+    },
+    "Station.Next" : {
+      "comment" : "Under a starred station at the top of the line list: its next train's time and last station.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next: %1$(time)@ → %2$(destination)@"
           }
         }
       }
