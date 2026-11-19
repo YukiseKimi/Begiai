@@ -1,0 +1,36 @@
+# Builds the timetable bundle each morning and publishes it to GitHub Pages, where the app
+# checks for it one time each day. If the bundle fails its check, nothing is published, and
+# Pages keeps the bundle of the day before.
+name: Timetable
+
+on:
+  schedule:
+    # 04:30 UTC: 06:30 in Vilnius in winter, 07:30 in summer. visimarsrutai.lt rebuilds its GTFS at about 06:00.
+    - cron: "30 4 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: timetable
+  cancel-in-progress: false
+
+jobs:
+  bundle:
+    runs-on: macos-26
+    timeout-minutes: 30
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the bundle and its manifest
+        run: script/bundle.sh site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4
