@@ -134,7 +134,16 @@ lane_build() {
   local sealed
   sealed=$(/usr/libexec/PlistBuddy -c 'Print :BegiaiSealedLaunch' "$app/Info.plist" 2> /dev/null)
   [[ $sealed == NO ]] || { echo "SEALED CHECK FAILED the Release app has BegiaiSealedLaunch=$sealed, not NO"; exit 65; }
-  echo "GREEN build · Release · sealed launch off"
+  # What App Store Connect asks for, checked in the built app.
+  local crypto version
+  crypto=$(/usr/libexec/PlistBuddy -c 'Print :ITSAppUsesNonExemptEncryption' "$app/Info.plist" 2> /dev/null)
+  [[ $crypto == false ]] || { echo "RELEASE CHECK FAILED ITSAppUsesNonExemptEncryption is '$crypto', not NO"; exit 65; }
+  version=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Info.plist" 2> /dev/null)
+  [[ -n $version ]] || { echo "RELEASE CHECK FAILED no CFBundleShortVersionString"; exit 65; }
+  /usr/libexec/PlistBuddy -c 'Print :NSPrivacyAccessedAPITypes' "$app/PrivacyInfo.xcprivacy" > /dev/null 2>&1 ||
+    { echo "RELEASE CHECK FAILED no PrivacyInfo.xcprivacy with NSPrivacyAccessedAPITypes in the app"; exit 65; }
+  [[ ! -e "$app/Begiai.storekit" ]] || { echo "RELEASE CHECK FAILED the app ships a .storekit file"; exit 65; }
+  echo "GREEN build · Release $version · sealed launch off · privacy manifest · no encryption"
 }
 
 lane=${1:-}; shift || true
