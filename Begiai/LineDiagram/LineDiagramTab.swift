@@ -20,8 +20,13 @@ struct LineDiagramTab: View {
                 DiagramSheet(engine: engine, selection: chosen) { selection = nil }
                     .presentationDetents([.medium, .large])
             }
+        } else if case .failed = store.state {
+            // The same words as the map, so the tab never spins for ever.
+            ContentUnavailableView(.mapLoadFailed, systemImage: "tram", description: Text(.mapLoadFailedDetail))
         } else {
-            ProgressView()
+            ProgressView {
+                Text(.timetableLoading)
+            }
         }
     }
 
@@ -78,18 +83,23 @@ private struct LineChips: View {
                             .font(.subheadline.weight(.medium))
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
+                            .foregroundStyle(line.id == chosen ? AnyShapeStyle(ReadableText(background: palette.color(forLine: line.id))) : AnyShapeStyle(Color.primary))
+                            .background(
+                                line.id == chosen ? palette.color(forLine: line.id) : Color.secondary.opacity(0.15), in: .capsule)
+                            // The chip looks small; its tap area is the full 44 points high.
+                            .frame(minHeight: 44)
+                            .contentShape(.rect)
                     }
                     .buttonStyle(.plain)
-                    .foregroundStyle(line.id == chosen ? Color.white : Color.primary)
-                    .background(line.id == chosen ? palette.color(forLine: line.id) : Color.secondary.opacity(0.15), in: .capsule)
                     .accessibilityAddTraits(line.id == chosen ? .isSelected : [])
                     .accessibilityIdentifier(A11yID.LineDiagram.chip)
                 }
             }
             .scrollTargetLayout()
             .padding(.horizontal)
-            .padding(.vertical, 8)
+            .padding(.vertical, 2)
         }
         .scrollPosition(id: .constant(chosen), anchor: .center)
+        .sensoryFeedback(.selection, trigger: chosen)
     }
 }

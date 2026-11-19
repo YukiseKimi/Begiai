@@ -58,6 +58,29 @@ struct MapScreen {
         return String(label[range.upperBound..<end.lowerBound])
     }
 
+    /// A starred station shows above the lines with its next train, and a tap opens its board.
+    func openStarredStation(_ name: String, file: StaticString = #filePath, line: UInt = #line) {
+        let row = journey.wait(
+            for: journey.element(A11yID.Map.starredStation), "the starred station", on: "Map", file: file, line: line)
+        XCTAssertTrue(
+            row.label.hasPrefix(name) && (row.label.contains("Next: ") || row.label.contains("No trains")),
+            "Map: the starred station reads \(row.label)", file: file, line: line)
+        row.tap()
+    }
+
+    /// The panel's handle says how tall the panel is: Small, Half or Full.
+    func expectPanel(_ height: String, file: StaticString = #filePath, line: UInt = #line) {
+        let handle = journey.wait(for: journey.element(A11yID.Map.panel), "the panel's handle", on: "Map", file: file, line: line)
+        let said = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", height), object: handle)
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [said], timeout: 3), .completed,
+            "Map: the panel's handle says \(handle.value ?? "nothing"), not \(height)", file: file, line: line)
+    }
+
+    func tapPanelHandle(file: StaticString = #filePath, line: UInt = #line) {
+        journey.wait(for: journey.element(A11yID.Map.panel), "the panel's handle", on: "Map", file: file, line: line).tap()
+    }
+
     func expectLines(file: StaticString = #filePath, line: UInt = #line) {
         journey.wait(for: journey.element(A11yID.Map.runningCount), "the running count", on: "Map", file: file, line: line)
     }

@@ -15,6 +15,7 @@ struct StarButton: View {
                 .frame(width: 44, height: 44)
         }
         .buttonStyle(.plain)
+        .sensoryFeedback(.selection, trigger: starred)
         .accessibilityLabel(Text(starred ? .starRemove(line: name) : .starAdd(line: name)))
     }
 }

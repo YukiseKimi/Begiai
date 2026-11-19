@@ -4,20 +4,15 @@ import SwiftUI
 struct StationHeader: View {
     let name: String
     let starred: Bool
+    var exit = PageExit.back
     let close: () -> Void
     let toggleStar: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Button(action: close) {
-                    Label {
-                        Text(.trainBack)
-                    } icon: {
-                        Image(systemName: "chevron.left")
-                    }
-                }
-                .accessibilityIdentifier(A11yID.Board.back)
+                PageExitButton(exit: exit, close: close)
+                    .accessibilityIdentifier(A11yID.Board.back)
                 Spacer()
                 StarButton(name: name, starred: starred, toggle: toggleStar)
                     .accessibilityIdentifier(A11yID.Board.star)
@@ -30,18 +25,21 @@ struct StationHeader: View {
     }
 }
 
+/// The next departures, styled as a Japanese LED departure sign (発車標). Each row gives the
+/// clock time and, within the hour, the minutes from now, so a rider need not do the sum.
 struct LEDBoard: View {
     let departures: [Departure]
+    let now: Date
 
-    private let amber = Color(red: 1, green: 0.69, blue: 0)
-    private let green = Color(red: 0.43, green: 0.87, blue: 0.55)
+    static let amber = Color(red: 1, green: 0.69, blue: 0)
+    static let green = Color(red: 0.43, green: 0.87, blue: 0.55)
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
                 if departures.isEmpty {
                     Text(.boardNone)
-                        .foregroundStyle(amber)
+                        .foregroundStyle(Self.amber)
                 }
                 ForEach(departures) { departure in
                     if departure.tomorrow, departure.id == departures.first(where: \.tomorrow)?.id {
@@ -50,23 +48,11 @@ struct LEDBoard: View {
                             .foregroundStyle(.secondary)
                             .padding(.top, 4)
                     }
-                    HStack(spacing: 10) {
-                        Text(verbatim: departure.time.vilniusTime)
-                            .monospacedDigit()
-                        Text(verbatim: departure.destination)
-                            .lineLimit(1)
-                        Spacer()
-                        if departure.startsHere {
-                            Text(.boardStartsHere)
-                                .foregroundStyle(green)
-                        }
-                    }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier(A11yID.Board.row)
+                    BoardRow(departure: departure, now: now)
                 }
             }
             .font(.system(.callout, design: .monospaced).weight(.medium))
-            .foregroundStyle(amber)
+            .foregroundStyle(Self.amber)
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color(red: 0.04, green: 0.06, blue: 0.09), in: .rect(cornerRadius: 12))
@@ -76,6 +62,69 @@ struct LEDBoard: View {
     }
 }
 
+private struct BoardRow: View {
+    let departure: Departure
+    let now: Date
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    var body: some View {
+        Group {
+            if typeSize.isAccessibilitySize {
+                // At the largest sizes the time and the minutes take a line, the destination the next.
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack {
+                        time
+                        Spacer()
+                        countdown
+                    }
+                    destination
+                }
+            } else {
+                HStack(alignment: .firstTextBaseline, spacing: 10) {
+                    time
+                    destination
+                    Spacer(minLength: 4)
+                    countdown
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier(A11yID.Board.row)
+    }
+
+    private var time: some View {
+        Text(verbatim: departure.time.vilniusTime)
+            .monospacedDigit()
+    }
+
+    private var destination: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(verbatim: departure.destination)
+                .lineLimit(2)
+            if departure.startsHere {
+                // 当駅始発: the train is empty when it boards. A symbol and a word, not colour alone.
+                Label {
+                    Text(.boardStartsHere)
+                } icon: {
+                    Image(systemName: "arrow.up.forward.circle")
+                }
+                .font(.system(.footnote, design: .monospaced).weight(.semibold))
+                .foregroundStyle(LEDBoard.green)
+            }
+        }
+    }
+
+    /// Within the hour only: past that, the clock time is the easier read.
+    @ViewBuilder private var countdown: some View {
+        let minutes = departure.time.minutes(after: now)
+        if minutes <= 60 {
+            Text(minutes == 0 ? .boardNow : .trainIn(minutes: minutes))
+                .monospacedDigit()
+                .opacity(0.85)
+        }
+    }
+}
+
 #Preview {
-    LEDBoard(departures: [])
+    LEDBoard(departures: [], now: .now)
 }

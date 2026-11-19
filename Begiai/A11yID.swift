@@ -10,6 +10,7 @@ enum A11yID {
         static let station = "map.station"
         static let firstTrain = "map.firstTrain"
         static let locate = "map.locate"
+        static let starredStation = "map.starredStation"
     }
 
     enum Train {
@@ -17,6 +18,8 @@ enum A11yID {
         static let back = "train.back"
         static let follow = "train.follow"
         static let stop = "train.stop"
+        static let now = "train.now"
+        static let source = "train.source"
     }
 
     enum Board {
@@ -73,14 +76,17 @@ enum A11yID {
         Entry(id: Map.lineStar, element: "the star button in each line row", screen: "Map"),
         Entry(id: Map.filter, element: "the All, Starred and International filter", screen: "Map"),
         Entry(id: Train.title, element: "the title of a train's page", screen: "Train"),
-        Entry(id: Train.back, element: "the Lines button on a train's page", screen: "Train"),
+        Entry(id: Train.back, element: "the Lines button on a train's page, or its Close button in a sheet", screen: "Train"),
         Entry(id: Train.follow, element: "the Follow button on a train's page", screen: "Train"),
         Entry(id: Train.stop, element: "each stop in a train's stop list", screen: "Train"),
+        Entry(id: Train.now, element: "where the train is now: its next stop, or the station it stands at", screen: "Train"),
+        Entry(id: Train.source, element: "the Scheduled badge on a train's page", screen: "Train"),
         Entry(id: Map.locate, element: "the Locate button on the map", screen: "Map"),
         Entry(id: Map.firstTrain, element: "the first train on the night card", screen: "Map"),
         Entry(id: Map.station, element: "each station marker on the map", screen: "Map"),
+        Entry(id: Map.starredStation, element: "each starred station with its next train, above the lines", screen: "Map"),
         Entry(id: Board.title, element: "the station name on its board", screen: "Board"),
-        Entry(id: Board.back, element: "the Lines button on a station board", screen: "Board"),
+        Entry(id: Board.back, element: "the Lines button on a station board, or its Close button in a sheet", screen: "Board"),
         Entry(id: Board.row, element: "each departure on a station board", screen: "Board"),
         Entry(id: Board.star, element: "the star button of a station board", screen: "Board"),
         Entry(id: LineDiagram.page, element: "the name of the line on the Line Diagram tab", screen: "Line Diagram"),

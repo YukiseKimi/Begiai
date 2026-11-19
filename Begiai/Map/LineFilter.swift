@@ -24,6 +24,7 @@ struct LineFilterPicker: View {
         }
         .labelsHidden()
         .pickerStyle(.segmented)
+        .sensoryFeedback(.selection, trigger: filter)
         .accessibilityIdentifier(A11yID.Map.filter)
     }
 }

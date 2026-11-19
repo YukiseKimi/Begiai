@@ -26,9 +26,14 @@ struct JourneyApp {
         var arguments: [String] { self == .welcome ? ["--welcome"] : [] }
     }
 
-    func launch(_ opening: Opening = .map, at now: String = sealedNow, file: StaticString = #filePath, line: UInt = #line) {
+    /// `largeText` starts the app at the largest accessibility text size, whatever the simulator's setting.
+    func launch(
+        _ opening: Opening = .map, at now: String = sealedNow, largeText: Bool = false, file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
         clock.now = now
-        start(opening, now: now, arguments: ["--reset"] + opening.arguments, file: file, line: line)
+        let text = largeText ? ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] : []
+        start(opening, now: now, arguments: ["--reset"] + opening.arguments + text, file: file, line: line)
     }
 
     /// Starts the app again with its stars and settings. `welcome` asks for the welcome

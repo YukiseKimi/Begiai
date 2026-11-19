@@ -12,14 +12,17 @@ Generated from `Begiai/A11yID.swift` by `script/test.sh a11y`. Do not edit.
 | `map.lineStar` | the star button in each line row | Map |
 | `map.filter` | the All, Starred and International filter | Map |
 | `train.title` | the title of a train's page | Train |
-| `train.back` | the Lines button on a train's page | Train |
+| `train.back` | the Lines button on a train's page, or its Close button in a sheet | Train |
 | `train.follow` | the Follow button on a train's page | Train |
 | `train.stop` | each stop in a train's stop list | Train |
+| `train.now` | where the train is now: its next stop, or the station it stands at | Train |
+| `train.source` | the Scheduled badge on a train's page | Train |
 | `map.locate` | the Locate button on the map | Map |
 | `map.firstTrain` | the first train on the night card | Map |
 | `map.station` | each station marker on the map | Map |
+| `map.starredStation` | each starred station with its next train, above the lines | Map |
 | `board.title` | the station name on its board | Board |
-| `board.back` | the Lines button on a station board | Board |
+| `board.back` | the Lines button on a station board, or its Close button in a sheet | Board |
 | `board.row` | each departure on a station board | Board |
 | `board.star` | the star button of a station board | Board |
 | `lineDiagram.page` | the name of the line on the Line Diagram tab | Line Diagram |

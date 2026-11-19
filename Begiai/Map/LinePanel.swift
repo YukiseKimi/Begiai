@@ -4,6 +4,29 @@ import SwiftUI
 enum PanelHeight: CaseIterable {
     case peek, half, full
 
+    /// What VoiceOver says the panel's height is.
+    var name: LocalizedStringResource {
+        switch self {
+        case .peek: .panelPeek
+        case .half: .panelHalf
+        case .full: .panelFull
+        }
+    }
+
+    var taller: PanelHeight {
+        switch self {
+        case .peek: .half
+        case .half, .full: .full
+        }
+    }
+
+    var shorter: PanelHeight {
+        switch self {
+        case .full: .half
+        case .half, .peek: .peek
+        }
+    }
+
     func points(in total: CGFloat) -> CGFloat {
         switch self {
         case .peek: 132
@@ -19,6 +42,7 @@ struct LinePanel<Header: View, Content: View>: View {
     @ViewBuilder let header: () -> Header
     @ViewBuilder let content: () -> Content
     @GestureState private var drag: CGFloat = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(spacing: 0) {
@@ -33,7 +57,16 @@ struct LinePanel<Header: View, Content: View>: View {
                 .accessibilityElement()
                 .accessibilityLabel(Text(.panelResize))
                 .accessibilityAddTraits(.isButton)
+                .accessibilityValue(Text(height.name))
                 .accessibilityAction { step() }
+                // Swipe up or down with VoiceOver to make the panel taller or shorter.
+                .accessibilityAdjustableAction { direction in
+                    switch direction {
+                    case .increment: height = height.taller
+                    case .decrement: height = height.shorter
+                    @unknown default: break
+                    }
+                }
                 .accessibilityIdentifier(A11yID.Map.panel)
             header()
                 .contentShape(.rect)
@@ -45,7 +78,9 @@ struct LinePanel<Header: View, Content: View>: View {
         .clipShape(.rect(cornerRadius: 28))
         .glassEffect(in: .rect(cornerRadius: 28))
         .padding(.horizontal, 8)
-        .animation(.snappy, value: height)
+        // With Reduce Motion the panel takes its new height at once, with no spring.
+        .animation(reduceMotion ? nil : .snappy, value: height)
+        .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.6), trigger: height)
     }
 
     private var resize: some Gesture {

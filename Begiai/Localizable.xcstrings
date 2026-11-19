@@ -181,6 +181,18 @@
         }
       }
     },
+    "Board.Now" : {
+      "comment" : "On a station's departure board, in place of the minutes from now: the train leaves this minute.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "now"
+          }
+        }
+      }
+    },
     "Board.StartsHere" : {
       "comment" : "On a station's departure board: this train begins its trip at this station, so seats are free.",
       "extractionState" : "manual",
@@ -225,6 +237,30 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No lines"
+          }
+        }
+      }
+    },
+    "Diagram.Rotor.Stations" : {
+      "comment" : "Name of the VoiceOver rotor that moves from station to station on the line diagram.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stations"
+          }
+        }
+      }
+    },
+    "Diagram.Rotor.Trains" : {
+      "comment" : "Name of the VoiceOver rotor that moves from train to train on the line diagram.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trains"
           }
         }
       }
@@ -542,13 +578,13 @@
       }
     },
     "Line.NoneStarredDetail" : {
-      "comment" : "Second line under Line.NoneStarred.",
+      "comment" : "Under the empty Starred filter: how to star a line or a station.",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tap the star on a line to keep it at the top."
+            "value" : "Tap the star on a line or a station to keep it at the top."
           }
         }
       }
@@ -573,6 +609,18 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "Map.Lines" : {
+      "comment" : "Header over the lines in the line list, when starred stations show above them.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lines"
           }
         }
       }
@@ -673,6 +721,18 @@
         }
       }
     },
+    "Map.YourStations" : {
+      "comment" : "Header over the starred stations at the top of the line list.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your stations"
+          }
+        }
+      }
+    },
     "Night.First" : {
       "comment" : "On the night card: the first train of the morning, with its time, first station and last station.",
       "extractionState" : "manual",
@@ -705,6 +765,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Track work or changes? See LTG Link notices"
+          }
+        }
+      }
+    },
+    "Panel.Full" : {
+      "comment" : "VoiceOver value of the panel's handle: the panel covers almost all the map.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full"
+          }
+        }
+      }
+    },
+    "Panel.Half" : {
+      "comment" : "VoiceOver value of the panel's handle: the panel covers half the map.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Half"
+          }
+        }
+      }
+    },
+    "Panel.Peek" : {
+      "comment" : "VoiceOver value of the panel's handle: the panel is at its smallest height.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Small"
           }
         }
       }
@@ -745,6 +841,18 @@
         }
       }
     },
+    "Station.Next" : {
+      "comment" : "Under a starred station at the top of the line list: its next train's time and last station.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next: %1$(time)@ → %2$(destination)@"
+          }
+        }
+      }
+    },
     "Tab.LineDiagram" : {
       "comment" : "Title of the tab that shows one line as a vertical diagram of its stations.",
       "extractionState" : "manual",
@@ -765,6 +873,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Map"
+          }
+        }
+      }
+    },
+    "Timetable.Loading" : {
+      "comment" : "Under the spinner on the Map and Line Diagram tabs while the timetable loads.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading the timetable"
           }
         }
       }
@@ -945,6 +1065,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Next: %1$(station)@ at %2$(time)@"
+          }
+        }
+      }
+    },
+    "Train.Stop.Here" : {
+      "comment" : "VoiceOver value of a stop in a train's stop list: the train stands at this station now.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The train is here"
+          }
+        }
+      }
+    },
+    "Train.Stop.Next" : {
+      "comment" : "VoiceOver value of a stop in a train's stop list: the train's next stop.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next stop"
+          }
+        }
+      }
+    },
+    "Train.Stop.Passed" : {
+      "comment" : "VoiceOver value of a stop in a train's stop list: the train has left this station.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passed"
           }
         }
       }

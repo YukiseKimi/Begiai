@@ -11,6 +11,7 @@ final class TrainJourney: XCTestCase {
         let destination = map.openFirstTrain()
         let train = TrainScreen(journey: journey)
         train.expectTrain(to: destination)
+        train.expectWhereTheTrainIs()
         train.back()
         map.expectLines()
         journey.holdLastScreen()
