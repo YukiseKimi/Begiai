@@ -43,6 +43,8 @@ struct LineDiagramTab: View {
                         Text(.trainEstimated)
                             .font(.footnote)
                             .foregroundStyle(.secondary)
+                        StaleNote(since: engine.timetable.staleSince(on: ServiceDate(now)))
+                        NoticesLink()
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()

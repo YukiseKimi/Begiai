@@ -21,6 +21,20 @@ extension Timetable {
     /// The shape of timetable.json. An app reads only a bundle of the format that it knows.
     public static let format = 1
 
+    /// After this many days the app says the date of its timetable: two nightly builds failed.
+    public static let staleAfterDays = 3
+
+    /// The day the timetable was built, in Vilnius; nil only for a timetable that fails `check()`.
+    public var builtOn: ServiceDate? { ServiceDate(number: feedDate) }
+
+    /// The day the timetable was built, when it is `staleAfterDays` or more days before `day`.
+    public func staleSince(on day: ServiceDate) -> ServiceDate? {
+        guard let built = builtOn, built.adding(days: Self.staleAfterDays) <= day else { return nil }
+        return built
+    }
+
+    public func isStale(at date: Date) -> Bool { staleSince(on: ServiceDate(date)) != nil }
+
     /// Throws the first problem that would make the app show wrong or no trains: an empty
     /// list, an index that points at nothing, or no trip on the feed date.
     public func check() throws(TimetableProblem) {
@@ -36,7 +50,7 @@ extension Timetable {
             guard trip.stops.count >= 2, trip.stops.allSatisfy({ stations.indices.contains($0.station) })
             else { throw .outOfRange("the stops of trip \(trip.id)") }
         }
-        guard let day = ServiceDate(number: feedDate), trips.contains(where: { services[$0.service].runs(on: day) })
+        guard let day = builtOn, trips.contains(where: { services[$0.service].runs(on: day) })
         else { throw .noServiceOnFeedDate(feedDate) }
     }
 }

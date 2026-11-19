@@ -86,6 +86,18 @@ struct MapScreen {
         XCTAssertEqual(trains.count, 0, "Map at night: \(trains.count) trains show", file: file, line: line)
     }
 
+    /// The note that the timetable is old, with its day and month: “17 Nov” or “Nov 17”, as the locale writes it.
+    func expectStaleNote(day: Int, month: String, file: StaticString = #filePath, line: UInt = #line) {
+        let note = journey.wait(for: journey.element(A11yID.Timetable.stale), "the old-timetable note", on: "Map", file: file, line: line)
+        let dated = note.label.contains("\(day) \(month)") || note.label.contains("\(month) \(day)")
+        XCTAssertTrue(note.label.hasPrefix("Timetable from") && dated, "Map: the note reads \(note.label)", file: file, line: line)
+    }
+
+    func expectNoStaleNote(file: StaticString = #filePath, line: UInt = #line) {
+        journey.wait(for: journey.element(A11yID.Map.runningCount), "the running count", on: "Map", file: file, line: line)
+        XCTAssertFalse(journey.element(A11yID.Timetable.stale).exists, "Map: a fresh timetable says it is old", file: file, line: line)
+    }
+
     private var springboard: XCUIApplication { XCUIApplication(bundleIdentifier: "com.apple.springboard") }
 
     func expectNoLocationPrompt(file: StaticString = #filePath, line: UInt = #line) {

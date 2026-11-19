@@ -60,6 +60,7 @@ struct TrainPage: View {
                 Text(.trainEstimated)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                NoticesLink()
             } else {
                 Text(.trainGone)
                     .foregroundStyle(.secondary)

@@ -34,6 +34,14 @@ enum A11yID {
         static let train = "lineDiagram.train"
     }
 
+    enum Timetable {
+        static let stale = "timetable.stale"
+    }
+
+    enum Notices {
+        static let link = "notices.link"
+    }
+
     struct Entry {
         let id: String
         let element: String
@@ -64,5 +72,7 @@ enum A11yID {
         Entry(id: LineDiagram.frequency, element: "how often the trains of the chosen line leave", screen: "Line Diagram"),
         Entry(id: LineDiagram.station, element: "each station on the line diagram", screen: "Line Diagram"),
         Entry(id: LineDiagram.train, element: "each train on the line diagram", screen: "Line Diagram"),
+        Entry(id: Notices.link, element: "the link to LTG Link's notices", screen: "Line Diagram, Train"),
+        Entry(id: Timetable.stale, element: "the note that the timetable is old", screen: "Map, Line Diagram"),
     ]
 }

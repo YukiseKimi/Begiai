@@ -63,6 +63,19 @@ struct LineDiagramScreen {
         return name
     }
 
+    func expectNoticesLink(file: StaticString = #filePath, line: UInt = #line) {
+        let link = journey.wait(for: journey.element(A11yID.Notices.link), "the notices link", on: "Line Diagram", file: file, line: line)
+        XCTAssertEqual(link.elementType, .link, "Line Diagram: the notices link is a \(link.elementType)", file: file, line: line)
+        XCTAssertTrue(link.label.contains("LTG Link notices"), "Line Diagram: the link reads \(link.label)", file: file, line: line)
+    }
+
+    /// The train page in the sheet has a notices link of its own, besides the diagram's link under the sheet.
+    func expectNoticesLinkOnTheTrainPage(file: StaticString = #filePath, line: UInt = #line) {
+        journey.wait(for: journey.element(A11yID.Train.title), "the train page", on: "Line Diagram", file: file, line: line)
+        let links = journey.app.descendants(matching: .any).matching(identifier: A11yID.Notices.link)
+        XCTAssertGreaterThanOrEqual(links.count, 2, "Line Diagram: the train page has no notices link", file: file, line: line)
+    }
+
     func expectNoFollowButton(file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertFalse(journey.element(A11yID.Train.follow).exists, "Line Diagram: the train page has a Follow button", file: file, line: line)
     }

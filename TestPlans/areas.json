@@ -17,7 +17,8 @@
         "StationJourney",
         "NightJourney",
         "LocateJourney",
-        "LineDiagramJourney"
+        "LineDiagramJourney",
+        "FreshDataJourney"
       ],
       "devices": [
         "iPhone 17 Pro"

@@ -40,3 +40,14 @@ struct ServiceDateNumberTests {
         #expect(ServiceDate(number: 20261300) == nil)
     }
 }
+
+@Suite("An old timetable", .sealed, .timeLimit(.minutes(1)))
+struct StaleTimetableTests {
+    @Test func aTimetableIsOldThreeDaysAfterItWasBuiltInVilnius() throws {
+        let timetable = FourStations.timetable  // built on 17 Nov 2026
+        let lateOn19th = try Date("2026-11-19T21:59:00Z", strategy: .iso8601)  // 23:59 in Vilnius
+        let earlyOn20th = try Date("2026-11-19T22:01:00Z", strategy: .iso8601)  // 00:01 in Vilnius
+        #expect(!timetable.isStale(at: lateOn19th))
+        #expect(timetable.isStale(at: earlyOn20th))
+    }
+}

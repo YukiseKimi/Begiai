@@ -481,6 +481,18 @@
         }
       }
     },
+    "Notices.Link" : {
+      "comment" : "A link that opens LTG Link's notices about track work and timetable changes on ltglink.lt.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Track work or changes? See LTG Link notices"
+          }
+        }
+      }
+    },
     "Panel.Resize" : {
       "comment" : "VoiceOver label of the handle that makes the map panel taller or shorter.",
       "extractionState" : "manual",
@@ -537,6 +549,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Map"
+          }
+        }
+      }
+    },
+    "Timetable.Stale" : {
+      "comment" : "Shown when the timetable is 3 or more days old: the date it was built, for example “17 Nov”.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timetable from %(date)@. The app could not get a newer one."
           }
         }
       }

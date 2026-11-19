@@ -63,7 +63,11 @@ struct MapTab: View {
                             LEDBoard(departures: engine.departures(from: station, at: now))
                         case nil:
                             if trains.settled.isEmpty, let first = engine.firstTrain(after: now) {
-                                FirstTrainCard(time: first.time, origin: first.origin, destination: first.destination)
+                                VStack(spacing: 12) {
+                                    StaleNote(since: engine.timetable.staleSince(on: ServiceDate(now)))
+                                        .padding(.horizontal)
+                                    FirstTrainCard(time: first.time, origin: first.origin, destination: first.destination)
+                                }
                             } else {
                                 lineList(engine: engine, now: now)
                             }
@@ -115,11 +119,19 @@ struct MapTab: View {
         let lines = engine.lineSummaries(at: now, trains: trains.settled, starred: starred).filter {
             filter.includes($0, starred: starred)
         }
-        return List(lines) { line in
-            LineRow(line: line, starred: starred.contains(line.name)) {
-                toggleStar(.line, name: line.name)
+        // The note scrolls with the lines, so at large text sizes it never pushes them off the panel.
+        let staleSince = engine.timetable.staleSince(on: ServiceDate(now))
+        return List {
+            if staleSince != nil {
+                StaleNote(since: staleSince)
+                    .listRowBackground(Color.clear)
             }
-            .listRowBackground(Color.clear)
+            ForEach(lines) { line in
+                LineRow(line: line, starred: starred.contains(line.name)) {
+                    toggleStar(.line, name: line.name)
+                }
+                .listRowBackground(Color.clear)
+            }
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
