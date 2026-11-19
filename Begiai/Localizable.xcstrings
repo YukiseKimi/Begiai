@@ -241,6 +241,30 @@
         }
       }
     },
+    "Diagram.Rotor.Stations" : {
+      "comment" : "Name of the VoiceOver rotor that moves from station to station on the line diagram.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stations"
+          }
+        }
+      }
+    },
+    "Diagram.Rotor.Trains" : {
+      "comment" : "Name of the VoiceOver rotor that moves from train to train on the line diagram.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trains"
+          }
+        }
+      }
+    },
     "Diagram.TrainAt" : {
       "comment" : "VoiceOver label of a train on the line diagram while it stands at a station.",
       "extractionState" : "manual",

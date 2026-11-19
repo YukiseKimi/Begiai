@@ -24,6 +24,20 @@ struct LineDiagramScreen {
             "Line Diagram: the train says “\(train.label)”, not where it is", file: file, line: line)
     }
 
+    /// No two trains on the diagram cover each other, so each can be read and tapped.
+    func expectTrainsApart(file: StaticString = #filePath, line: UInt = #line) {
+        journey.wait(for: journey.element(A11yID.LineDiagram.train), "a train", on: "Line Diagram", file: file, line: line)
+        let frames = journey.app.descendants(matching: .any).matching(identifier: A11yID.LineDiagram.train)
+            .allElementsBoundByIndex.map(\.frame)
+        for (index, frame) in frames.enumerated() {
+            for other in frames[(index + 1)...] {
+                XCTAssertFalse(
+                    frame.intersects(other), "Line Diagram: trains at \(frame) and \(other) cover each other",
+                    file: file, line: line)
+            }
+        }
+    }
+
     /// Taps a chip other than the one that shows, and gives the name of its line.
     @discardableResult
     func chooseAnotherLine(file: StaticString = #filePath, line: UInt = #line) -> String {

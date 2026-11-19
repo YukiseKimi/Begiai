@@ -2,6 +2,19 @@ import XCTest
 
 final class LineDiagramJourney: XCTestCase {
     @MainActor
+    func testAtTheLargestTextSizeTheTrainsStayApart() {
+        continueAfterFailure = false
+        let journey = JourneyApp()
+        journey.launch(.map, largeText: true)
+
+        let diagram = LineDiagramScreen(journey: journey)
+        diagram.open()
+        diagram.expectALineWithItsTrains()
+        diagram.expectTrainsApart()
+        journey.holdLastScreen()
+    }
+
+    @MainActor
     func testTheDiagramShowsATrainBetweenTwoStations() {
         continueAfterFailure = false
         let journey = JourneyApp()
