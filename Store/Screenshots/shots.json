@@ -1,0 +1,38 @@
+{
+  "drive": "BegiaiUITests/StoreShotsJourney.swift",
+  "take": "BEGIAI_SIM=<udid> Store/Screenshots/take.sh <run>",
+  "simulator": {"device": "iPhone 17 Pro", "os": "iOS 27.2", "screen": [1206, 2622], "locale": "en_US"},
+  "common": ["--sealed", "--reset", "--now", "2026-11-17T15:55:00Z", "--timetable", "<repo>/Fixtures/timetable-20261117.json"],
+  "shots": {
+    "iPhone/01-map.png": {
+      "test": "test01Map", "appearance": "light",
+      "steps": [["wait", "map.runningCount"], ["zoomToVilnius"], ["wait", "map.panel", "Half"]],
+      "note": "zoomToVilnius: two double taps on a free spot beside the Vilnius station marker, then slow drags until Vilnius sits at 0.5 W, 0.27 H; each step reads the markers again."
+    },
+    "iPhone/02-train.png": {
+      "test": "test02Train", "appearance": "light",
+      "steps": [["wait", "map.runningCount"], ["zoomToVilnius"], ["tap", "map.train", "the first train to Kaunas (else to Vilnius) above the panel, on a spot no other marker covers"], ["wait", "train.title"]],
+      "note": "At 17:55 it picks the 17:26 Vilnius → Kaunas, at Vievis."
+    },
+    "iPhone/03-line-diagram.png": {
+      "test": "test03LineDiagram", "appearance": "light",
+      "steps": [["wait", "map.runningCount"], ["tap", "Line Diagram tab"], ["wait", "lineDiagram.page", "Vilnius – Kaunas"], ["wait", "lineDiagram.train"]]
+    },
+    "iPhone/04-board.png": {
+      "test": "test04Board", "appearance": "light",
+      "steps": [["tap", "Line Diagram tab"], ["tap", "lineDiagram.station", "Vilnius, the first"], ["tap", "board.star"], ["tap", "board.back"],
+                ["tap", "Map tab"], ["zoomToVilnius"], ["tap", "map.starredStation", "Vilnius"], ["wait", "board.row"]],
+      "note": "Trains stand on the Vilnius marker at 17:55, so a tap on it opens a train; the star puts Vilnius in Your stations, which opens its board."
+    },
+    "iPhone/05-map-dark.png": {
+      "test": "test05MapDark", "appearance": "dark",
+      "steps": [["wait", "map.runningCount"], ["zoomToVilnius"]],
+      "note": "take.sh sets the simulator dark with simctl ui appearance, then light again."
+    },
+    "iPhone/06-about.png": {
+      "test": "test06About", "appearance": "light",
+      "steps": [["wait", "map.runningCount"], ["tap", "about.open"], ["drag", "About", "until about.highContrast ends at 0.95 H"]],
+      "note": "The tips section below stays off screen: without a StoreKit file it shows loading placeholders, and with one it shows prices."
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "look": {"background": "#DDEBF7", "text": "#0E2438"},
+  "order": ["01-see-every-train", "02-follow-your-train", "03-read-a-line", "04-next-train", "05-easy-at-night", "06-every-rider"],
+  "devices": {
+    "iPhone": {
+      "size": [1206, 2622],
+      "trim": true,
+      "bezels": {
+        "light": "~/Documents/Bezels/iPhone 17 Pro/iPhone 17 Pro - Silver - Portrait.png",
+        "dark": "~/Documents/Bezels/iPhone 17 Pro/iPhone 17 Pro - Deep Blue - Portrait.png"
+      }
+    }
+  },
+  "slides": {
+    "01-see-every-train": {
+      "layout": "callout",
+      "shots": {"iPhone": [{"shot": "iPhone/01-map.png", "bezel": "light", "caption": "See every train in Lithuania move"}]}
+    },
+    "02-follow-your-train": {
+      "layout": "callout",
+      "shots": {"iPhone": [{"shot": "iPhone/02-train.png", "bezel": "light", "caption": "Follow your train stop by stop"}]}
+    },
+    "03-read-a-line": {
+      "layout": "callout",
+      "shots": {"iPhone": [{"shot": "iPhone/03-line-diagram.png", "bezel": "light", "caption": "Read a line at a glance"}]}
+    },
+    "04-next-train": {
+      "layout": "callout",
+      "shots": {"iPhone": [{"shot": "iPhone/04-board.png", "bezel": "light", "caption": "Know when your next train leaves"}]}
+    },
+    "05-easy-at-night": {
+      "layout": "callout",
+      "shots": {"iPhone": [{"shot": "iPhone/05-map-dark.png", "bezel": "dark", "caption": "Easy on the eyes at night"}]}
+    },
+    "06-every-rider": {
+      "layout": "callout",
+      "shots": {"iPhone": [{"shot": "iPhone/06-about.png", "bezel": "light", "caption": "Made for every rider"}]}
+    }
+  }
+}
