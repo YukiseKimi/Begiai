@@ -43,7 +43,10 @@ final class LineDiagramJourney: XCTestCase {
         diagram.expectTheSheetCloses()
         train.back()
         let station = diagram.openAStation()
-        BoardScreen(journey: journey).expectBoard(of: station)
+        let board = BoardScreen(journey: journey)
+        board.expectBoard(of: station)
+        // The first station of the busiest line, at 17:55 in Vilnius.
+        board.expectMinutesWithinTheHour(now: (17, 55), busy: true)
         journey.holdLastScreen()
     }
 }

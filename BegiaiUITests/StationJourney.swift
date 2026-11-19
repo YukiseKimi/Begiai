@@ -8,7 +8,10 @@ final class StationJourney: XCTestCase {
         journey.launch(.map)
 
         let station = MapScreen(journey: journey).openStationAboveThePanel()
-        BoardScreen(journey: journey).expectBoard(of: station)
+        let board = BoardScreen(journey: journey)
+        board.expectBoard(of: station)
+        // The sealed time, 15:55 UTC, is 17:55 in Vilnius.
+        board.expectMinutesWithinTheHour(now: (17, 55))
         journey.holdLastScreen()
     }
 }

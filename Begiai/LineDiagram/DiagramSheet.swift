@@ -36,7 +36,7 @@ struct DiagramSheet: View {
                     StationHeader(name: name, starred: starred.contains(name), exit: .close, close: close) {
                         modelContext.toggleStarOrRollBack(.station, name: name, at: now)
                     }
-                    LEDBoard(departures: engine.departures(from: station, at: now))
+                    LEDBoard(departures: engine.departures(from: station, at: now), now: now)
                 }
             }
             .padding(.top)

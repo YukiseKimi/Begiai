@@ -181,6 +181,18 @@
         }
       }
     },
+    "Board.Now" : {
+      "comment" : "On a station's departure board, in place of the minutes from now: the train leaves this minute.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "now"
+          }
+        }
+      }
+    },
     "Board.StartsHere" : {
       "comment" : "On a station's departure board: this train begins its trip at this station, so seats are free.",
       "extractionState" : "manual",

@@ -60,7 +60,7 @@ struct MapTab: View {
                                 StopList(timeline: timeline, color: color(of: chosen))
                             }
                         case .station(let station):
-                            LEDBoard(departures: engine.departures(from: station, at: now))
+                            LEDBoard(departures: engine.departures(from: station, at: now), now: now)
                         case nil:
                             if trains.settled.isEmpty, let first = engine.firstTrain(after: now) {
                                 VStack(spacing: 12) {
