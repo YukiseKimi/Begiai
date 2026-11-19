@@ -25,3 +25,20 @@ struct TimetableStoreTests {
         guard case .failed = store.state else { Issue.record("state is \(store.state)"); return }
     }
 }
+
+@MainActor
+@Suite("Timetable store, two copies", .sealed, .timeLimit(.minutes(1)))
+struct TimetableStoreFallbackTests {
+    @Test func aBrokenSavedCopyFallsBackToTheShippedOne() async throws {
+        let folder = try #require(TestWorld.current).folder
+        let saved = folder.appending(path: "saved.json"), shipped = folder.appending(path: "shipped.json")
+        var bad = FourStations.timetable
+        bad.trips[0].shape = 9
+        try JSONEncoder().encode(bad).write(to: saved)
+        try JSONEncoder().encode(FourStations.timetable).write(to: shipped)
+        let store = TimetableStore()
+        await store.load(from: [saved, shipped])
+        #expect(store.state == .ready)
+        #expect(store.timetable == FourStations.timetable)
+    }
+}

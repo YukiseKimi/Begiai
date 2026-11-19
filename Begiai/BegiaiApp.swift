@@ -1,6 +1,7 @@
 import BegiaiKit
 import SwiftData
 import SwiftUI
+import os
 
 @main
 struct BegiaiApp: App {
@@ -18,7 +19,14 @@ struct BegiaiApp: App {
                 .environment(\.timeSource, launch.time)
                 .defaultAppStorage(launch.settings)
                 .task {
-                    await store.load(from: Bundle.main.bundleURL.appending(path: "timetable.json"))
+                    let bundled = Bundle.main.bundleURL.appending(path: "timetable.json")
+                    let candidates = await launch.feed?.candidates(bundled: bundled) ?? [bundled]
+                    await store.load(from: candidates)
+                    guard let feed = launch.feed, let loaded = store.timetable?.feedDate else { return }
+                    // A newer timetable is used at the next launch, so no train jumps while you look at it.
+                    let outcome = await feed.refresh(now: .now, loaded: loaded)
+                    Logger(subsystem: "app.begiai.Begiai", category: "timetable")
+                        .info("The timetable feed: \(String(describing: outcome), privacy: .public)")
                 }
         }
         .modelContainer(stars)

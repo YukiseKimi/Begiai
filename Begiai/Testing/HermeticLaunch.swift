@@ -8,6 +8,8 @@ struct HermeticLaunch {
     let starFolder: URL?
     /// Where `@AppStorage` keeps the app's settings: a suite of its own in a sealed launch.
     let settings: UserDefaults
+    /// Where the app gets a newer timetable. A sealed launch has none, so it never goes to the network.
+    let feed: TimetableFeed?
 
     private static let sealedSettings = "app.begiai.Begiai.sealed"
 
@@ -19,7 +21,12 @@ struct HermeticLaunch {
         } catch {
             fatalError("Sealed launch: \(error)")
         }
-        guard let launch else { return HermeticLaunch(time: SystemTime(), starFolder: nil, settings: .standard) }
+        guard let launch else {
+            // Caches: no iCloud backup for a file that the app can download again, and if iOS
+            // clears it, the app falls back to the copy that it ships.
+            let folder = URL.cachesDirectory.appending(path: "Timetable", directoryHint: .isDirectory)
+            return HermeticLaunch(time: SystemTime(), starFolder: nil, settings: .standard, feed: TimetableFeed(folder: folder))
+        }
         let folder = FileManager.default.temporaryDirectory.appending(path: "BegiaiSealed", directoryHint: .isDirectory)
         guard let settings = UserDefaults(suiteName: sealedSettings) else { fatalError("Sealed launch: no settings suite") }
         if launch.reset {
@@ -27,7 +34,7 @@ struct HermeticLaunch {
             settings.removePersistentDomain(forName: sealedSettings)
         }
         let time: any TimeSource = launch.now.map { FixedTime(now: $0) } ?? SystemTime()
-        return HermeticLaunch(time: time, starFolder: folder, settings: settings)
+        return HermeticLaunch(time: time, starFolder: folder, settings: settings, feed: nil)
     }
 
     func starContainer() -> ModelContainer {
