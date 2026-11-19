@@ -13,7 +13,7 @@ struct TimetableStoreTests {
         await store.load(from: url)
         #expect(store.state == .ready)
         #expect(store.timetable?.trips.count == 1)
-        #expect(store.tracks.map(\.line) == [0])
+        #expect(store.tracks.map(\.lines) == [[0]])
     }
 
     @Test func aBrokenTimetableFailsInsteadOfShowingAnEmptyMap() async throws {

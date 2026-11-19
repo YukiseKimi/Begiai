@@ -15,4 +15,11 @@ enum LinePalette {
     static func color(forLine line: Int) -> Color {
         colors[line % colors.count]
     }
+
+    /// The colours of the lines in line order, each colour once: lines that share a colour
+    /// look the same on a shared track.
+    static func colors(forLines lines: [Int]) -> [Color] {
+        var seen = Set<Int>()
+        return lines.compactMap { seen.insert($0 % colors.count).inserted ? color(forLine: $0) : nil }
+    }
 }

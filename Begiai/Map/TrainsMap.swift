@@ -22,8 +22,11 @@ struct TrainsMap: View {
         Map(position: $position, scope: mapScope) {
             UserAnnotation()
             ForEach(store.tracks) { track in
-                MapPolyline(coordinates: track.coordinates)
-                    .stroke(LinePalette.color(forLine: track.line), lineWidth: 3)
+                let colors = LinePalette.colors(forLines: track.lines)
+                ForEach(colors.indices, id: \.self) { slot in
+                    MapPolyline(coordinates: track.coordinates)
+                        .stroke(colors[slot], style: Self.trackStroke(slot: slot, of: colors.count))
+                }
             }
             ForEach(stations, id: \.index) { station, info in
                 Annotation("", coordinate: info.coordinate.location, anchor: .center) {
@@ -73,6 +76,19 @@ struct TrainsMap: View {
             .padding()
         }
         .mapScope(mapScope)
+    }
+
+    /// The length in points of one line's dash on rail that several lines share.
+    private static let dash: CGFloat = 6
+
+    /// A track with one colour is a solid line. On a track that `count` colours share, each
+    /// colour is a dash with a gap for the others, and the dashes take turns in line order.
+    private static func trackStroke(slot: Int, of count: Int) -> StrokeStyle {
+        guard count > 1 else { return StrokeStyle(lineWidth: 3) }
+        // MapKit does not scale `dashPhase` as it scales the dashes, so a zero dash and a gap
+        // move this line's dash to its turn.
+        return StrokeStyle(
+            lineWidth: 3, dash: [0, dash * CGFloat(slot), dash, dash * CGFloat(count - 1 - slot)])
     }
 
     /// At city zoom, the stations in sight and a margin around them; else the big stations.

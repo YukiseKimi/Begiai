@@ -12,9 +12,10 @@ public final class TimetableStore {
         case failed(String)
     }
 
+    /// A piece of rail, drawn once, with the lines whose trains run on it, sorted by line id.
     public struct Track: Identifiable, Sendable {
         public let id: Int
-        public let line: Int
+        public let lines: [Int]
         public let coordinates: [CLLocationCoordinate2D]
     }
 
@@ -31,15 +32,8 @@ public final class TimetableStore {
     public func load(from url: URL) async {
         guard state == .loading, timetable == nil else { return }
         do {
-            let timetable = try await Self.decode(url)
-            let lines = Dictionary(timetable.trips.map { ($0.shape, $0.line) }, uniquingKeysWith: { first, _ in first })
-            tracks = timetable.shapes.indices.compactMap { index in
-                guard let line = lines[index] else { return nil }
-                let coordinates = timetable.shapes[index].points.map {
-                    CLLocationCoordinate2D(latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude)
-                }
-                return Track(id: index, line: line, coordinates: coordinates)
-            }
+            let (timetable, tracks) = try await Self.decode(url)
+            self.tracks = tracks
             self.timetable = timetable
             let engine = MotionEngine(timetable: timetable)
             self.engine = engine
@@ -54,7 +48,13 @@ public final class TimetableStore {
     }
 
     @concurrent
-    private static func decode(_ url: URL) async throws -> Timetable {
-        try JSONDecoder().decode(Timetable.self, from: Data(contentsOf: url))
+    private static func decode(_ url: URL) async throws -> (Timetable, [Track]) {
+        let timetable = try JSONDecoder().decode(Timetable.self, from: Data(contentsOf: url))
+        let tracks = timetable.trackRuns().enumerated().map { index, run in
+            Track(
+                id: index, lines: run.lines,
+                coordinates: run.coordinates.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) })
+        }
+        return (timetable, tracks)
     }
 }
