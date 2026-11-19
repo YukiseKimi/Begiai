@@ -40,7 +40,11 @@ struct BoardScreen {
             let expected = away == 0 ? "now" : "in \(away) min"
             if away <= 60 {
                 counted += 1
-                XCTAssertTrue(row.label.contains(expected), "Board: \(row.label) does not say \(expected)", file: file, line: line)
+                // The row can show before its countdown does, so wait for it a little.
+                let says = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS %@", expected), object: row)
+                XCTAssertEqual(
+                    XCTWaiter.wait(for: [says], timeout: 3), .completed, "Board: \(row.label) does not say \(expected)",
+                    file: file, line: line)
             } else {
                 XCTAssertFalse(row.label.contains(" min"), "Board: \(row.label) counts minutes past the hour", file: file, line: line)
             }
