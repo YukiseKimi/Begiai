@@ -4,20 +4,15 @@ import SwiftUI
 struct StationHeader: View {
     let name: String
     let starred: Bool
+    var exit = PageExit.back
     let close: () -> Void
     let toggleStar: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Button(action: close) {
-                    Label {
-                        Text(.trainBack)
-                    } icon: {
-                        Image(systemName: "chevron.left")
-                    }
-                }
-                .accessibilityIdentifier(A11yID.Board.back)
+                PageExitButton(exit: exit, close: close)
+                    .accessibilityIdentifier(A11yID.Board.back)
                 Spacer()
                 StarButton(name: name, starred: starred, toggle: toggleStar)
                     .accessibilityIdentifier(A11yID.Board.star)

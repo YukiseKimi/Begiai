@@ -901,6 +901,42 @@
         }
       }
     },
+    "Train.Stop.Here" : {
+      "comment" : "VoiceOver value of a stop in a train's stop list: the train stands at this station now.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The train is here"
+          }
+        }
+      }
+    },
+    "Train.Stop.Next" : {
+      "comment" : "VoiceOver value of a stop in a train's stop list: the train's next stop.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next stop"
+          }
+        }
+      }
+    },
+    "Train.Stop.Passed" : {
+      "comment" : "VoiceOver value of a stop in a train's stop list: the train has left this station.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passed"
+          }
+        }
+      }
+    },
     "Train.Title" : {
       "comment" : "Title of a train's page: its first departure time, first station and last station.",
       "extractionState" : "manual",

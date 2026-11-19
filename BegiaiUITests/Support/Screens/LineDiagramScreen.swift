@@ -73,7 +73,18 @@ struct LineDiagramScreen {
     func expectNoticesLinkOnTheTrainPage(file: StaticString = #filePath, line: UInt = #line) {
         journey.wait(for: journey.element(A11yID.Train.title), "the train page", on: "Line Diagram", file: file, line: line)
         let links = journey.app.descendants(matching: .any).matching(identifier: A11yID.Notices.link)
+        // The page opens on the train's stop; the link is above the first stop.
+        let stops = journey.app.descendants(matching: .any).matching(identifier: A11yID.Train.stop)
+        for _ in 0..<6 where links.count < 2 {
+            stops.firstMatch.swipeDown(velocity: .fast)
+        }
         XCTAssertGreaterThanOrEqual(links.count, 2, "Line Diagram: the train page has no notices link", file: file, line: line)
+    }
+
+    /// A sheet closes with Close, not with a Back button.
+    func expectTheSheetCloses(file: StaticString = #filePath, line: UInt = #line) {
+        let exit = journey.wait(for: journey.element(A11yID.Train.back), "the Close button", on: "Line Diagram", file: file, line: line)
+        XCTAssertEqual(exit.label, "Close", "Line Diagram: the sheet's button reads \(exit.label)", file: file, line: line)
     }
 
     func expectNoFollowButton(file: StaticString = #filePath, line: UInt = #line) {

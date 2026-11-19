@@ -27,13 +27,13 @@ struct DiagramSheet: View {
                     let train = engine.train(id, at: now)
                     let timeline = train.map(engine.timeline(of:))
                     let color = LinePalette.color(forLine: engine.timetable.trips[id.trip].line)
-                    TrainPage(timeline: timeline, color: color, now: now, close: close)
+                    TrainPage(timeline: timeline, color: color, now: now, exit: .close, close: close)
                     if let timeline {
                         StopList(timeline: timeline, color: color)
                     }
                 case .station(let station):
                     let name = engine.timetable.stations[station].name
-                    StationHeader(name: name, starred: starred.contains(name), close: close) {
+                    StationHeader(name: name, starred: starred.contains(name), exit: .close, close: close) {
                         modelContext.toggleStarOrRollBack(.station, name: name, at: now)
                     }
                     LEDBoard(departures: engine.departures(from: station, at: now))

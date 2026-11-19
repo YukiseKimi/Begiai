@@ -40,6 +40,7 @@ final class LineDiagramJourney: XCTestCase {
         let train = TrainScreen(journey: journey)
         train.expectTrain(to: destination)
         diagram.expectNoFollowButton()
+        diagram.expectTheSheetCloses()
         train.back()
         let station = diagram.openAStation()
         BoardScreen(journey: journey).expectBoard(of: station)
