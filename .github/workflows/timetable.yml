@@ -29,6 +29,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build the bundle and its manifest
         run: script/bundle.sh site
+      - name: Add the support and privacy pages
+        run: cp Pages/*.html Pages/*.css site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
