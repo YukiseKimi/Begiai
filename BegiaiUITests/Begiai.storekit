@@ -1,0 +1,65 @@
+{
+  "identifier": "9C3B7F40-5E1A-4B7C-8F1D-6A2E0B9C1D11",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "0.99",
+      "familyShareable": false,
+      "internalID": "EE30C5BD-37BB-5A23-988A-3F5158EB6570",
+      "localizations": [
+        {
+          "description": "A small tip. It unlocks nothing.",
+          "displayName": "Coffee",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "app.begiai.Begiai.tip.coffee",
+      "referenceName": "Coffee",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "2.99",
+      "familyShareable": false,
+      "internalID": "96DE18AC-BEDA-560A-BC97-A517E07E3FA7",
+      "localizations": [
+        {
+          "description": "A tip the price of a short trip. It unlocks nothing.",
+          "displayName": "Ticket",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "app.begiai.Begiai.tip.ticket",
+      "referenceName": "Ticket",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "9B15323E-6C74-5182-B05D-F873F764CFDA",
+      "localizations": [
+        {
+          "description": "A generous tip. It unlocks nothing.",
+          "displayName": "First class",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "app.begiai.Begiai.tip.firstClass",
+      "referenceName": "First class",
+      "type": "Consumable"
+    }
+  ],
+  "settings": {
+    "_applicationInternalID": "",
+    "_developerTeamID": "",
+    "_disableDialogs": true,
+    "_failTransactionsEnabled": false,
+    "_locale": "en_US",
+    "_storefront": "LTU",
+    "_storeKitErrors": []
+  },
+  "subscriptionGroups": [],
+  "version": {
+    "major": 4,
+    "minor": 0
+  }
+}

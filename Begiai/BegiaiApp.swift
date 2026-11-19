@@ -18,6 +18,7 @@ struct BegiaiApp: App {
             RootView(store: store, mayWelcome: launch.mayWelcome)
                 .environment(\.timeSource, launch.time)
                 .defaultAppStorage(launch.settings)
+                .task { await TipJar.finishUnfinished() }
                 .task {
                     let bundled = Bundle.main.bundleURL.appending(path: "timetable.json")
                     let candidates = await launch.feed?.candidates(bundled: bundled) ?? [bundled]

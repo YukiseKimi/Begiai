@@ -733,6 +733,66 @@
         }
       }
     },
+    "Tip.Failed" : {
+      "comment" : "About: a tip that failed.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The tip did not go through. You were not charged."
+          }
+        }
+      }
+    },
+    "Tip.Footer" : {
+      "comment" : "About: under the three tips.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A tip unlocks nothing. It helps keep Bėgiai free and up to date."
+          }
+        }
+      }
+    },
+    "Tip.Thanks" : {
+      "comment" : "About: shown after a tip goes through.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thank you for the tip!"
+          }
+        }
+      }
+    },
+    "Tip.Title" : {
+      "comment" : "About: header of the tip jar.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leave a tip"
+          }
+        }
+      }
+    },
+    "Tip.Waiting" : {
+      "comment" : "About: a tip that waits for Ask to Buy approval.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your tip waits for approval."
+          }
+        }
+      }
+    },
     "Train.At" : {
       "comment" : "On a train's page while the train stands at a station: the station and the time it leaves.",
       "extractionState" : "manual",

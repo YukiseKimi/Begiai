@@ -19,6 +19,8 @@
          <BuildableReference BuildableIdentifier = "primary" BlueprintIdentifier = "5027B7F830AC935200246DA0" BuildableName = "Begiai.app" BlueprintName = "Begiai" ReferencedContainer = "container:Begiai.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <StoreKitConfigurationFileReference identifier = "../../BegiaiUITests/Begiai.storekit">
+      </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction buildConfiguration = "Release" shouldUseLaunchSchemeArgsEnv = "YES" savedToolIdentifier = "" useCustomWorkingDirectory = "NO" debugDocumentVersioning = "YES">
    </ProfileAction>

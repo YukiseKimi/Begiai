@@ -61,6 +61,8 @@ struct AboutSheet: View {
                     Text(.aboutSourcesTitle)
                 }
 
+                TipJar()
+
                 Section {
                     Text(.aboutUnofficial)
                         .accessibilityIdentifier(A11yID.About.unofficial)
