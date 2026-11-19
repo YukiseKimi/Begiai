@@ -31,4 +31,24 @@ final class AboutJourney: XCTestCase {
         about.tipACoffee()
         journey.holdLastScreen()
     }
+
+    @MainActor
+    func testLargerMarkersStayOn() {
+        continueAfterFailure = false
+        let journey = JourneyApp()
+        journey.launch(.map)
+        let map = MapScreen(journey: journey)
+        let before = map.trainWidth()
+
+        let about = AboutScreen(journey: journey)
+        about.open()
+        about.largerMarkers().switches.firstMatch.tap()
+        about.close()
+        XCTAssertGreaterThan(map.trainWidth(), before * 1.25, "Map: the trains did not get larger")
+
+        journey.relaunch()
+        about.open()
+        XCTAssertEqual(about.largerMarkers().value as? String, "1", "About: Larger markers is off after a relaunch")
+        journey.holdLastScreen()
+    }
 }

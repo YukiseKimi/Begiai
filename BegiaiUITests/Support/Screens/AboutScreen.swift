@@ -26,6 +26,13 @@ struct AboutScreen {
         journey.wait(for: journey.element(A11yID.About.tipThanks), "the thank-you", on: "About", timeout: 15, file: file, line: line)
     }
 
+    /// The Larger markers switch; scrolls to it.
+    func largerMarkers(file: StaticString = #filePath, line: UInt = #line) -> XCUIElement {
+        let toggle = journey.app.switches.matching(identifier: A11yID.About.largerMarkers).firstMatch
+        for _ in 0..<4 where !toggle.isHittable { journey.app.swipeUp() }
+        return journey.wait(for: toggle, "the Larger markers switch", on: "About", file: file, line: line)
+    }
+
     func close(file: StaticString = #filePath, line: UInt = #line) {
         journey.wait(for: journey.element(A11yID.About.close), "the close button", on: "About", file: file, line: line).tap()
         XCTAssertTrue(journey.element(A11yID.About.close).waitForNonExistence(timeout: 5), "About: it stays open", file: file, line: line)

@@ -20,7 +20,7 @@ with each failure and a `rerun:` line.
 | Lane | What | Limit |
 | --- | --- | --- |
 | `unit [--area <id>]` | `swift test` in BegiaiKit, headless | 90 s (tests take ~1 s) |
-| `journey [<Journey>/<test>] [--no-build]` | UI journeys on `$BEGIAI_SIM` (a simulator UDID) | 360 s (one journey ~30 s) |
+| `journey [<Journey>/<test>] [--no-build]` | UI journeys on `$BEGIAI_SIM` (a simulator UDID) | 600 s (one journey ~20–30 s) |
 | `build` | Release, unsigned; fails if the Release app allows a sealed launch | 15 min |
 | `a11y [--check]` | writes or checks `A11yID.md` | — |
 | `check` | a11y check, unit, build: run before each commit | — |

@@ -1,25 +1,36 @@
+import BegiaiKit
 import SwiftUI
+import UIKit
 
-enum LinePalette {
-    static let colors: [Color] = [
-        Color(red: 0.15, green: 0.39, blue: 0.79),
-        Color(red: 0.76, green: 0.25, blue: 0.05),
-        Color(red: 0.06, green: 0.54, blue: 0.48),
-        Color(red: 0.55, green: 0.25, blue: 0.82),
-        Color(red: 0.72, green: 0.20, blue: 0.43),
-        Color(red: 0.30, green: 0.49, blue: 0.06),
-        Color(red: 0.05, green: 0.45, blue: 0.56),
-        Color(red: 0.63, green: 0.38, blue: 0.03),
-    ]
-
-    static func color(forLine line: Int) -> Color {
-        colors[line % colors.count]
+/// The colour of each line. The store gives each line a slot, so that lines that share track
+/// never share a colour; views read the palette from the environment. Each slot has a light
+/// and a dark colour, picked by the appearance.
+struct LinePalette: Equatable {
+    static let colors: [Color] = zip(LinePaletteRGB.light, LinePaletteRGB.dark).map { light, dark in
+        Color(UIColor { traits in
+            let rgb = traits.userInterfaceStyle == .dark ? dark : light
+            return UIColor(red: rgb.red, green: rgb.green, blue: rgb.blue, alpha: 1)
+        })
     }
 
-    /// The colours of the lines in line order, each colour once: lines that share a colour
-    /// look the same on a shared track.
-    static func colors(forLines lines: [Int]) -> [Color] {
+    /// The slot of each line, by line index. A line with no slot uses its index.
+    var slots: [Int] = []
+
+    func color(forLine line: Int) -> Color {
+        Self.colors[slot(of: line)]
+    }
+
+    /// The colours of the lines in line order, each colour once.
+    func colors(forLines lines: [Int]) -> [Color] {
         var seen = Set<Int>()
-        return lines.compactMap { seen.insert($0 % colors.count).inserted ? color(forLine: $0) : nil }
+        return lines.compactMap { line in seen.insert(slot(of: line)).inserted ? Self.colors[slot(of: line)] : nil }
     }
+
+    private func slot(of line: Int) -> Int {
+        (slots.indices.contains(line) ? slots[line] : line) % Self.colors.count
+    }
+}
+
+extension EnvironmentValues {
+    @Entry var linePalette = LinePalette()
 }

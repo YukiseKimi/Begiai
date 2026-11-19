@@ -38,9 +38,15 @@ struct AboutSheet: View {
             List {
                 Section {
                     Text(.trainEstimated)
-                    LegendRow(symbol: "capsule.fill", text: .aboutLegendTrain)
-                    LegendRow(symbol: "arrowtriangle.up.fill", text: .aboutLegendArrow)
-                    LegendRow(symbol: "sparkle", text: .aboutLegendStation)
+                    LegendRow(text: .aboutLegendTrain) {
+                        TrainBullet().fill(.tint).frame(width: 11, height: 20).rotationEffect(.degrees(45))
+                    }
+                    LegendRow(text: .aboutLegendArrow) {
+                        Image(systemName: "location.north.fill").foregroundStyle(.tint)
+                    }
+                    LegendRow(text: .aboutLegendStation) {
+                        Image(systemName: "sparkle").foregroundStyle(.tint)
+                    }
                 } header: {
                     Text(.aboutHowTitle)
                 }
@@ -60,6 +66,8 @@ struct AboutSheet: View {
                 } header: {
                     Text(.aboutSourcesTitle)
                 }
+
+                DisplaySettings()
 
                 TipJar()
 
@@ -92,16 +100,16 @@ struct AboutSheet: View {
     }
 }
 
-private struct LegendRow: View {
-    let symbol: String
+private struct LegendRow<Icon: View>: View {
     let text: LocalizedStringResource
+    @ViewBuilder let icon: () -> Icon
 
     var body: some View {
         Label {
             Text(text)
         } icon: {
-            Image(systemName: symbol)
-                .foregroundStyle(.tint)
+            icon()
+                .accessibilityHidden(true)
         }
     }
 }

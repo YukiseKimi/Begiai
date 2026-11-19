@@ -20,6 +20,8 @@ struct RootView: View {
                 LineDiagramTab(store: store)
             }
         }
+        .environment(\.linePalette, LinePalette(slots: store.lineColours))
+        .modifier(MarkerStyleReader())
         .sheet(isPresented: showsWelcome) {
             WelcomeSheet { welcomeSeen = true }
                 .interactiveDismissDisabled()

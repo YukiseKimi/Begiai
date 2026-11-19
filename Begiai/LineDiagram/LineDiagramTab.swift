@@ -9,6 +9,7 @@ struct LineDiagramTab: View {
     @AppStorage("lineDiagram.line") private var chosenName = ""
     @Query private var stars: [Star]
     @State private var selection: DiagramSelection?
+    @Environment(\.linePalette) private var palette
 
     var body: some View {
         if let engine = store.engine {
@@ -49,7 +50,7 @@ struct LineDiagramTab: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
                     LineSpine(
-                        diagram: diagram, timetable: engine.timetable, color: LinePalette.color(forLine: chosen.id),
+                        diagram: diagram, timetable: engine.timetable, color: palette.color(forLine: chosen.id),
                         trains: trains.compactMap { train in diagram.place(of: train).map { (train, $0) } }
                     ) { selection = $0 }
                 }
@@ -64,6 +65,7 @@ private struct LineChips: View {
     let lines: [LineSummary]
     let chosen: Int?
     let choose: (LineSummary) -> Void
+    @Environment(\.linePalette) private var palette
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -79,7 +81,7 @@ private struct LineChips: View {
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(line.id == chosen ? Color.white : Color.primary)
-                    .background(line.id == chosen ? LinePalette.color(forLine: line.id) : Color.secondary.opacity(0.15), in: .capsule)
+                    .background(line.id == chosen ? palette.color(forLine: line.id) : Color.secondary.opacity(0.15), in: .capsule)
                     .accessibilityAddTraits(line.id == chosen ? .isSelected : [])
                     .accessibilityIdentifier(A11yID.LineDiagram.chip)
                 }

@@ -98,6 +98,11 @@ struct MapScreen {
         XCTAssertFalse(journey.element(A11yID.Timetable.stale).exists, "Map: a fresh timetable says it is old", file: file, line: line)
     }
 
+    /// The width of a train marker on the map, in points.
+    func trainWidth(file: StaticString = #filePath, line: UInt = #line) -> CGFloat {
+        journey.wait(for: journey.element(A11yID.Map.train), "a train", on: "Map", timeout: 15, file: file, line: line).frame.width
+    }
+
     private var springboard: XCUIApplication { XCUIApplication(bundleIdentifier: "com.apple.springboard") }
 
     func expectNoLocationPrompt(file: StaticString = #filePath, line: UInt = #line) {

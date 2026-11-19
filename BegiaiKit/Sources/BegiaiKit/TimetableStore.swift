@@ -26,6 +26,8 @@ public final class TimetableStore {
     public private(set) var bigStations: Set<Int> = []
     /// The diagram of each line, by line index.
     public private(set) var diagrams: [LineDiagram] = []
+    /// The palette slot of each line, by line index: lines that share track differ.
+    public private(set) var lineColours: [Int] = []
 
     public init() {}
 
@@ -40,8 +42,9 @@ public final class TimetableStore {
         var problems: [String] = []
         for url in urls {
             do {
-                let (timetable, tracks) = try await Self.decode(url)
+                let (timetable, tracks, lineColours) = try await Self.decode(url)
                 self.tracks = tracks
+                self.lineColours = lineColours
                 self.timetable = timetable
                 let engine = MotionEngine(timetable: timetable)
                 self.engine = engine
@@ -59,14 +62,15 @@ public final class TimetableStore {
     }
 
     @concurrent
-    private static func decode(_ url: URL) async throws -> (Timetable, [Track]) {
+    private static func decode(_ url: URL) async throws -> (Timetable, [Track], [Int]) {
         let timetable = try JSONDecoder().decode(Timetable.self, from: Data(contentsOf: url))
         try timetable.check()
-        let tracks = timetable.trackRuns().enumerated().map { index, run in
+        let runs = timetable.trackRuns()
+        let tracks = runs.enumerated().map { index, run in
             Track(
                 id: index, lines: run.lines,
                 coordinates: run.coordinates.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) })
         }
-        return (timetable, tracks)
+        return (timetable, tracks, timetable.lineColours(runs: runs))
     }
 }

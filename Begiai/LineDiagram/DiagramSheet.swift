@@ -17,6 +17,7 @@ struct DiagramSheet: View {
     @Environment(\.timeSource) private var time
     @Environment(\.modelContext) private var modelContext
     @Query private var stars: [Star]
+    @Environment(\.linePalette) private var palette
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { _ in
@@ -26,7 +27,7 @@ struct DiagramSheet: View {
                 case .train(let id):
                     let train = engine.train(id, at: now)
                     let timeline = train.map(engine.timeline(of:))
-                    let color = LinePalette.color(forLine: engine.timetable.trips[id.trip].line)
+                    let color = palette.color(forLine: engine.timetable.trips[id.trip].line)
                     TrainPage(timeline: timeline, color: color, now: now, close: close)
                     if let timeline {
                         StopList(timeline: timeline, color: color)

@@ -34,6 +34,8 @@ Generated from `Begiai/A11yID.swift` by `script/test.sh a11y`. Do not edit.
 | `about.timetableDate` | the date of the timetable in use | About |
 | `about.source` | the link to the timetable source | About |
 | `about.unofficial` | the note that the app is not from LTG | About |
+| `about.largerMarkers` | the Larger markers toggle | About |
+| `about.highContrast` | the High contrast toggle | About |
 | `about.tipThanks` | the thank-you, or the waiting or failed note, after a tip | About |
 | `notices.link` | the link to LTG Link's notices | Line Diagram, Train |
 | `timetable.stale` | the note that the timetable is old | Map, Line Diagram |

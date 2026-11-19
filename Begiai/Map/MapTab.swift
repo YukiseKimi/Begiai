@@ -18,6 +18,7 @@ struct MapTab: View {
     @State private var following = false
     @Environment(\.modelContext) private var modelContext
     @Query private var stars: [Star]
+    @Environment(\.linePalette) private var palette
 
     var body: some View {
         let chosen = chosenTrain
@@ -151,7 +152,7 @@ struct MapTab: View {
     }
 
     private func color(of train: TrainState?) -> Color {
-        LinePalette.color(forLine: train.flatMap { store.timetable?.trips[$0.trip].line } ?? 0)
+        palette.color(forLine: train.flatMap { store.timetable?.trips[$0.trip].line } ?? 0)
     }
 }
 

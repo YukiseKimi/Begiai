@@ -50,6 +50,8 @@ enum A11yID {
         static let source = "about.source"
         static let unofficial = "about.unofficial"
         static let tipThanks = "about.tipThanks"
+        static let largerMarkers = "about.largerMarkers"
+        static let highContrast = "about.highContrast"
     }
 
     enum Notices {
@@ -93,6 +95,8 @@ enum A11yID {
         Entry(id: About.timetableDate, element: "the date of the timetable in use", screen: "About"),
         Entry(id: About.source, element: "the link to the timetable source", screen: "About"),
         Entry(id: About.unofficial, element: "the note that the app is not from LTG", screen: "About"),
+        Entry(id: About.largerMarkers, element: "the Larger markers toggle", screen: "About"),
+        Entry(id: About.highContrast, element: "the High contrast toggle", screen: "About"),
         Entry(id: About.tipThanks, element: "the thank-you, or the waiting or failed note, after a tip", screen: "About"),
         Entry(id: Notices.link, element: "the link to LTG Link's notices", screen: "Line Diagram, Train"),
         Entry(id: Timetable.stale, element: "the note that the timetable is old", screen: "Map, Line Diagram"),

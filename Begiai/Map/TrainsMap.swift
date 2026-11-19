@@ -15,6 +15,7 @@ struct TrainsMap: View {
     @State private var cameraHeading = 0.0
     @State private var cameraDistance = 400_000.0
     @Namespace private var mapScope
+    @Environment(\.linePalette) private var palette
 
     var body: some View {
         let cityZoom = trains.cityZoom
@@ -22,7 +23,7 @@ struct TrainsMap: View {
         Map(position: $position, scope: mapScope) {
             UserAnnotation()
             ForEach(store.tracks) { track in
-                let colors = LinePalette.colors(forLines: track.lines)
+                let colors = palette.colors(forLines: track.lines)
                 ForEach(colors.indices, id: \.self) { slot in
                     MapPolyline(coordinates: track.coordinates)
                         .stroke(colors[slot], style: Self.trackStroke(slot: slot, of: colors.count))
@@ -115,7 +116,7 @@ struct TrainsMap: View {
             if panelHeight == .peek { panelHeight = .half }
         } label: {
             TrainCapsule(
-                color: LinePalette.color(forLine: trip?.line ?? 0), heading: train.heading - cameraHeading,
+                color: palette.color(forLine: trip?.line ?? 0), heading: train.heading - cameraHeading,
                 destination: destination, atStation: train.phase == .atStation, showsLabel: cityZoom,
                 chosen: selection == .train(train.id))
         }

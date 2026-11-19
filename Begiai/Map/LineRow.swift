@@ -5,11 +5,12 @@ struct LineRow: View {
     let line: LineSummary
     let starred: Bool
     let toggleStar: () -> Void
+    @Environment(\.linePalette) private var palette
 
     var body: some View {
         HStack(spacing: 12) {
             RoundedRectangle(cornerRadius: 2)
-                .fill(LinePalette.color(forLine: line.id))
+                .fill(palette.color(forLine: line.id))
                 .frame(width: 5, height: 28)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {

@@ -15,7 +15,7 @@ struct WelcomeSheet: View {
 
     private let cards = [
         Card(symbol: "clock.arrow.circlepath", title: .welcomeEstimateTitle, text: .welcomeEstimateText),
-        Card(symbol: "arrowtriangle.up.circle", title: .welcomeMarksTitle, text: .welcomeMarksText),
+        Card(symbol: "location.north.circle", title: .welcomeMarksTitle, text: .welcomeMarksText),
         Card(symbol: "hand.tap", title: .welcomeFollowTitle, text: .welcomeFollowText),
     ]
 
@@ -33,8 +33,8 @@ struct WelcomeSheet: View {
                 .accessibilityFocused($focusedTitle, equals: index)
             if index == 1 {
                 HStack(spacing: 24) {
-                    TrainCapsule(color: LinePalette.color(forLine: 0), heading: 90, destination: nil, atStation: false, showsLabel: false)
-                    TrainCapsule(color: LinePalette.color(forLine: 3), heading: 270, destination: nil, atStation: true, showsLabel: false)
+                    TrainCapsule(color: LinePalette().color(forLine: 0), heading: 90, destination: nil, atStation: false, showsLabel: false)
+                    TrainCapsule(color: LinePalette().color(forLine: 3), heading: 270, destination: nil, atStation: true, showsLabel: false)
                 }
                 .padding(.vertical, 8)
                 .accessibilityHidden(true)
