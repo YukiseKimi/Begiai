@@ -4,7 +4,7 @@ import SwiftUI
 /// Three tips in About. A tip is a consumable that unlocks nothing: the app only finishes
 /// the transaction and says thank you.
 struct TipJar: View {
-    static let products = ["app.begiai.Begiai.tip.coffee", "app.begiai.Begiai.tip.ticket", "app.begiai.Begiai.tip.firstClass"]
+    static let products = ["com.mannychau.begiai.tip.coffee", "com.mannychau.begiai.tip.ticket", "com.mannychau.begiai.tip.firstClass"]
     @State private var outcome: Outcome?
 
     private enum Outcome {

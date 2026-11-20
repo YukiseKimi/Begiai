@@ -99,8 +99,8 @@ lane_journey() {
     -resultBundlePath "$bundle" >> "$log" 2>&1
   local code=$?
   if [[ $code == 124 ]]; then
-    xcrun simctl terminate "$BEGIAI_SIM" app.begiai.Begiai 2> /dev/null
-    xcrun simctl terminate "$BEGIAI_SIM" app.begiai.BegiaiUITests.xctrunner 2> /dev/null
+    xcrun simctl terminate "$BEGIAI_SIM" com.mannychau.begiai 2> /dev/null
+    xcrun simctl terminate "$BEGIAI_SIM" com.mannychau.begiai.UITests.xctrunner 2> /dev/null
     grep TIMEOUT "$log"; exit 124
   fi
   [[ -d $bundle ]] || { echo "NO RESULT journey · log: $log"; tail -20 "$log"; exit 4; }

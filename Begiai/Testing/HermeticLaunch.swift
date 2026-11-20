@@ -15,7 +15,7 @@ struct HermeticLaunch {
     /// The timetable to load instead of the shipped one: only a sealed launch sets it.
     let timetable: URL?
 
-    private static let sealedSettings = "app.begiai.Begiai.sealed"
+    private static let sealedSettings = "com.mannychau.begiai.sealed"
 
     static func read(bundle: Bundle = .main, arguments: [String] = ProcessInfo.processInfo.arguments) -> HermeticLaunch {
         let allowed = bundle.object(forInfoDictionaryKey: "BegiaiSealedLaunch") as? String == "YES"
@@ -46,7 +46,7 @@ struct HermeticLaunch {
         do {
             return try StarStorage.container(sealedFolder: starFolder)
         } catch {
-            Logger(subsystem: "app.begiai.Begiai", category: "stars")
+            Logger(subsystem: "com.mannychau.begiai", category: "stars")
                 .fault("The star store did not open; stars stay in memory: \(String(describing: error), privacy: .public)")
             do {
                 return try ModelContainer(for: Star.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))

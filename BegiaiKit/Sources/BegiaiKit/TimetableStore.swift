@@ -53,7 +53,7 @@ public final class TimetableStore {
                 state = .ready
                 return
             } catch {
-                Logger(subsystem: "app.begiai.Begiai", category: "timetable").error(
+                Logger(subsystem: "com.mannychau.begiai", category: "timetable").error(
                     "The timetable \(url.lastPathComponent, privacy: .public) did not load: \(String(describing: error), privacy: .public)")
                 problems.append(String(describing: error))
             }

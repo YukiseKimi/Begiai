@@ -26,7 +26,7 @@ struct BegiaiApp: App {
                     guard let feed = launch.feed, let loaded = store.timetable?.feedDate else { return }
                     // A newer timetable is used at the next launch, so no train jumps while you look at it.
                     let outcome = await feed.refresh(now: .now, loaded: loaded)
-                    Logger(subsystem: "app.begiai.Begiai", category: "timetable")
+                    Logger(subsystem: "com.mannychau.begiai", category: "timetable")
                         .info("The timetable feed: \(String(describing: outcome), privacy: .public)")
                 }
         }

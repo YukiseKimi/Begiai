@@ -27,7 +27,7 @@ extension ModelContext {
             try withAnimation { try toggleStar(kind, name: name, at: date) }
         } catch {
             rollback()
-            Logger(subsystem: "app.begiai.Begiai", category: "stars")
+            Logger(subsystem: "com.mannychau.begiai", category: "stars")
                 .error("A star did not save: \(String(describing: error), privacy: .public)")
         }
     }

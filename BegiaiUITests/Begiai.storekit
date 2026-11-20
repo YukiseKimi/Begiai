@@ -13,7 +13,7 @@
           "locale": "en_US"
         }
       ],
-      "productID": "app.begiai.Begiai.tip.coffee",
+      "productID": "com.mannychau.begiai.tip.coffee",
       "referenceName": "Coffee",
       "type": "Consumable"
     },
@@ -28,7 +28,7 @@
           "locale": "en_US"
         }
       ],
-      "productID": "app.begiai.Begiai.tip.ticket",
+      "productID": "com.mannychau.begiai.tip.ticket",
       "referenceName": "Ticket",
       "type": "Consumable"
     },
@@ -43,7 +43,7 @@
           "locale": "en_US"
         }
       ],
-      "productID": "app.begiai.Begiai.tip.firstClass",
+      "productID": "com.mannychau.begiai.tip.firstClass",
       "referenceName": "First class",
       "type": "Consumable"
     }
