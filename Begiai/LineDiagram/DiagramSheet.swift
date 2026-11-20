@@ -18,17 +18,21 @@ struct DiagramSheet: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var stars: [Star]
     @Environment(\.linePalette) private var palette
+    /// A station opened from the train's page: shown in place, so the sheet stays up.
+    @State private var opened: DiagramSelection?
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { _ in
             let now = time.now
             VStack(alignment: .leading, spacing: 12) {
-                switch selection {
+                switch opened ?? selection {
                 case .train(let id):
                     let train = engine.train(id, at: now)
                     let timeline = train.map(engine.timeline(of:))
                     let color = palette.color(forLine: engine.timetable.trips[id.trip].line)
-                    TrainPage(timeline: timeline, color: color, now: now, exit: .close, close: close)
+                    TrainPage(
+                        timeline: timeline, color: color, now: now, exit: .close,
+                        openStation: { opened = .station($0) }, close: close)
                     if let timeline {
                         StopList(timeline: timeline, color: color)
                     }

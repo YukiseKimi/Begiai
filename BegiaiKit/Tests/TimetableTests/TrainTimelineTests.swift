@@ -24,6 +24,15 @@ struct TrainTimelineTests {
         #expect(timeline.progressToNext == 0)
     }
 
+    @Test func eachStopNamesItsStationSoAPageCanOpenIt() throws {
+        let train = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 9 * 60 + 30)))
+        let timeline = engine.timeline(of: train)
+        let trip = ThreeStops.timetable.trips[0]
+        #expect(timeline.stops.map(\.stationIndex) == trip.stops.map(\.station))
+        let standing = try #require(timeline.standingAt)
+        #expect(ThreeStops.timetable.stations[timeline.stops[standing].stationIndex].name == timeline.stops[standing].station)
+    }
+
     @Test func beforeDepartureNoStopIsPassed() throws {
         let train = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 - 60)))
         let timeline = engine.timeline(of: train)

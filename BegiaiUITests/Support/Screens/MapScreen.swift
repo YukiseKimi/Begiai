@@ -45,7 +45,9 @@ struct MapScreen {
         let stations = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.station).allElementsBoundByIndex
             .map(\.frame)
         let clear = { (train: XCUIElement) in stations.allSatisfy { !$0.intersects(train.frame) } }
-        guard let train = trains.first(where: { $0.isHittable && $0.frame.midY < aboveThePanel && clear($0) }) else {
+        // A tap on the centre of a standing train opens its station, so pick a moving train.
+        let moving = { (train: XCUIElement) in (train.value as? String) != Self.standing }
+        guard let train = trains.first(where: { $0.isHittable && $0.frame.midY < aboveThePanel && clear($0) && moving($0) }) else {
             XCTFail("Map: no train shows above the panel", file: file, line: line)
             return ""
         }
@@ -56,6 +58,43 @@ struct MapScreen {
             return ""
         }
         return String(label[range.upperBound..<end.lowerBound])
+    }
+
+    /// The VoiceOver value of a train that stands at a station.
+    static let standing = "Standing at a station"
+
+    /// Opens a train that stands at a big station at country zoom. A tap on its centre opens the
+    /// station, so the tap goes on the train beyond its station ring. Tries each such train.
+    /// Returns the station's name, or nil when no train stands at a station.
+    func openTrainStandingAtAStation(file: StaticString = #filePath, line: UInt = #line) -> String? {
+        journey.wait(for: journey.element(A11yID.Map.train), "a train", on: "Map", file: file, line: line)
+        let aboveThePanel = journey.app.frame.height * 0.45
+        let stations = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.station).allElementsBoundByIndex
+            .map(\.frame)
+        let trains = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
+            .filter { ($0.value as? String) == Self.standing }
+            .map(\.frame).filter { train in
+                train.midY < aboveThePanel && stations.contains { $0.contains(CGPoint(x: train.midX, y: train.midY)) }
+            }
+        let page = TrainScreen(journey: journey)
+        for train in trains {
+            // On the train beyond its station ring: past the 8-point ring radius, inside the train.
+            let spot = CGVector(dx: train.midX, dy: train.midY + train.height * 0.38)
+            journey.app.coordinate(withNormalizedOffset: .zero).withOffset(spot).tap()
+            let now = journey.element(A11yID.Train.now)
+            guard now.waitForExistence(timeout: 3) else { continue }
+            if now.label.hasPrefix("At ") { return page.place(file: file, line: line) }
+            page.back(file: file, line: line)
+        }
+        return nil
+    }
+
+    /// The button over a chosen train names its station, and a tap opens the station's board.
+    func openStationChip(_ name: String, file: StaticString = #filePath, line: UInt = #line) {
+        let chip = journey.wait(
+            for: journey.element(A11yID.Map.stationChip), "the station button over the train", on: "Map", file: file, line: line)
+        XCTAssertEqual(chip.label, name, "Map: the station button reads \(chip.label), not \(name)", file: file, line: line)
+        chip.tap()
     }
 
     /// A starred station shows above the lines with its next train, and a tap opens its board.
@@ -97,6 +136,29 @@ struct MapScreen {
         }
         let name = station.label
         station.tap()
+        return name
+    }
+
+    /// Taps the centre of a station ring that a train covers, and returns the station's name,
+    /// or nil when no train covers a station above the panel.
+    func openStationUnderATrain(file: StaticString = #filePath, line: UInt = #line) -> String? {
+        journey.wait(for: journey.element(A11yID.Map.station), "a station", on: "Map", file: file, line: line)
+        let aboveThePanel = journey.app.frame.height * 0.45
+        let trains = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
+            .map { (frame: $0.frame, standing: ($0.value as? String) == Self.standing) }
+        let stations = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.station).allElementsBoundByIndex
+        // A ring that only standing trains cover, each centred on it, so whichever one takes
+        // the tap, the tap is on its station ring.
+        guard let station = stations.first(where: { station in
+            let centre = CGPoint(x: station.frame.midX, y: station.frame.midY)
+            let over = trains.filter { $0.frame.contains(centre) }
+            return centre.y < aboveThePanel && !over.isEmpty && over.allSatisfy { train in
+                train.standing && hypot(train.frame.midX - centre.x, train.frame.midY - centre.y) < 4
+            }
+        }) else { return nil }
+        let name = station.label
+        journey.app.coordinate(withNormalizedOffset: .zero)
+            .withOffset(CGVector(dx: station.frame.midX, dy: station.frame.midY)).tap()
         return name
     }
 

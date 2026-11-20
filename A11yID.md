@@ -21,6 +21,7 @@ Generated from `Begiai/A11yID.swift` by `script/test.sh a11y`. Do not edit.
 | `map.firstTrain` | the first train on the night card | Map |
 | `map.station` | each station marker on the map | Map |
 | `map.starredStation` | each starred station with its next train, above the lines | Map |
+| `map.stationChip` | the station button over a chosen train that stands at a station | Map |
 | `board.title` | the station name on its board | Board |
 | `board.back` | the Lines button on a station board, or its Close button in a sheet | Board |
 | `board.row` | each departure on a station board | Board |

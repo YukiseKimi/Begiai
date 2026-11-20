@@ -15,8 +15,15 @@ struct TrainCapsule: View {
     /// White on a colour, or a dark ring around it with high contrast.
     private var outline: Color { style.highContrast && colorScheme == .light ? .black : .white }
 
+    /// The width of the marker at the normal scale.
+    static let size: CGFloat = 28
+    /// The station ring a standing train shows, as wide as a station's ring on the map.
+    private static let ring: CGFloat = 10
+    /// A tap this near the centre of a standing train is on its station ring.
+    static let ringTapRadius: CGFloat = 8
+
     var body: some View {
-        let size = 28 * style.scale
+        let size = Self.size * style.scale
         // The marker alone is the annotation's centre, so it sits on its track; the label
         // hangs to its right and moves nothing.
         marker(size: size)
@@ -32,6 +39,7 @@ struct TrainCapsule: View {
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text(.mapTrainLabel(station: destination ?? "")))
+            .accessibilityValue(atStation ? Text(.mapTrainStanding) : Text(verbatim: ""))
             .accessibilityIdentifier(A11yID.Map.train)
     }
 
@@ -50,6 +58,18 @@ struct TrainCapsule: View {
             .frame(width: size * 0.5, height: size * 0.9)
             .rotationEffect(.degrees(heading))
             .frame(width: size, height: size)
+            // MapKit draws trains over station rings whatever the order, so a train that
+            // stands at a station shows the ring at its centre; TrainsMap opens the station
+            // from a tap there.
+            .overlay {
+                if atStation {
+                    Circle()
+                        .fill(.background)
+                        .stroke(.primary, lineWidth: 2)
+                        .frame(width: Self.ring * style.scale, height: Self.ring * style.scale)
+                        .accessibilityHidden(true)
+                }
+            }
             .contentShape(.circle)
             .scaleEffect(chosen ? 1.3 : 1)
             .shadow(color: color.opacity(atStation ? 0.6 : 0), radius: atStation ? 6 : 0)

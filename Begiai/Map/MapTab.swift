@@ -33,7 +33,10 @@ struct MapTab: View {
                     LinePanel(height: $panelHeight, total: proxy.size.height) {
                         switch selection {
                         case .train:
-                            TrainPage(timeline: timeline, color: color(of: chosen), now: now, following: $following) {
+                            TrainPage(
+                                timeline: timeline, color: color(of: chosen), now: now, following: $following,
+                                openStation: { selection = .station($0) }
+                            ) {
                                 selection = nil
                             }
                         case .station(let station):

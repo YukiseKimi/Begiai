@@ -16,6 +16,9 @@ struct TrainPage: View {
     /// Nil where nothing can follow the train: the page then shows no Follow button.
     var following: Binding<Bool>?
     var exit = PageExit.back
+    /// Opens a station's board: the place line then becomes a link, so the station of a train
+    /// is one tap away, also where trains cover its marker on the map.
+    var openStation: ((Int) -> Void)?
     let close: () -> Void
 
     var body: some View {
@@ -54,7 +57,7 @@ struct TrainPage: View {
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityAddTraits(.isHeader)
                             .accessibilityIdentifier(A11yID.Train.title)
-                        TrainWhere(timeline: timeline, now: now)
+                        TrainWhere(timeline: timeline, now: now, openStation: openStation)
                         ScheduledBadge()
                     }
                 }
@@ -73,20 +76,47 @@ struct TrainPage: View {
 private struct TrainWhere: View {
     let timeline: TrainTimeline
     let now: Date
+    let openStation: ((Int) -> Void)?
 
     var body: some View {
         if let standing = timeline.standingAt {
             let stop = timeline.stops[standing]
             line(symbol: "smallcircle.filled.circle", Text(.trainAt(station: stop.station, time: stop.departure.vilniusTime)),
-                 in: stop.departure)
+                 in: stop.departure, station: stop.stationIndex)
         } else if let nextStop = timeline.nextStop {
             let next = timeline.stops[nextStop]
             line(symbol: "arrow.right.circle", Text(.trainNext(station: next.station, time: next.arrival.vilniusTime)),
-                 in: next.arrival)
+                 in: next.arrival, station: next.stationIndex)
         }
     }
 
-    private func line(symbol: String, _ text: Text, in time: Date) -> some View {
+    @ViewBuilder
+    private func line(symbol: String, _ text: Text, in time: Date, station: Int) -> some View {
+        if let openStation {
+            Button {
+                openStation(station)
+            } label: {
+                HStack(spacing: 4) {
+                    place(symbol: symbol, text, in: time)
+                    Image(systemName: "chevron.forward")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                        .accessibilityHidden(true)
+                }
+                .contentShape(.rect)
+            }
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
+            .accessibilityHint(Text(.boardStationHint))
+            .accessibilityIdentifier(A11yID.Train.now)
+        } else {
+            place(symbol: symbol, text, in: time)
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier(A11yID.Train.now)
+        }
+    }
+
+    private func place(symbol: String, _ text: Text, in time: Date) -> some View {
         Label {
             let minutes = Text(.trainIn(minutes: time.minutes(after: now))).foregroundStyle(.secondary)
             // One line when it fits; at large text sizes the time from now goes under the place.
@@ -105,8 +135,6 @@ private struct TrainWhere: View {
         }
         .font(.subheadline)
         .fixedSize(horizontal: false, vertical: true)
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier(A11yID.Train.now)
     }
 }
 

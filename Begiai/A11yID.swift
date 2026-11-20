@@ -11,6 +11,7 @@ enum A11yID {
         static let firstTrain = "map.firstTrain"
         static let locate = "map.locate"
         static let starredStation = "map.starredStation"
+        static let stationChip = "map.stationChip"
     }
 
     enum Train {
@@ -85,6 +86,7 @@ enum A11yID {
         Entry(id: Map.firstTrain, element: "the first train on the night card", screen: "Map"),
         Entry(id: Map.station, element: "each station marker on the map", screen: "Map"),
         Entry(id: Map.starredStation, element: "each starred station with its next train, above the lines", screen: "Map"),
+        Entry(id: Map.stationChip, element: "the station button over a chosen train that stands at a station", screen: "Map"),
         Entry(id: Board.title, element: "the station name on its board", screen: "Board"),
         Entry(id: Board.back, element: "the Lines button on a station board, or its Close button in a sheet", screen: "Board"),
         Entry(id: Board.row, element: "each departure on a station board", screen: "Board"),

@@ -21,6 +21,7 @@ struct TrainsMap: View {
     @State private var stripes: [TrackStripe] = []
     @Namespace private var mapScope
     @Environment(\.linePalette) private var palette
+    @Environment(\.markerStyle) private var markerStyle
 
     var body: some View {
         let cityZoom = trains.cityZoom
@@ -44,6 +45,20 @@ struct TrainsMap: View {
                 ForEach(trains.moving) { train in
                     Annotation("", coordinate: train.coordinate.location, anchor: .center) {
                         capsule(for: train, cityZoom: cityZoom)
+                    }
+                    .annotationTitles(.hidden)
+                }
+                // MapKit draws trains over station rings whatever the order, so a standing
+                // train covers its ring: once the rider picks the train, a button over it
+                // opens the station.
+                if let chosen, let standing = standingStation(of: chosen),
+                    let info = store.timetable?.stations[standing]
+                {
+                    Annotation("", coordinate: info.coordinate.location, anchor: .bottom) {
+                        StationChip(name: info.name) {
+                            selection = .station(standing)
+                        }
+                        .padding(.bottom, 22 * markerStyle.scale)
                     }
                     .annotationTitles(.hidden)
                 }
@@ -136,22 +151,71 @@ struct TrainsMap: View {
         }.map { ($0, timetable.stations[$0]) }
     }
 
+    /// The station a train stands at, from its timeline, so the rule lives in one place.
+    private func standingStation(of train: TrainState) -> Int? {
+        guard let timeline = store.engine?.timeline(of: train), let standing = timeline.standingAt else { return nil }
+        return timeline.stops[standing].stationIndex
+    }
+
     private func capsule(for train: TrainState, cityZoom: Bool) -> some View {
         let trip = store.timetable?.trips[train.trip]
         let destination = trip?.stops.last.flatMap { stop in
             store.timetable?.stations.indices.contains(stop.station) == true
                 ? store.timetable?.stations[stop.station].name : nil
         }
-        return Button {
+        let standing = train.phase == .atStation
+        let open = {
             selection = .train(train.id)
             if panelHeight == .peek { panelHeight = .half }
-        } label: {
-            TrainCapsule(
-                color: palette.color(forLine: trip?.line ?? 0), heading: train.heading - cameraHeading,
-                destination: destination, atStation: train.phase == .atStation, showsLabel: cityZoom,
-                chosen: selection == .train(train.id))
+        }
+        // MapKit gives a touch on a train to the train, whatever its shape, so the train
+        // decides: a tap on the station ring at its centre opens the station, the rest the train.
+        return TrainCapsule(
+            color: palette.color(forLine: trip?.line ?? 0), heading: train.heading - cameraHeading,
+            destination: destination, atStation: standing, showsLabel: cityZoom,
+            chosen: selection == .train(train.id))
+            .onTapGesture(coordinateSpace: .local) { point in
+                let size = TrainCapsule.size * markerStyle.scale
+                let away = hypot(point.x - size / 2, point.y - size / 2)
+                if standing, away <= TrainCapsule.ringTapRadius * markerStyle.scale,
+                    let station = standingStation(of: train)
+                {
+                    selection = .station(station)
+                    if panelHeight == .peek { panelHeight = .half }
+                } else {
+                    open()
+                }
+            }
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { open() }
+    }
+}
+
+/// “Vievis ›” over a chosen train that stands at a station: one tap opens the station's board.
+private struct StationChip: View {
+    let name: String
+    let open: () -> Void
+
+    var body: some View {
+        Button(action: open) {
+            HStack(spacing: 2) {
+                Text(verbatim: name)
+                Image(systemName: "chevron.forward")
+                    .font(.caption2.weight(.bold))
+                    .accessibilityHidden(true)
+            }
+            .font(.caption.weight(.semibold))
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(.regularMaterial, in: .capsule)
+            .overlay(Capsule().stroke(.primary.opacity(0.25), lineWidth: 1))
+            .frame(minHeight: 44)
+            .contentShape(.rect)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(Text(verbatim: name))
+        .accessibilityHint(Text(.boardStationHint))
+        .accessibilityIdentifier(A11yID.Map.stationChip)
     }
 }
 

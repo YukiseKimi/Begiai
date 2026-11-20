@@ -33,6 +33,23 @@ struct TrainScreen {
             file: file, line: line)
     }
 
+    /// The station the page names: "At Vievis, leaves …" or "Next: Paneriai at …".
+    func place(file: StaticString = #filePath, line: UInt = #line) -> String {
+        let now = journey.wait(for: journey.element(A11yID.Train.now), "where the train is", on: "Train", file: file, line: line)
+        guard let match = now.label.firstMatch(of: /^(?:At (.+?), leaves|Next: (.+?) at )/) else {
+            XCTFail("Train: where the train is reads \(now.label)", file: file, line: line)
+            return ""
+        }
+        return String(match.1 ?? match.2 ?? "")
+    }
+
+    /// A tap on where the train is opens that station's board.
+    func openPlace(file: StaticString = #filePath, line: UInt = #line) -> String {
+        let name = place(file: file, line: line)
+        journey.element(A11yID.Train.now).tap()
+        return name
+    }
+
     /// Lines in the panel; Close in a sheet.
     func back(file: StaticString = #filePath, line: UInt = #line) {
         journey.wait(for: journey.element(A11yID.Train.back), "the way back", on: "Train", file: file, line: line).tap()

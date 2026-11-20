@@ -16,4 +16,30 @@ final class TrainJourney: XCTestCase {
         map.expectLines()
         journey.holdLastScreen()
     }
+
+    @MainActor
+    func testWhereTheTrainIsOpensThatStationsBoard() {
+        continueAfterFailure = false
+        let journey = JourneyApp()
+        journey.launch(.map)
+        _ = MapScreen(journey: journey).openFirstTrain()
+        let station = TrainScreen(journey: journey).openPlace()
+        BoardScreen(journey: journey).expectBoard(of: station)
+        journey.holdLastScreen()
+    }
+
+    @MainActor
+    func testATrainAtAStationLeadsToTheStation() throws {
+        continueAfterFailure = false
+        let journey = JourneyApp()
+        journey.launch(.map)
+        let map = MapScreen(journey: journey)
+        guard let station = map.openTrainStandingAtAStation() else {
+            XCTFail("Map: at 17:55 no train stands at a big station above the panel")
+            return
+        }
+        map.openStationChip(station)
+        BoardScreen(journey: journey).expectBoard(of: station)
+        journey.holdLastScreen()
+    }
 }

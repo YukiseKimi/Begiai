@@ -4,6 +4,8 @@ public struct TrainTimeline: Equatable, Sendable {
     public struct Stop: Equatable, Sendable, Identifiable {
         public let id: Int
         public let station: String
+        /// The station's index in the timetable, to open its board.
+        public let stationIndex: Int
         public let arrival: Date
         public let departure: Date
         public let passed: Bool
@@ -40,6 +42,7 @@ extension MotionEngine {
             TrainTimeline.Stop(
                 id: index,
                 station: timetable.stations[stop.station].name,
+                stationIndex: stop.station,
                 arrival: zero.addingTimeInterval(schedule.arrivals[index]),
                 departure: zero.addingTimeInterval(schedule.departures[index]),
                 passed: index < firstUnpassed)

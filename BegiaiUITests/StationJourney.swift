@@ -14,4 +14,17 @@ final class StationJourney: XCTestCase {
         board.expectMinutesWithinTheHour(now: (17, 55))
         journey.holdLastScreen()
     }
+
+    @MainActor
+    func testAStationUnderATrainStillOpensItsBoard() {
+        continueAfterFailure = false
+        let journey = JourneyApp()
+        journey.launch(.map)
+        guard let station = MapScreen(journey: journey).openStationUnderATrain() else {
+            XCTFail("Map: at 17:55 no train covers a station above the panel")
+            return
+        }
+        BoardScreen(journey: journey).expectBoard(of: station)
+        journey.holdLastScreen()
+    }
 }
