@@ -31,12 +31,18 @@ struct BoardScreen {
         let clock = /(\d{1,2}):(\d{2})/
         let start = now.hour * 60 + now.minute
         var counted = 0
+        // The rows go down in time, so a clock time earlier than the row above is the next day.
+        var previous = start
+        var dayStart = 0
         for row in rows.allElementsBoundByIndex {
             guard let match = row.label.firstMatch(of: clock), let hour = Int(match.1), let minute = Int(match.2) else {
                 XCTFail("Board: a departure reads \(row.label)", file: file, line: line)
                 continue
             }
-            let away = (hour * 60 + minute - start + 24 * 60) % (24 * 60)
+            let clockMinute = hour * 60 + minute
+            if clockMinute < previous { dayStart += 24 * 60 }
+            previous = clockMinute
+            let away = dayStart + clockMinute - start
             let expected = away == 0 ? "now" : "in \(away) min"
             if away <= 60 {
                 counted += 1
