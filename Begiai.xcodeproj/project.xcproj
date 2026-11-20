@@ -64,6 +64,7 @@
         "BEGIAI_SEALED_LAUNCH[config=Debug]": "YES",
         "BEGIAI_SEALED_LAUNCH[config=Release]": "NO",
         "CURRENT_PROJECT_VERSION": "1",
+        "DEVELOPMENT_TEAM": "4V4WYXA8NM",
         "GENERATE_INFOPLIST_FILE": "YES",
         "INFOPLIST_FILE": "Config/Begiai-Info.plist",
         "INFOPLIST_KEY_CFBundleDisplayName": "Bėgiai",
@@ -96,6 +97,7 @@
         "resources",
       ],
       "build-settings": {
+        "DEVELOPMENT_TEAM": "4V4WYXA8NM",
         "GENERATE_INFOPLIST_FILE": "YES",
         "PRODUCT_BUNDLE_IDENTIFIER": "com.mannychau.begiai.UITests",
         "PRODUCT_NAME": "$(TARGET_NAME)",
