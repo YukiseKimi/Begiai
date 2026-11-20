@@ -63,7 +63,7 @@
         "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
         "BEGIAI_SEALED_LAUNCH[config=Debug]": "YES",
         "BEGIAI_SEALED_LAUNCH[config=Release]": "NO",
-        "CURRENT_PROJECT_VERSION": "1",
+        "CURRENT_PROJECT_VERSION": "2",
         "DEVELOPMENT_TEAM": "4V4WYXA8NM",
         "GENERATE_INFOPLIST_FILE": "YES",
         "INFOPLIST_FILE": "Config/Begiai-Info.plist",
