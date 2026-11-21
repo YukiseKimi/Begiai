@@ -35,4 +35,24 @@ struct SealedLaunchTests {
             try SealedLaunch.read(arguments: ["Begiai", "--sealed", "--timetable", "frozen.json"], allowed: true)
         }
     }
+
+    @Test func aSealedLaunchCanRunItsClockFasterForARecording() throws {
+        let launch = try SealedLaunch.read(arguments: ["Begiai", "--sealed", "--now", SealedWorld.now, "--speed", "60"], allowed: true)
+        #expect(launch?.speed == 60)
+        #expect(throws: SealedLaunch.Failure.badSpeed("fast")) {
+            try SealedLaunch.read(arguments: ["Begiai", "--sealed", "--speed", "fast"], allowed: true)
+        }
+        #expect(throws: SealedLaunch.Failure.badSpeed("0")) {
+            try SealedLaunch.read(arguments: ["Begiai", "--sealed", "--speed", "0"], allowed: true)
+        }
+    }
+
+    @Test func aFastClockStartsAtItsTimeAndRunsAtItsSpeed() {
+        let start = Date(timeIntervalSince1970: 1_794_930_900)
+        let began = Date(timeIntervalSince1970: 1_000)
+        let clock = FastClock(start: start, speed: 60, began: began)
+        #expect(clock.time(at: began) == start)
+        #expect(clock.time(at: began.addingTimeInterval(10)) == start.addingTimeInterval(600))
+        #expect(!clock.isPinned)
+    }
 }

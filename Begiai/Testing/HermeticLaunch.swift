@@ -38,7 +38,12 @@ struct HermeticLaunch {
             try? FileManager.default.removeItem(at: folder)
             settings.removePersistentDomain(forName: sealedSettings)
         }
-        let time: any TimeSource = launch.now.map { FixedTime(now: $0) } ?? SystemTime()
+        let time: any TimeSource =
+            if let speed = launch.speed {
+                FastClock(start: launch.now ?? Date(), speed: speed)
+            } else {
+                launch.now.map { FixedTime(now: $0) } ?? SystemTime()
+            }
         return HermeticLaunch(time: time, starFolder: folder, settings: settings, feed: nil, mayWelcome: launch.welcome, timetable: launch.timetable)
     }
 

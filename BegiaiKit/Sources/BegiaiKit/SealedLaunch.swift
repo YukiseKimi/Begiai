@@ -9,6 +9,9 @@ public enum LaunchFlag: String, CaseIterable, Sendable {
     /// Loads this timetable file instead of the one that the app ships, so the journeys keep
     /// their day when the app ships a fresh timetable.
     case timetable = "--timetable"
+    /// Runs the clock this many times faster than real time, from `--now` or the real time,
+    /// so a recording of the map shows the trains move.
+    case speed = "--speed"
 }
 
 public struct SealedLaunch: Equatable, Sendable {
@@ -17,18 +20,21 @@ public struct SealedLaunch: Equatable, Sendable {
     public var reset: Bool
     public var welcome: Bool
     public var timetable: URL?
+    public var speed: Double?
 
-    public init(now: Date?, reset: Bool, welcome: Bool = false, timetable: URL? = nil) {
+    public init(now: Date?, reset: Bool, welcome: Bool = false, timetable: URL? = nil, speed: Double? = nil) {
         self.now = now
         self.reset = reset
         self.welcome = welcome
         self.timetable = timetable
+        self.speed = speed
     }
 
     public enum Failure: Error, Equatable {
         case unknownFlag(String)
         case badTime(String)
         case noTimetable(String)
+        case badSpeed(String)
     }
 
     public static func read(arguments: [String], allowed: Bool) throws(Failure) -> SealedLaunch? {
@@ -48,6 +54,10 @@ public struct SealedLaunch: Equatable, Sendable {
                 let path = rest.popFirst() ?? ""
                 guard path.hasPrefix("/") else { throw .noTimetable(path) }
                 launch.timetable = URL(filePath: path)
+            case .speed:
+                let text = rest.popFirst() ?? ""
+                guard let speed = Double(text), speed > 0, speed.isFinite else { throw .badSpeed(text) }
+                launch.speed = speed
             case .now:
                 let text = rest.popFirst() ?? ""
                 guard let date = try? Date(text, strategy: .iso8601) else { throw .badTime(text) }
