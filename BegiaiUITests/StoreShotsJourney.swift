@@ -3,13 +3,14 @@ import XCTest
 /// The App Store shots, not a journey: it runs only when `TEST_RUNNER_BEGIAI_SHOTS` names
 /// a folder, so the journey lane skips it. `Store/Screenshots/take.sh` runs it and sets the
 /// simulator's appearance; `Store/Screenshots/shots.json` says what each shot shows.
+/// `script/readme-gif.sh` runs `test07MapTimelapse`, the README's GIF.
 final class StoreShotsJourney: XCTestCase {
     private var folder: URL!
 
     override func setUpWithError() throws {
         continueAfterFailure = false
         let path = ProcessInfo.processInfo.environment["BEGIAI_SHOTS"] ?? ""
-        try XCTSkipIf(path.isEmpty, "Store shots: run them with Store/Screenshots/take.sh")
+        try XCTSkipIf(path.isEmpty, "Store shots: run them with Store/Screenshots/take.sh or script/readme-gif.sh")
         folder = URL(filePath: path, directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
     }
@@ -108,6 +109,21 @@ final class StoreShotsJourney: XCTestCase {
         save("06-about", journey)
     }
 
+    /// The README's GIF, not a slide: the map around Vilnius from 07:20 with the clock 60 times
+    /// faster. `script/readme-gif.sh` sets dark mode, waits for the `ready` file and records
+    /// the screen while the drive holds the app open.
+    @MainActor
+    func test07MapTimelapse() {
+        let journey = JourneyApp()
+        journey.launch(.map, at: "2026-11-17T05:20:00Z", speed: 60)
+        MapScreen(journey: journey).expectPanel("Half")
+        zoomToVilnius(journey)
+        // Let the map tiles of the new zoom load before the recording starts.
+        _ = XCTWaiter.wait(for: [XCTestExpectation(description: "tiles")], timeout: 4)
+        XCTAssertNoThrow(try Data().write(to: folder.appending(path: "ready")))
+        _ = XCTWaiter.wait(for: [XCTestExpectation(description: "recording")], timeout: 20)
+    }
+
     @MainActor
     private func launchOnTheMap() -> JourneyApp {
         let journey = JourneyApp()
@@ -182,8 +198,7 @@ final class StoreShotsJourney: XCTestCase {
     /// 14 points from every train and station.
     @MainActor
     private func freePoint(near: CGPoint, _ journey: JourneyApp) -> CGPoint {
-        let markers = (trains(journey) + journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.station)
-            .allElementsBoundByIndex).map { $0.frame.insetBy(dx: -14, dy: -14) }
+        let markers = markerFrames(journey).map { $0.insetBy(dx: -14, dy: -14) }
         let width = journey.app.frame.width
         var best = CGPoint(x: 30, y: 400)
         var bestDistance = CGFloat.infinity
@@ -196,6 +211,28 @@ final class StoreShotsJourney: XCTestCase {
             }
         }
         return best
+    }
+
+    /// The frames of every train and station, read in one snapshot, so that a train that
+    /// starts or ends meanwhile (the fast clock of the GIF) cannot break the read.
+    @MainActor
+    private func markerFrames(_ journey: JourneyApp) -> [CGRect] {
+        let root: any XCUIElementSnapshot
+        do {
+            root = try journey.app.snapshot()
+        } catch {
+            XCTFail("Store shots: no snapshot of the map: \(error)")
+            return []
+        }
+        var frames: [CGRect] = []
+        var stack: [any XCUIElementSnapshot] = [root]
+        while let element = stack.popLast() {
+            if element.identifier == A11yID.Map.train || element.identifier == A11yID.Map.station {
+                frames.append(element.frame)
+            }
+            stack.append(contentsOf: element.children)
+        }
+        return frames
     }
 
     @MainActor

@@ -31,13 +31,15 @@ struct JourneyApp {
     }
 
     /// `largeText` starts the app at the largest accessibility text size, whatever the simulator's setting.
+    /// `speed` runs the clock that many times faster than real time, for a recording.
     func launch(
-        _ opening: Opening = .map, at now: String = sealedNow, largeText: Bool = false, file: StaticString = #filePath,
-        line: UInt = #line
+        _ opening: Opening = .map, at now: String = sealedNow, largeText: Bool = false, speed: Int? = nil,
+        file: StaticString = #filePath, line: UInt = #line
     ) {
         clock.now = now
         let text = largeText ? ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] : []
-        start(opening, now: now, arguments: ["--reset"] + opening.arguments + text, file: file, line: line)
+        let fast = speed.map { ["--speed", String($0)] } ?? []
+        start(opening, now: now, arguments: ["--reset"] + opening.arguments + text + fast, file: file, line: line)
     }
 
     /// Starts the app again with its stars and settings. `welcome` asks for the welcome

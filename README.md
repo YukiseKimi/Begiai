@@ -7,14 +7,14 @@ An iPhone app that shows LTG Link trains running across Lithuania. Each train's 
 Bėgiai is in beta on TestFlight. It is not on the App Store yet.
 
 <p align="center">
-  <img src="docs/map.gif" width="360" alt="The map of Lithuania with LTG Link trains moving along their lines, sped up 60 times">
+  <img src="docs/map.gif" width="360" alt="The map around Vilnius in dark mode, with LTG Link trains moving along their lines, sped up 60 times">
 </p>
 
 <p align="center">
+  <img src="docs/01-map.jpg" width="180" alt="The map of Vilnius in light mode, with the lines panel">
   <img src="docs/02-train.jpg" width="180" alt="A train's page, with its stops and the next station">
   <img src="docs/03-line-diagram.jpg" width="180" alt="The Line Diagram of Vilnius – Kaunas, with each train between two stations">
   <img src="docs/04-board.jpg" width="180" alt="The Vilnius departure board">
-  <img src="docs/05-map-dark.jpg" width="180" alt="The map in dark mode">
 </p>
 
 ## What it does
