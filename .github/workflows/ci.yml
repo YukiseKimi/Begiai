@@ -16,11 +16,16 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-# Like timetable.yml, this takes the Xcode that the macos-26 image selects by default.
+# The project file (project.xcproj) and the code need Xcode 27, which the macos-26 image does
+# not have (its newest is 26.6). The xcode-27 image (public preview) has 27.2, the version the
+# app is built with, but selects 27.1 by default, so DEVELOPER_DIR picks 27.2.
 # The "Show the toolchain" step prints it, so a log shows which Xcode ran.
+env:
+  DEVELOPER_DIR: /Applications/Xcode_27.2.app/Contents/Developer
+
 jobs:
   unit:
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -39,7 +44,7 @@ jobs:
         run: script/test.sh unit
 
   build:
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
