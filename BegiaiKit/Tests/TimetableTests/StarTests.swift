@@ -17,6 +17,17 @@ struct StarTests {
         #expect(try reopened.mainContext.starredNames(.line) == ["Vilnius – Kaunas"])
     }
 
+    @Test func aStoreFromBeforeTheVersionedSchemaOpensWithItsStars() throws {
+        let folder = try #require(TestWorld.current).folder
+        do {
+            let unversioned = try ModelContainer(
+                for: Schema([Star.self]), configurations: ModelConfiguration(url: folder.appending(path: "Begiai.store")))
+            try unversioned.mainContext.toggleStar(.station, name: "Kaunas", at: SealedWorld.day)
+        }
+        let versioned = try StarStorage.container(sealedFolder: folder)
+        #expect(try versioned.mainContext.starredNames(.station) == ["Kaunas"])
+    }
+
     @Test func aSecondTapTakesTheStarAway() throws {
         let container = try StarStorage.container(sealedFolder: try #require(TestWorld.current).folder)
         let context = container.mainContext

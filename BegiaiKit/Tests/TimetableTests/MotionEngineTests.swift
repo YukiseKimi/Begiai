@@ -69,7 +69,9 @@ enum ThreeStops {
     static let day = ServiceDate(year: 2026, month: 11, day: 17)
 
     static var timetable: Timetable {
-        let points = (0...4).map { ShapePoint(coordinate: Coordinate(latitude: 55, longitude: 24 + Double($0) * 0.4), metres: Double($0) * 25_000) }
+        let points = (0...4).map {
+            ShapePoint(coordinate: Coordinate(latitude: 55, longitude: 24 + Double($0) * 0.4), metres: Double($0) * 25_000)
+        }
         let stops = [
             TripStop(station: 0, arrival: 8 * 3600, departure: 8 * 3600, metres: 0),
             TripStop(station: 1, arrival: 8 * 3600 + 9 * 60, departure: 8 * 3600 + 10 * 60, metres: 50_000),
@@ -77,12 +79,11 @@ enum ThreeStops {
             TripStop(station: 3, arrival: 8 * 3600 + 40 * 60, departure: 8 * 3600 + 40 * 60, metres: 100_000),
         ]
         return Timetable(
-            feedDate: 20261117,
+            feedDate: 20_261_117,
             stations: (0..<4).map { Station(name: "S\($0)", coordinate: points[$0].coordinate) },
             lines: [Line(name: "S0 – S3", ends: [0, 3], international: false)],
             shapes: [Shape(points: points)],
             trips: [Trip(id: "t", code: "1", line: 0, shape: 0, service: 0, stops: stops)],
-            services: [Service(weekdays: "1111111", start: 20260101, end: 20271231, added: [], removed: [])])
+            services: [Service(weekdays: "1111111", start: 20_260_101, end: 20_271_231, added: [], removed: [])])
     }
 }
-

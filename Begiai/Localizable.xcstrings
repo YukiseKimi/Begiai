@@ -10,6 +10,12 @@
             "state" : "translated",
             "value" : "The app"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Programėlė"
+          }
         }
       }
     },
@@ -21,6 +27,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "How to read a train"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kaip suprasti traukinio žymę"
           }
         }
       }
@@ -34,6 +46,12 @@
             "state" : "translated",
             "value" : "Its nose points the way the train goes."
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smaigalys rodo, kuria kryptimi važiuoja traukinys."
+          }
         }
       }
     },
@@ -44,7 +62,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A train glows while it stands at a station."
+            "value" : "A train glows while it stands at a station, when zoomed in."
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Priartinus žemėlapį, kol traukinys stovi stotyje, jo žymė šviečia."
           }
         }
       }
@@ -58,6 +82,12 @@
             "state" : "translated",
             "value" : "A pointed marker in the colour of its line is one train."
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Smaili linijos spalvos žymė – vienas traukinys."
+          }
         }
       }
     },
@@ -69,6 +99,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "About"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Apie"
           }
         }
       }
@@ -82,6 +118,12 @@
             "state" : "translated",
             "value" : "Data Not Collected. Your stars stay on this iPhone, and the app sends nothing about you."
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Duomenys nerenkami. Jūsų žvaigždutės lieka šiame iPhone, o programėlė apie jus nieko nesiunčia."
+          }
         }
       }
     },
@@ -93,6 +135,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Map: Apple Maps"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Žemėlapis: Apple Maps"
           }
         }
       }
@@ -106,6 +154,12 @@
             "state" : "translated",
             "value" : "Timetable: UAB LTG Link, through the open GTFS of visimarsrutai.lt"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Tvarkaraštis: UAB „LTG Link“, atvirieji GTFS duomenys iš visimarsrutai.lt"
+          }
         }
       }
     },
@@ -117,6 +171,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Data"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Duomenys"
           }
         }
       }
@@ -130,6 +190,12 @@
             "state" : "translated",
             "value" : "Timetable from %(date)@"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Tvarkaraščio data: %(date)@"
+          }
         }
       }
     },
@@ -141,6 +207,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "About Bėgiai"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Apie Bėgius"
           }
         }
       }
@@ -154,6 +226,12 @@
             "state" : "translated",
             "value" : "Bėgiai is an unofficial app. It is not from LTG, LTG Link or LTG Infra."
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Bėgiai – neoficiali programėlė. Jos nesukūrė nei LTG, nei LTG Link, nei LTG Infra."
+          }
         }
       }
     },
@@ -165,6 +243,30 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Version %(version)@"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Versija %(version)@"
+          }
+        }
+      }
+    },
+    "Board.EveryTrainStartsHere" : {
+      "comment" : "Once above a station's departure board when every train on it starts at this station, so it boards empty.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every train starts here"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Visiems traukiniams tai pradinė stotis"
           }
         }
       }
@@ -178,6 +280,12 @@
             "state" : "translated",
             "value" : "No trains in the timetable"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Tvarkaraštyje traukinių nėra"
+          }
         }
       }
     },
@@ -189,6 +297,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "now"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "dabar"
           }
         }
       }
@@ -202,6 +316,12 @@
             "state" : "translated",
             "value" : "Starts here"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Pradinė stotis"
+          }
         }
       }
     },
@@ -213,6 +333,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Shows the next departures."
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Rodo artimiausius išvykimus."
           }
         }
       }
@@ -226,6 +352,12 @@
             "state" : "translated",
             "value" : "Tomorrow"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Rytoj"
+          }
         }
       }
     },
@@ -237,6 +369,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No lines"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Linijų nėra"
           }
         }
       }
@@ -250,6 +388,12 @@
             "state" : "translated",
             "value" : "Stations"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stotys"
+          }
         }
       }
     },
@@ -261,6 +405,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Trains"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Traukiniai"
           }
         }
       }
@@ -274,6 +424,12 @@
             "state" : "translated",
             "value" : "Train to %1$(station)@, at %2$(at)@, scheduled"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Traukinys į stotį %1$(station)@, stovi stotyje %2$(at)@, pagal tvarkaraštį"
+          }
         }
       }
     },
@@ -285,6 +441,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Train to %1$(station)@, between %2$(from)@ and %3$(to)@, scheduled"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Traukinys į stotį %1$(station)@, tarp stočių %2$(from)@ ir %3$(to)@, pagal tvarkaraštį"
           }
         }
       }
@@ -298,6 +460,12 @@
             "state" : "translated",
             "value" : "Increase Contrast is on in Settings, so the trains have high contrast."
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Nustatymuose įjungta parinktis „Didinti kontrastą“, todėl traukiniai rodomi dideliu kontrastu."
+          }
         }
       }
     },
@@ -309,6 +477,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "High contrast"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Didelis kontrastas"
           }
         }
       }
@@ -322,6 +496,12 @@
             "state" : "translated",
             "value" : "Larger markers"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Didesnės žymės"
+          }
         }
       }
     },
@@ -333,6 +513,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Display"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Vaizdas"
           }
         }
       }
@@ -346,6 +532,12 @@
             "state" : "translated",
             "value" : "All"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Visos"
+          }
         }
       }
     },
@@ -357,6 +549,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "International"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Tarptautinės"
           }
         }
       }
@@ -370,6 +568,12 @@
             "state" : "translated",
             "value" : "Lines to show"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Rodomos linijos"
+          }
         }
       }
     },
@@ -381,6 +585,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Starred"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Pažymėtos"
           }
         }
       }
@@ -394,6 +604,12 @@
             "state" : "translated",
             "value" : "%1$(low)lld–%2$(high)lld h"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "%1$(low)lld–%2$(high)lld val."
+          }
         }
       }
     },
@@ -406,6 +622,12 @@
             "state" : "translated",
             "value" : "%1$(hours)lld h"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "%1$(hours)lld val."
+          }
         }
       }
     },
@@ -416,6 +638,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
+            "value" : "%1$(low)lld–%2$(high)lld min"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
             "value" : "%1$(low)lld–%2$(high)lld min"
           }
         }
@@ -430,6 +658,12 @@
             "state" : "translated",
             "value" : "%1$(minutes)lld min"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "%1$(minutes)lld min"
+          }
         }
       }
     },
@@ -440,6 +674,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
+            "value" : "%1$(rush)@ · %2$(midday)@"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
             "value" : "%1$(rush)@ · %2$(midday)@"
           }
         }
@@ -454,6 +694,12 @@
             "state" : "translated",
             "value" : "every %1$(gap)@ midday"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "kas %1$(gap)@ vidurdienį"
+          }
         }
       }
     },
@@ -466,6 +712,12 @@
             "state" : "translated",
             "value" : "no train midday"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "vidurdienį traukinių nėra"
+          }
         }
       }
     },
@@ -477,6 +729,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "1 train midday"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "1 traukinys vidurdienį"
           }
         }
       }
@@ -502,6 +760,36 @@
               }
             }
           }
+        },
+        "lt" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%1$(count)lld traukiniai vidurdienį"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%1$(count)lld traukinio vidurdienį"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%1$(count)lld traukinys vidurdienį"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%1$(count)lld traukinių vidurdienį"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -513,6 +801,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Every %1$(gap)@ at rush hour"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kas %1$(gap)@ piko metu"
           }
         }
       }
@@ -526,6 +820,12 @@
             "state" : "translated",
             "value" : "No train at rush hour"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Piko metu traukinių nėra"
+          }
         }
       }
     },
@@ -537,6 +837,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "1 train at rush hour"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "1 traukinys piko metu"
           }
         }
       }
@@ -562,6 +868,36 @@
               }
             }
           }
+        },
+        "lt" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%1$(count)lld traukiniai piko metu"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%1$(count)lld traukinio piko metu"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%1$(count)lld traukinys piko metu"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%1$(count)lld traukinių piko metu"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -574,6 +910,12 @@
             "state" : "translated",
             "value" : "No starred lines"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Nėra pažymėtų linijų"
+          }
         }
       }
     },
@@ -585,6 +927,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tap the star on a line or a station to keep it at the top."
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Palieskite žvaigždutę prie linijos ar stoties, kad ji būtų sąrašo viršuje."
           }
         }
       }
@@ -610,6 +958,108 @@
               }
             }
           }
+        },
+        "lt" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Dabar važiuoja %1$(count)lld traukiniai"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Dabar važiuoja %1$(count)lld traukinio"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Dabar važiuoja %1$(count)lld traukinys"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Dabar važiuoja %1$(count)lld traukinių"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Location.Denied" : {
+      "comment" : "Note at the top of the map panel after the Locate button is tapped when the app may not use the location.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bėgiai has no access to your location."
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Bėgiai neturi prieigos prie jūsų buvimo vietos."
+          }
+        }
+      }
+    },
+    "Location.Dismiss" : {
+      "comment" : "VoiceOver label of the button that closes the location note in the map panel.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close the note"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Uždaryti pranešimą"
+          }
+        }
+      }
+    },
+    "Location.OpenSettings" : {
+      "comment" : "Button in the location note that opens the app's page in Settings.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Atidaryti nustatymus"
+          }
+        }
+      }
+    },
+    "Location.Restricted" : {
+      "comment" : "Note at the top of the map panel after the Locate button is tapped when location is restricted on the device, for example by Screen Time.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Location is restricted on this iPhone."
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Buvimo vietos nustatymas šiame iPhone apribotas."
+          }
         }
       }
     },
@@ -621,6 +1071,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lines"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Linijos"
           }
         }
       }
@@ -634,6 +1090,12 @@
             "state" : "translated",
             "value" : "The timetable could not load"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Nepavyko įkelti tvarkaraščio"
+          }
         }
       }
     },
@@ -646,6 +1108,12 @@
             "state" : "translated",
             "value" : "Update Bėgiai from the App Store."
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Atnaujinkite programėlę App Store parduotuvėje."
+          }
         }
       }
     },
@@ -657,6 +1125,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show my location"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Rodyti mano buvimo vietą"
           }
         }
       }
@@ -682,6 +1156,36 @@
               }
             }
           }
+        },
+        "lt" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Dabar važiuoja %1$(count)lld traukiniai"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Dabar važiuoja %1$(count)lld traukinio"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Dabar važiuoja %1$(count)lld traukinys"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Dabar važiuoja %1$(count)lld traukinių"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -693,6 +1197,66 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Scheduled"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Pagal tvarkaraštį"
+          }
+        }
+      }
+    },
+    "Map.Search" : {
+      "comment" : "Placeholder of the search field in the map panel that finds a station by name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Find a station"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Ieškoti stoties"
+          }
+        }
+      }
+    },
+    "Map.SearchClear" : {
+      "comment" : "VoiceOver label of the button that empties the station search field in the map panel.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear the search"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Išvalyti paiešką"
+          }
+        }
+      }
+    },
+    "Map.SearchNone" : {
+      "comment" : "Shown in the map panel when no station's name holds the text typed in the search field.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No station found"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stotis nerasta"
           }
         }
       }
@@ -706,6 +1270,12 @@
             "state" : "translated",
             "value" : "Train to %1$(station)@, scheduled"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Traukinys į stotį %1$(station)@, pagal tvarkaraštį"
+          }
         }
       }
     },
@@ -718,6 +1288,12 @@
             "state" : "translated",
             "value" : "Standing at a station"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stovi stotyje"
+          }
         }
       }
     },
@@ -728,6 +1304,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
+            "value" : "→ %1$(station)@"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
             "value" : "→ %1$(station)@"
           }
         }
@@ -742,6 +1324,12 @@
             "state" : "translated",
             "value" : "Your stations"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jūsų stotys"
+          }
         }
       }
     },
@@ -753,6 +1341,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "First train: %1$(time)@ %2$(origin)@ → %3$(destination)@"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Pirmasis traukinys: %1$(time)@ %2$(origin)@ → %3$(destination)@"
           }
         }
       }
@@ -766,6 +1360,12 @@
             "state" : "translated",
             "value" : "No trains run now"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Šiuo metu traukiniai nevažiuoja"
+          }
         }
       }
     },
@@ -777,6 +1377,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Track work or changes? See LTG Link notices"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kelio darbai ar pakeitimai? Žr. LTG Link pranešimus"
           }
         }
       }
@@ -790,6 +1396,12 @@
             "state" : "translated",
             "value" : "Full"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Išskleistas"
+          }
         }
       }
     },
@@ -801,6 +1413,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Half"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Iki pusės"
           }
         }
       }
@@ -814,6 +1432,12 @@
             "state" : "translated",
             "value" : "Small"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Suskleistas"
+          }
         }
       }
     },
@@ -826,29 +1450,47 @@
             "state" : "translated",
             "value" : "Resize the panel"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Keisti skydelio aukštį"
+          }
         }
       }
     },
     "Star.Add" : {
-      "comment" : "VoiceOver label of the star button on a line that is not starred yet. line is the line's name.",
+      "comment" : "VoiceOver label of the star button on a line or station that is not starred yet. name is the line's or station's name.",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Star %1$(line)@"
+            "value" : "Star %1$(name)@"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Pažymėti žvaigždute: %1$(name)@"
           }
         }
       }
     },
     "Star.Remove" : {
-      "comment" : "VoiceOver label of the star button on a starred line. line is the line's name.",
+      "comment" : "VoiceOver label of the star button on a starred line or station. name is the line's or station's name.",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Remove the star from %1$(line)@"
+            "value" : "Remove the star from %1$(name)@"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Nuimti žvaigždutę: %1$(name)@"
           }
         }
       }
@@ -862,6 +1504,12 @@
             "state" : "translated",
             "value" : "Next: %1$(time)@ → %2$(destination)@"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kitas: %1$(time)@ → %2$(destination)@"
+          }
         }
       }
     },
@@ -873,6 +1521,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Line Diagram"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Linijos schema"
           }
         }
       }
@@ -886,6 +1540,12 @@
             "state" : "translated",
             "value" : "Map"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Žemėlapis"
+          }
         }
       }
     },
@@ -897,6 +1557,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Loading the timetable"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Įkeliamas tvarkaraštis"
           }
         }
       }
@@ -910,6 +1576,12 @@
             "state" : "translated",
             "value" : "Timetable from %(date)@. The app could not get a newer one."
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Tvarkaraščio data: %(date)@. Naujesnio gauti nepavyko."
+          }
         }
       }
     },
@@ -921,6 +1593,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The tip did not go through. You were not charged."
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Arbatpinigių pervesti nepavyko. Pinigai nenuskaičiuoti."
           }
         }
       }
@@ -934,6 +1612,12 @@
             "state" : "translated",
             "value" : "A tip unlocks nothing. It helps keep Bėgiai free and up to date."
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Arbatpinigiai nieko neatrakina. Jie padeda programėlei likti nemokamai ir atnaujintai."
+          }
         }
       }
     },
@@ -945,6 +1629,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thank you for the tip!"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Ačiū už arbatpinigius!"
           }
         }
       }
@@ -958,6 +1648,12 @@
             "state" : "translated",
             "value" : "Leave a tip"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Palikite arbatpinigių"
+          }
         }
       }
     },
@@ -969,6 +1665,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Your tip waits for approval."
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jūsų arbatpinigiai laukia patvirtinimo."
           }
         }
       }
@@ -982,6 +1684,12 @@
             "state" : "translated",
             "value" : "At %1$(station)@, leaves at %2$(time)@"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stotyje %1$(station)@, išvyksta %2$(time)@"
+          }
         }
       }
     },
@@ -993,6 +1701,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lines"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Linijos"
           }
         }
       }
@@ -1006,6 +1720,12 @@
             "state" : "translated",
             "value" : "Estimated from the timetable. LTG Link publishes no live positions."
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Apskaičiuota pagal tvarkaraštį. LTG Link neskelbia traukinių vietos realiuoju laiku."
+          }
         }
       }
     },
@@ -1017,6 +1737,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Follow"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sekti"
           }
         }
       }
@@ -1030,6 +1756,12 @@
             "state" : "translated",
             "value" : "Following"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sekama"
+          }
         }
       }
     },
@@ -1041,6 +1773,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This train has finished its trip."
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Šis traukinys baigė reisą."
           }
         }
       }
@@ -1066,6 +1804,36 @@
               }
             }
           }
+        },
+        "lt" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "po %1$(minutes)lld min"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "po %1$(minutes)lld min"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "po %1$(minutes)lld min"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "po %1$(minutes)lld min"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -1077,6 +1845,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Next: %1$(station)@ at %2$(time)@"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kita stotis: %1$(station)@, %2$(time)@"
           }
         }
       }
@@ -1090,6 +1864,12 @@
             "state" : "translated",
             "value" : "The train is here"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Traukinys čia"
+          }
         }
       }
     },
@@ -1101,6 +1881,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Next stop"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kita stotis"
           }
         }
       }
@@ -1114,6 +1900,12 @@
             "state" : "translated",
             "value" : "Passed"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Pravažiuota"
+          }
         }
       }
     },
@@ -1124,6 +1916,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
+            "value" : "%1$(time)@ %2$(origin)@ → %3$(destination)@"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
             "value" : "%1$(time)@ %2$(origin)@ → %3$(destination)@"
           }
         }
@@ -1138,6 +1936,12 @@
             "state" : "translated",
             "value" : "LTG Link publishes no live positions. Bėgiai moves each train along its track from the timetable, so a late train still shows where it should be."
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "LTG Link neskelbia traukinių vietos realiuoju laiku. Bėgiai veda kiekvieną traukinį jo keliu pagal tvarkaraštį, todėl vėluojantis traukinys vis tiek rodomas ten, kur turėtų būti."
+          }
         }
       }
     },
@@ -1149,6 +1953,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Trains move by estimate"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Traukinių vieta – apytikslė"
           }
         }
       }
@@ -1162,6 +1972,12 @@
             "state" : "translated",
             "value" : "Its page shows the next stop. Follow keeps it in the middle of the map. Star a line or a station to keep it at the top."
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Jo puslapyje matysite kitą stotį. „Sekti“ laiko traukinį žemėlapio centre. Pažymėkite liniją ar stotį žvaigždute, kad ji būtų viršuje."
+          }
         }
       }
     },
@@ -1174,6 +1990,12 @@
             "state" : "translated",
             "value" : "Tap a train to follow it"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Palieskite traukinį ir sekite jį"
+          }
         }
       }
     },
@@ -1184,7 +2006,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Each train is a pointed marker in its line's colour. Its nose points the way it goes, and it glows while the train stands at a station. Scheduled means: from the timetable."
+            "value" : "Each train is a pointed marker in its line's colour. Its nose points the way it goes, and, when zoomed in, it glows while the train stands at a station. Scheduled means: from the timetable."
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kiekvienas traukinys – smaili jo linijos spalvos žymė. Smaigalys rodo važiavimo kryptį, o priartinus žemėlapį, kol traukinys stovi stotyje, žymė šviečia. „Pagal tvarkaraštį“ reiškia: apskaičiuota iš tvarkaraščio, ne realiuoju laiku."
           }
         }
       }
@@ -1198,6 +2026,12 @@
             "state" : "translated",
             "value" : "What the marks mean"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Ką reiškia žymės"
+          }
         }
       }
     },
@@ -1210,6 +2044,12 @@
             "state" : "translated",
             "value" : "Next"
           }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Toliau"
+          }
         }
       }
     },
@@ -1221,6 +2061,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Start"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Pradėti"
           }
         }
       }

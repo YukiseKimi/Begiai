@@ -16,7 +16,7 @@ struct StarButton: View {
         }
         .buttonStyle(.plain)
         .sensoryFeedback(.selection, trigger: starred)
-        .accessibilityLabel(Text(starred ? .starRemove(line: name) : .starAdd(line: name)))
+        .accessibilityLabel(Text(starred ? .starRemove(name: name) : .starAdd(name: name)))
     }
 }
 
@@ -27,8 +27,15 @@ extension ModelContext {
             try withAnimation { try toggleStar(kind, name: name, at: date) }
         } catch {
             rollback()
-            Logger(subsystem: "com.mannychau.begiai", category: "stars")
+            Logger.begiai("stars")
                 .error("A star did not save: \(String(describing: error), privacy: .public)")
         }
+    }
+}
+
+extension Sequence where Element == Star {
+    /// The names starred as this kind; a star is saved by name, so it outlives a new timetable.
+    func names(_ kind: StarKind) -> Set<String> {
+        Set(filter { $0.kind == kind.rawValue }.map(\.name))
     }
 }

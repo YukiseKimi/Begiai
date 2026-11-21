@@ -30,8 +30,9 @@ do {
     if let manifestURL {
         try encoder.encode(Manifest(bundle: data, feedDate: feedDate)).write(to: manifestURL, options: .atomic)
     }
-    print("BUNDLE \(output.lastPathComponent) · \(data.count / 1024) KB · \(timetable.stations.count) stations · " +
-          "\(timetable.lines.count) lines · \(timetable.trips.count) trips · \(timetable.shapes.count) shapes")
+    print(
+        "BUNDLE \(output.lastPathComponent) · \(data.count / 1024) KB · \(timetable.stations.count) stations · "
+            + "\(timetable.lines.count) lines · \(timetable.trips.count) trips · \(timetable.shapes.count) shapes")
     print("check worst station off its track \(Int(report.worstOffTrack.rounded())) m")
     for section in report.fastSections {
         print("flag over 160 km/h: \(section)")

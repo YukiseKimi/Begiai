@@ -75,7 +75,8 @@ The `begiai-bundle` tool keeps LTG Link trips only, drops duplicate trips, flags
 | `journey [<Journey>/<test>] [--no-build]` | UI journeys on the simulator whose UDID is in `$BEGIAI_SIM` |
 | `build` | Release build, unsigned. It fails if the Release app allows a sealed launch. |
 | `a11y [--check]` | Writes or checks `A11yID.md` |
-| `check` | a11y check, unit and build. Run it before each commit. |
+| `format` | `swift-format lint --strict` on the Swift folders |
+| `check` | format, a11y check, unit and build. Run it before each commit. |
 | `all` | `check`, then `journey` |
 
 UI journeys use a sealed launch (`--sealed --reset --now <ISO time>`) that pins the clock and keeps stars in a temporary folder. It works only in Debug builds. With `--speed <n>`, the clock starts at `--now` and runs n times faster, which `script/readme-gif.sh` uses to record the map.

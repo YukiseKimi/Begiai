@@ -30,7 +30,8 @@ final class StoreShotsJourney: XCTestCase {
         let journey = launchOnTheMap()
         zoomToVilnius(journey)
         // A train to Kaunas if one has a spot no other marker covers, else a train to Vilnius.
-        let pick = tapSpot(of: { $0.label.hasPrefix("Train to Kaunas") }, journey)
+        let pick =
+            tapSpot(of: { $0.label.hasPrefix("Train to Kaunas") }, journey)
             ?? tapSpot(of: { $0.label.hasPrefix("Train to Vilnius") }, journey)
         guard let (train, spot) = pick else {
             XCTFail("Store shots: no train to Kaunas or Vilnius to tap above the panel")
@@ -142,7 +143,8 @@ final class StoreShotsJourney: XCTestCase {
         for (index, train) in all.enumerated() where wanted(train) && train.isHittable {
             let frame = train.frame
             guard frame.minY > 70, frame.maxY < journey.app.frame.height * 0.45 else { continue }
-            let others = all.enumerated().filter { $0.offset != index }.map { $0.element.frame.insetBy(dx: -3, dy: -3) }
+            let others =
+                all.enumerated().filter { $0.offset != index }.map { $0.element.frame.insetBy(dx: -3, dy: -3) }
                 + stations.map { $0.insetBy(dx: -3, dy: -3) }
             let inner = frame.insetBy(dx: 6, dy: 6)
             for y in stride(from: inner.minY, through: inner.maxY, by: 2) {
@@ -207,7 +209,10 @@ final class StoreShotsJourney: XCTestCase {
                 let point = CGPoint(x: x, y: y)
                 guard markers.allSatisfy({ !$0.contains(point) }) else { continue }
                 let d = hypot(x - near.x, y - near.y)
-                if d < bestDistance { best = point; bestDistance = d }
+                if d < bestDistance {
+                    best = point
+                    bestDistance = d
+                }
             }
         }
         return best

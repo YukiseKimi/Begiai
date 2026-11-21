@@ -51,12 +51,15 @@ struct TrainPage: View {
                         .frame(width: 5)
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(.trainTitle(time: timeline.firstDeparture.vilniusTime, origin: timeline.origin, destination: timeline.destination))
-                            .font(.headline)
-                            .lineLimit(3)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityAddTraits(.isHeader)
-                            .accessibilityIdentifier(A11yID.Train.title)
+                        Text(
+                            .trainTitle(
+                                time: timeline.firstDeparture.vilniusTime, origin: timeline.origin, destination: timeline.destination)
+                        )
+                        .font(.headline)
+                        .lineLimit(3)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
+                        .accessibilityIdentifier(A11yID.Train.title)
                         TrainWhere(timeline: timeline, now: now, openStation: openStation)
                         ScheduledBadge()
                     }
@@ -81,12 +84,14 @@ private struct TrainWhere: View {
     var body: some View {
         if let standing = timeline.standingAt {
             let stop = timeline.stops[standing]
-            line(symbol: "smallcircle.filled.circle", Text(.trainAt(station: stop.station, time: stop.departure.vilniusTime)),
-                 in: stop.departure, station: stop.stationIndex)
+            line(
+                symbol: "smallcircle.filled.circle", Text(.trainAt(station: stop.station, time: stop.departure.vilniusTime)),
+                in: stop.departure, station: stop.stationIndex)
         } else if let nextStop = timeline.nextStop {
             let next = timeline.stops[nextStop]
-            line(symbol: "arrow.right.circle", Text(.trainNext(station: next.station, time: next.arrival.vilniusTime)),
-                 in: next.arrival, station: next.stationIndex)
+            line(
+                symbol: "arrow.right.circle", Text(.trainNext(station: next.station, time: next.arrival.vilniusTime)),
+                in: next.arrival, station: next.stationIndex)
         }
     }
 
@@ -248,6 +253,8 @@ private struct StopRow: View {
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
         }
+        // The row takes the height of its tallest part, and the stop mark stretches to it.
+        .fixedSize(horizontal: false, vertical: true)
         .accessibilityElement(children: .combine)
         // The dot and the grey say where the train is; VoiceOver says it in words.
         .accessibilityValue(state.map { Text($0) } ?? Text(verbatim: ""))
@@ -285,7 +292,10 @@ private struct StopMark: View {
                     .offset(y: 17 - 22 * (1 - progress))
             }
         }
-        .frame(width: 16, height: 44)
+        // At least 44 points tall, and as tall as the row at large text sizes, so the line
+        // runs on from row to row unbroken.
+        .frame(width: 16)
+        .frame(minHeight: 44, maxHeight: .infinity)
         .accessibilityHidden(true)
     }
 }

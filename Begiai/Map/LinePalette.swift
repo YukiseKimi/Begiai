@@ -7,10 +7,11 @@ import UIKit
 /// and a dark colour, picked by the appearance.
 struct LinePalette: Equatable {
     static let colors: [Color] = zip(LinePaletteRGB.light, LinePaletteRGB.dark).map { light, dark in
-        Color(UIColor { traits in
-            let rgb = traits.userInterfaceStyle == .dark ? dark : light
-            return UIColor(red: rgb.red, green: rgb.green, blue: rgb.blue, alpha: 1)
-        })
+        Color(
+            UIColor { traits in
+                let rgb = traits.userInterfaceStyle == .dark ? dark : light
+                return UIColor(red: rgb.red, green: rgb.green, blue: rgb.blue, alpha: 1)
+            })
     }
 
     /// The slot of each line, by line index. A line with no slot uses its index.

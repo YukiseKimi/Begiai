@@ -25,8 +25,13 @@ final class TrainsModel {
     /// The frame intervals the map can use, shortest first.
     private static let frames: [Duration] = [30, 15, 10, 5, 2, 1].map { (perSecond: Double) in .seconds(1 / perSecond) }
 
-    private(set) var moving: [TrainState] = []
-    private(set) var settled: [TrainState] = []
+    // Read through `moving(for:)` and `settled(for:)`, so no view pairs these trains with a
+    // timetable they did not come from.
+    private var moving: [TrainState] = []
+    private var settled: [TrainState] = []
+    /// The store revision of the timetable that `moving` and `settled` come from: their trip
+    /// numbers index that timetable and no other.
+    private var revision: Int?
     /// The time of `settled`; nil until the first update.
     private(set) var now: Date?
     private(set) var cityZoom = false
@@ -53,20 +58,34 @@ final class TrainsModel {
         return frames.last { $0 <= longest } ?? frames[0]
     }
 
-    func run(engine: MotionEngine, time: any TimeSource, pace: Pace) async {
+    /// The trains of this frame, from the timetable of `revision`: none until the trains of a
+    /// newly shown timetable are worked out.
+    func moving(for revision: Int) -> [TrainState] {
+        self.revision == revision ? moving : []
+    }
+
+    /// The trains of this second, from the timetable of `revision`: none until the trains of a
+    /// newly shown timetable are worked out.
+    func settled(for revision: Int) -> [TrainState] {
+        self.revision == revision ? settled : []
+    }
+
+    func run(engine: MotionEngine, revision: Int, time: any TimeSource, pace: Pace) async {
         let clock = ContinuousClock()
         var next = clock.now
         repeat {
-            update(engine: engine, at: time.now)
+            update(engine: engine, revision: revision, at: time.now)
             guard let interval = pace.interval else { return }
             next = max(next.advanced(by: interval), clock.now)
             try? await clock.sleep(until: next)
         } while !Task.isCancelled
     }
 
-    private func update(engine: MotionEngine, at date: Date) {
+    private func update(engine: MotionEngine, revision: Int, at date: Date) {
         moving = engine.trains(at: date)
-        if now.map({ abs(date.timeIntervalSince($0)) >= 0.9 }) ?? true {
+        // A new timetable settles at once, so no old trip number outlives it.
+        if revision != self.revision || (now.map({ abs(date.timeIntervalSince($0)) >= 0.9 }) ?? true) {
+            self.revision = revision
             settled = moving
             now = date
             lookForTrains()

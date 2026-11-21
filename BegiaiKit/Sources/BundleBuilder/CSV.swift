@@ -37,9 +37,16 @@ struct CSVFile {
             switch character {
             case "\"" where quoted:
                 if let next = iterator.next() {
-                    if next == "\"" { field.append("\"") } else {
+                    if next == "\"" {
+                        field.append("\"")
+                    } else {
                         quoted = false
-                        if next == "," { fields.append(field); field = "" } else { field.append(next) }
+                        if next == "," {
+                            fields.append(field)
+                            field = ""
+                        } else {
+                            field.append(next)
+                        }
                     }
                 } else {
                     quoted = false

@@ -18,7 +18,8 @@ script/test.sh <lane>
                               the UI journeys on $BEGIAI_SIM (a simulator UDID)
   build                       Release, unsigned, and the sealed-launch check
   a11y [--check]              writes A11yID.md from A11yID.swift, or checks it
-  check                       a11y --check, unit, build: the check before each commit
+  format                      swift-format lint --strict on the Swift folders
+  check                       format, a11y --check, unit, build: the check before each commit
   all                         check, then journey
 USAGE
   exit 2
@@ -33,6 +34,20 @@ lane_a11y() {
   local out
   out=$(python3 -I script/test/a11y.py "$@") || { echo "$out"; exit 1; }
   echo "$out"
+}
+
+FORMAT_DIRS=(Begiai BegiaiKit/Sources BegiaiKit/Tests BegiaiUITests)
+
+lane_format() {
+  local start=$SECONDS log="$RUNS/format.log"
+  if xcrun swift-format lint --strict -r "${FORMAT_DIRS[@]}" > "$log" 2>&1; then
+    echo "GREEN format · swift-format lint --strict · $((SECONDS - start)) s"
+  else
+    echo "RED format · $(grep -c 'warning:\|error:' "$log") findings · log: $log"
+    grep -E 'warning:|error:' "$log" | head -20
+    echo "  rerun: xcrun swift-format format -i -r ${FORMAT_DIRS[*]} && script/test.sh format"
+    exit 65
+  fi
 }
 
 lane_unit() {
@@ -151,11 +166,12 @@ lane_build() {
 
 lane=${1:-}; shift || true
 case $lane in
+  format) lane_format ;;
   a11y) lane_a11y "$@" ;;
   unit) lock; lane_unit "$@" ;;
   journey) lock; lane_journey "$@" ;;
   build) lock; lane_build ;;
-  check) lock; lane_a11y --check && lane_unit && lane_build ;;
-  all) lock; lane_a11y --check && lane_unit && lane_build && lane_journey ;;
+  check) lock; lane_format && lane_a11y --check && lane_unit && lane_build ;;
+  all) lock; lane_format && lane_a11y --check && lane_unit && lane_build && lane_journey ;;
   *) usage ;;
 esac

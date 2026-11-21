@@ -58,19 +58,22 @@ struct ServiceDayTests {
 
 enum TinyTimetable {
     static func make(trips: [(id: String, weekdays: String, departure: Int, arrival: Int)], removed: [Int] = []) -> Timetable {
-        let a = Coordinate(latitude: 54.67, longitude: 25.28), b = Coordinate(latitude: 54.90, longitude: 23.90)
+        let a = Coordinate(latitude: 54.67, longitude: 25.28)
+        let b = Coordinate(latitude: 54.90, longitude: 23.90)
         return Timetable(
-            feedDate: 20261117,
+            feedDate: 20_261_117,
             stations: [Station(name: "Vilnius", coordinate: a), Station(name: "Kaunas", coordinate: b)],
             lines: [Line(name: "Vilnius – Kaunas", ends: [0, 1], international: false)],
             shapes: [Shape(points: [ShapePoint(coordinate: a, metres: 0), ShapePoint(coordinate: b, metres: 100_000)])],
             trips: trips.enumerated().map { index, trip in
-                Trip(id: trip.id, code: "833", line: 0, shape: 0, service: index, stops: [
-                    TripStop(station: 0, arrival: trip.departure, departure: trip.departure, metres: 0),
-                    TripStop(station: 1, arrival: trip.arrival, departure: trip.arrival, metres: 100_000),
-                ])
+                Trip(
+                    id: trip.id, code: "833", line: 0, shape: 0, service: index,
+                    stops: [
+                        TripStop(station: 0, arrival: trip.departure, departure: trip.departure, metres: 0),
+                        TripStop(station: 1, arrival: trip.arrival, departure: trip.arrival, metres: 100_000),
+                    ])
             },
-            services: trips.map { Service(weekdays: $0.weekdays, start: 20260101, end: 20271231, added: [], removed: removed) }
+            services: trips.map { Service(weekdays: $0.weekdays, start: 20_260_101, end: 20_271_231, added: [], removed: removed) }
         )
     }
 }

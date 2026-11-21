@@ -78,7 +78,8 @@ struct MapScreen {
             }
         let page = TrainScreen(journey: journey)
         for train in trains {
-            // On the train beyond its station ring: past the 8-point ring radius, inside the train.
+            // On the train beyond its station ring: past the ring radius (8 points at city zoom, 6 at
+            // country zoom), inside the train.
             let spot = CGVector(dx: train.midX, dy: train.midY + train.height * 0.38)
             journey.app.coordinate(withNormalizedOffset: .zero).withOffset(spot).tap()
             let now = journey.element(A11yID.Train.now)
@@ -105,6 +106,20 @@ struct MapScreen {
             row.label.hasPrefix(name) && (row.label.contains("Next: ") || row.label.contains("No trains")),
             "Map: the starred station reads \(row.label)", file: file, line: line)
         row.tap()
+    }
+
+    /// Types into the station search above the line filter, expects the stations found to be
+    /// just `expected`, in that order, and opens the first one.
+    func searchStation(_ query: String, expect expected: [String], file: StaticString = #filePath, line: UInt = #line) {
+        let field = journey.wait(for: journey.element(A11yID.Map.search), "the station search", on: "Map", file: file, line: line)
+        field.tap()
+        field.typeText(query)
+        let results = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.searchResult)
+        journey.wait(for: results.firstMatch, "a station found for \(query)", on: "Map (search)", file: file, line: line)
+        XCTAssertEqual(
+            results.allElementsBoundByIndex.map(\.label), expected, "Map (search): \(query) finds the wrong stations",
+            file: file, line: line)
+        results.firstMatch.tap()
     }
 
     /// The panel's handle says how tall the panel is: Small, Half or Full.
@@ -149,13 +164,16 @@ struct MapScreen {
         let stations = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.station).allElementsBoundByIndex
         // A ring that only standing trains cover, each centred on it, so whichever one takes
         // the tap, the tap is on its station ring.
-        guard let station = stations.first(where: { station in
-            let centre = CGPoint(x: station.frame.midX, y: station.frame.midY)
-            let over = trains.filter { $0.frame.contains(centre) }
-            return centre.y < aboveThePanel && !over.isEmpty && over.allSatisfy { train in
-                train.standing && hypot(train.frame.midX - centre.x, train.frame.midY - centre.y) < 4
-            }
-        }) else { return nil }
+        guard
+            let station = stations.first(where: { station in
+                let centre = CGPoint(x: station.frame.midX, y: station.frame.midY)
+                let over = trains.filter { $0.frame.contains(centre) }
+                return centre.y < aboveThePanel && !over.isEmpty
+                    && over.allSatisfy { train in
+                        train.standing && hypot(train.frame.midX - centre.x, train.frame.midY - centre.y) < 4
+                    }
+            })
+        else { return nil }
         let name = station.label
         journey.app.coordinate(withNormalizedOffset: .zero)
             .withOffset(CGVector(dx: station.frame.midX, dy: station.frame.midY)).tap()

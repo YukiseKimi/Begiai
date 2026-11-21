@@ -12,8 +12,11 @@ struct WelcomeScreen {
             let title = journey.wait(for: journey.element(A11yID.Welcome.title), "a card title", on: "Welcome", file: file, line: line)
             titles.append(title.label)
             journey.wait(for: journey.element(A11yID.Welcome.next), "the Next button", on: "Welcome", file: file, line: line).tap()
-            _ = XCTWaiter.wait(for: [XCTNSPredicateExpectation(
-                predicate: NSPredicate(format: "label != %@", titles.last ?? ""), object: journey.element(A11yID.Welcome.title))], timeout: 2)
+            _ = XCTWaiter.wait(
+                for: [
+                    XCTNSPredicateExpectation(
+                        predicate: NSPredicate(format: "label != %@", titles.last ?? ""), object: journey.element(A11yID.Welcome.title))
+                ], timeout: 2)
         }
         XCTAssertTrue(
             journey.element(A11yID.Welcome.next).waitForNonExistence(timeout: 5),

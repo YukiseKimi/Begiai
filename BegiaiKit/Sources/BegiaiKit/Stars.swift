@@ -39,13 +39,26 @@ extension ModelContext {
     }
 }
 
+/// The first schema of the stars, the one that the first betas wrote with no version.
+public enum StarSchemaV1: VersionedSchema {
+    public static let versionIdentifier = Schema.Version(1, 0, 0)
+    public static var models: [any PersistentModel.Type] { [Star.self] }
+}
+
+public enum StarMigrationPlan: SchemaMigrationPlan {
+    public static var schemas: [any VersionedSchema.Type] { [StarSchemaV1.self] }
+    public static var stages: [MigrationStage] { [] }
+}
+
 public enum StarStorage {
     public static func container(sealedFolder: URL?) throws -> ModelContainer {
-        let schema = Schema([Star.self])
+        let schema = Schema(versionedSchema: StarSchemaV1.self)
         if let sealedFolder {
             try FileManager.default.createDirectory(at: sealedFolder, withIntermediateDirectories: true)
-            return try ModelContainer(for: schema, configurations: ModelConfiguration(url: sealedFolder.appending(path: "Begiai.store")))
+            return try ModelContainer(
+                for: schema, migrationPlan: StarMigrationPlan.self,
+                configurations: ModelConfiguration(url: sealedFolder.appending(path: "Begiai.store")))
         }
-        return try ModelContainer(for: schema)
+        return try ModelContainer(for: schema, migrationPlan: StarMigrationPlan.self)
     }
 }

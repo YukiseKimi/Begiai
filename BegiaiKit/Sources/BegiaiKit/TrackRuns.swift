@@ -87,8 +87,10 @@ private struct TrackRunBuilder {
 
         /// The columns and rows of the cells within `reach` of the box from `a` to `b`.
         private func span(near a: Point, _ b: Point, within reach: Double) -> (ClosedRange<Int>, ClosedRange<Int>) {
-            (column(min(a.x, b.x) - reach)...column(max(a.x, b.x) + reach),
-             row(min(a.y, b.y) - reach)...row(max(a.y, b.y) + reach))
+            (
+                column(min(a.x, b.x) - reach)...column(max(a.x, b.x) + reach),
+                row(min(a.y, b.y) - reach)...row(max(a.y, b.y) + reach)
+            )
         }
 
         private func column(_ x: Double) -> Int { min(columns - 1, max(0, Int(((x - minimum.x) / size).rounded(.down)))) }

@@ -82,16 +82,17 @@ private enum Rails {
     static func timetable(shapes: [(line: Int, points: [Coordinate])]) -> Timetable {
         let lines = Set(shapes.map(\.line)).sorted()
         return Timetable(
-            feedDate: 20261117, stations: [],
+            feedDate: 20_261_117, stations: [],
             lines: lines.map { Line(name: "L\($0)", ends: [], international: false) },
             shapes: shapes.map { shape in
                 var metres = 0.0
                 var last = shape.points.first
-                return Shape(points: shape.points.map { here in
-                    metres += last.map { $0.metres(to: here) } ?? 0
-                    last = here
-                    return ShapePoint(coordinate: here, metres: metres)
-                })
+                return Shape(
+                    points: shape.points.map { here in
+                        metres += last.map { $0.metres(to: here) } ?? 0
+                        last = here
+                        return ShapePoint(coordinate: here, metres: metres)
+                    })
             },
             trips: shapes.indices.map {
                 Trip(id: "t\($0)", code: "\($0)", line: shapes[$0].line, shape: $0, service: 0, stops: [])

@@ -35,11 +35,16 @@ struct LEDBoard: View {
     static let green = Color(red: 0.43, green: 0.87, blue: 0.55)
 
     var body: some View {
+        // When every train starts here, one line says so, not each row.
+        let everyTrainStartsHere = !departures.isEmpty && departures.allSatisfy(\.startsHere)
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
                 if departures.isEmpty {
                     Text(.boardNone)
                         .foregroundStyle(Self.amber)
+                }
+                if everyTrainStartsHere {
+                    StartsHereLabel(text: .boardEveryTrainStartsHere)
                 }
                 ForEach(departures) { departure in
                     if departure.tomorrow, departure.id == departures.first(where: \.tomorrow)?.id {
@@ -48,7 +53,7 @@ struct LEDBoard: View {
                             .foregroundStyle(.secondary)
                             .padding(.top, 4)
                     }
-                    BoardRow(departure: departure, now: now)
+                    BoardRow(departure: departure, now: now, showsStartsHere: !everyTrainStartsHere)
                 }
             }
             .font(.system(.callout, design: .monospaced).weight(.medium))
@@ -65,6 +70,7 @@ struct LEDBoard: View {
 private struct BoardRow: View {
     let departure: Departure
     let now: Date
+    let showsStartsHere: Bool
     @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
@@ -101,15 +107,8 @@ private struct BoardRow: View {
         VStack(alignment: .leading, spacing: 2) {
             Text(verbatim: departure.destination)
                 .lineLimit(2)
-            if departure.startsHere {
-                // 当駅始発: the train is empty when it boards. A symbol and a word, not colour alone.
-                Label {
-                    Text(.boardStartsHere)
-                } icon: {
-                    Image(systemName: "arrow.up.forward.circle")
-                }
-                .font(.system(.footnote, design: .monospaced).weight(.semibold))
-                .foregroundStyle(LEDBoard.green)
+            if showsStartsHere, departure.startsHere {
+                StartsHereLabel(text: .boardStartsHere)
             }
         }
     }
@@ -122,6 +121,21 @@ private struct BoardRow: View {
                 .monospacedDigit()
                 .opacity(0.85)
         }
+    }
+}
+
+/// 当駅始発: the train is empty when it boards. A symbol and a word, not colour alone.
+private struct StartsHereLabel: View {
+    let text: LocalizedStringResource
+
+    var body: some View {
+        Label {
+            Text(text)
+        } icon: {
+            Image(systemName: "arrow.up.forward.circle")
+        }
+        .font(.system(.footnote, design: .monospaced).weight(.semibold))
+        .foregroundStyle(LEDBoard.green)
     }
 }
 

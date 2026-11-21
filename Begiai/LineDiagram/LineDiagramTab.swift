@@ -4,11 +4,12 @@ import SwiftUI
 
 struct LineDiagramTab: View {
     let store: TimetableStore
+    /// The train or station open in the sheet; RootView holds it, so it knows when a page is open.
+    @Binding var selection: DiagramSelection?
     @Environment(\.timeSource) private var time
     /// The name of the last line the user looked at; a name stays the same in a new timetable.
     @AppStorage("lineDiagram.line") private var chosenName = ""
     @Query private var stars: [Star]
-    @State private var selection: DiagramSelection?
     @Environment(\.linePalette) private var palette
 
     var body: some View {
@@ -20,19 +21,14 @@ struct LineDiagramTab: View {
                 DiagramSheet(engine: engine, selection: chosen) { selection = nil }
                     .presentationDetents([.medium, .large])
             }
-        } else if case .failed = store.state {
-            // The same words as the map, so the tab never spins for ever.
-            ContentUnavailableView(.mapLoadFailed, systemImage: "tram", description: Text(.mapLoadFailedDetail))
         } else {
-            ProgressView {
-                Text(.timetableLoading)
-            }
+            TimetableUnavailable(state: store.state)
         }
     }
 
     private func content(engine: MotionEngine, now: Date) -> some View {
         let trains = engine.trains(at: now)
-        let starred = Set(stars.filter { $0.kind == StarKind.line.rawValue }.map(\.name))
+        let starred = stars.names(.line)
         let lines = engine.lineSummaries(at: now, trains: trains, starred: starred)
         let chosen = lines.first { $0.name == chosenName } ?? lines.first
         return VStack(spacing: 0) {
@@ -83,9 +79,14 @@ private struct LineChips: View {
                             .font(.subheadline.weight(.medium))
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
-                            .foregroundStyle(line.id == chosen ? AnyShapeStyle(ReadableText(background: palette.color(forLine: line.id))) : AnyShapeStyle(Color.primary))
+                            .foregroundStyle(
+                                line.id == chosen
+                                    ? AnyShapeStyle(ReadableText(background: palette.color(forLine: line.id)))
+                                    : AnyShapeStyle(Color.primary)
+                            )
                             .background(
-                                line.id == chosen ? palette.color(forLine: line.id) : Color.secondary.opacity(0.15), in: .capsule)
+                                line.id == chosen ? palette.color(forLine: line.id) : Color.secondary.opacity(0.15), in: .capsule
+                            )
                             // The chip looks small; its tap area is the full 44 points high.
                             .frame(minHeight: 44)
                             .contentShape(.rect)

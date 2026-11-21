@@ -16,6 +16,16 @@ final class StationJourney: XCTestCase {
     }
 
     @MainActor
+    func testASearchWithoutLithuanianLettersOpensTheStationsBoard() {
+        continueAfterFailure = false
+        let journey = JourneyApp()
+        journey.launch(.map)
+        MapScreen(journey: journey).searchStation("kaisiad", expect: ["Kaišiadorys"])
+        BoardScreen(journey: journey).expectBoard(of: "Kaišiadorys")
+        journey.holdLastScreen()
+    }
+
+    @MainActor
     func testAStationUnderATrainStillOpensItsBoard() {
         continueAfterFailure = false
         let journey = JourneyApp()

@@ -89,25 +89,31 @@ public struct BundleBuilder {
                 let names = ordered.map { stations[$0].name }
                 line = lines.count
                 lineIndex[ends] = line
-                lines.append(Line(name: names.joined(separator: " – "), ends: ordered,
-                                  international: false))
+                lines.append(
+                    Line(
+                        name: names.joined(separator: " – "), ends: ordered,
+                        international: false))
             }
             if tripStops.contains(where: { internationalStations.contains(stations[$0.station].name) }) {
                 lines[line].international = true
             }
-            trips.append(Trip(id: gtfs.id, code: gtfs.code, line: line, shape: shapeIndex[gtfs.shape]!,
-                              service: serviceIndex[gtfs.service]!, stops: tripStops))
+            trips.append(
+                Trip(
+                    id: gtfs.id, code: gtfs.code, line: line, shape: shapeIndex[gtfs.shape]!,
+                    service: serviceIndex[gtfs.service]!, stops: tripStops))
         }
 
         (lines, trips) = mergeShortTurns(lines: lines, trips: trips)
 
         let shapes = fullShapes.map { shape in
-            Shape(points: Geometry.simplify(shape.points, tolerance: simplifyTolerance).map {
-                ShapePoint(coordinate: shape.points[$0], metres: shape.metres[$0])
-            })
+            Shape(
+                points: Geometry.simplify(shape.points, tolerance: simplifyTolerance).map {
+                    ShapePoint(coordinate: shape.points[$0], metres: shape.metres[$0])
+                })
         }
-        let timetable = Timetable(feedDate: feedDate, stations: stations, lines: lines, shapes: shapes,
-                                  trips: trips, services: services)
+        let timetable = Timetable(
+            feedDate: feedDate, stations: stations, lines: lines, shapes: shapes,
+            trips: trips, services: services)
         return (timetable, report)
     }
 
@@ -148,16 +154,21 @@ public struct BundleBuilder {
         let marker = Array("\(agency)_".utf8)
         let file = try CSVFile(url: folder.appending(path: "stop_times.txt"))
         let markedIDs = trips.allSatisfy { $0.utf8.starts(with: marker) }
-        try file.rows(where: { !markedIDs || $0.contains(marker) }) { row in
-            let trip = row["trip_id"]
-            guard trips.contains(trip) else { return }
-            let arrivalText = row["arrival_time"].isEmpty ? row["departure_time"] : row["arrival_time"]
-            let departureText = row["departure_time"].isEmpty ? arrivalText : row["departure_time"]
-            if arrivalText.isEmpty { return }
-            let arrival = try seconds(arrivalText), departure = try seconds(departureText)
-            times[trip, default: []].append(StopTime(stop: row["stop_id"], sequence: Int(row["stop_sequence"]) ?? 0,
-                                                     arrival: arrival, departure: departure))
-        }
+        try file.rows(
+            where: { !markedIDs || $0.contains(marker) },
+            { row in
+                let trip = row["trip_id"]
+                guard trips.contains(trip) else { return }
+                let arrivalText = row["arrival_time"].isEmpty ? row["departure_time"] : row["arrival_time"]
+                let departureText = row["departure_time"].isEmpty ? arrivalText : row["departure_time"]
+                if arrivalText.isEmpty { return }
+                let arrival = try seconds(arrivalText)
+                let departure = try seconds(departureText)
+                times[trip, default: []].append(
+                    StopTime(
+                        stop: row["stop_id"], sequence: Int(row["stop_sequence"]) ?? 0,
+                        arrival: arrival, departure: departure))
+            })
         return times.mapValues { $0.sorted { $0.sequence < $1.sequence } }
     }
 
@@ -176,39 +187,49 @@ public struct BundleBuilder {
         let shapes = try CSVFile(url: folder.appending(path: "shapes.txt"))
         let firstColumnIsID = shapes.columns["shape_id"] == 0
         let prefixes = Set(ids.map { Array("\($0),".utf8) })
-        shapes.rows(where: { line in
-            guard firstColumnIsID else { return true }
-            guard let comma = line.firstIndex(of: 0x2C) else { return false }
-            let id = line[line.startIndex...comma]
-            return prefixes.contains(Array(id)) || id.first == 0x22
-        }) { row in
-            guard ids.contains(row["shape_id"]), let latitude = Double(row["shape_pt_lat"]), let longitude = Double(row["shape_pt_lon"]) else { return }
-            points[row["shape_id"], default: []].append((Int(row["shape_pt_sequence"]) ?? 0, Coordinate(latitude: latitude, longitude: longitude)))
-        }
+        shapes.rows(
+            where: { line in
+                guard firstColumnIsID else { return true }
+                guard let comma = line.firstIndex(of: 0x2C) else { return false }
+                let id = line[line.startIndex...comma]
+                return prefixes.contains(Array(id)) || id.first == 0x22
+            },
+            { row in
+                guard ids.contains(row["shape_id"]), let latitude = Double(row["shape_pt_lat"]), let longitude = Double(row["shape_pt_lon"])
+                else { return }
+                points[row["shape_id"], default: []].append(
+                    (Int(row["shape_pt_sequence"]) ?? 0, Coordinate(latitude: latitude, longitude: longitude)))
+            })
         return points.mapValues { $0.sorted { $0.0 < $1.0 }.map(\.1) }
     }
 
     private func readServices(_ folder: URL, ids: [String]) throws -> [Service] {
         let wanted = Set(ids)
         var calendar: [String: Service] = [:]
-        let calendarFile = folder.appending(path: "calendar.txt"), datesFile = folder.appending(path: "calendar_dates.txt")
+        let calendarFile = folder.appending(path: "calendar.txt")
+        let datesFile = folder.appending(path: "calendar_dates.txt")
         let hasCalendar = FileManager.default.fileExists(atPath: calendarFile.path)
         let hasDates = FileManager.default.fileExists(atPath: datesFile.path)
         guard hasCalendar || hasDates else { throw BundleError.noCalendar }
-        if hasCalendar { try CSVFile(url: calendarFile).rows { row in
-            let id = row["service_id"]
-            guard wanted.contains(id) else { return }
-            let days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map { row[$0] }.joined()
-            calendar[id] = Service(weekdays: days, start: Int(row["start_date"]) ?? 0, end: Int(row["end_date"]) ?? 0,
-                                   added: [], removed: [])
-        } }
-        if hasDates { try CSVFile(url: datesFile).rows { row in
-            let id = row["service_id"]
-            guard wanted.contains(id), let date = Int(row["date"]) else { return }
-            var service = calendar[id] ?? Service(weekdays: "0000000", start: 0, end: 0, added: [], removed: [])
-            if row["exception_type"] == "1" { service.added.append(date) } else { service.removed.append(date) }
-            calendar[id] = service
-        } }
+        if hasCalendar {
+            try CSVFile(url: calendarFile).rows { row in
+                let id = row["service_id"]
+                guard wanted.contains(id) else { return }
+                let days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map { row[$0] }.joined()
+                calendar[id] = Service(
+                    weekdays: days, start: Int(row["start_date"]) ?? 0, end: Int(row["end_date"]) ?? 0,
+                    added: [], removed: [])
+            }
+        }
+        if hasDates {
+            try CSVFile(url: datesFile).rows { row in
+                let id = row["service_id"]
+                guard wanted.contains(id), let date = Int(row["date"]) else { return }
+                var service = calendar[id] ?? Service(weekdays: "0000000", start: 0, end: 0, added: [], removed: [])
+                if row["exception_type"] == "1" { service.added.append(date) } else { service.removed.append(date) }
+                calendar[id] = service
+            }
+        }
         return ids.map { id in
             var service = calendar[id] ?? Service(weekdays: "0000000", start: 0, end: 0, added: [], removed: [])
             service.added.sort()
@@ -227,14 +248,19 @@ public struct BundleBuilder {
                 .filter { trips[$0].line != index && paths[$0].isSuperset(of: line.ends) }
                 .map { trips[$0].line }
             if let longest = covering.max(by: { (span[$0] ?? 0, $1) < (span[$1] ?? 0, $0) }),
-               (span[longest] ?? 0) > (span[index] ?? 0),
-               (count[index] ?? 0) <= 2 * (count[longest] ?? 0) {
+                (span[longest] ?? 0) > (span[index] ?? 0),
+                (count[index] ?? 0) <= 2 * (count[longest] ?? 0)
+            {
                 target[index] = longest
             }
         }
         func root(_ line: Int) -> Int {
-            var line = line, steps = 0
-            while target[line] != line, steps < lines.count { line = target[line]; steps += 1 }
+            var line = line
+            var steps = 0
+            while target[line] != line, steps < lines.count {
+                line = target[line]
+                steps += 1
+            }
             return line
         }
         let kept = lines.indices.filter { root($0) == $0 }
@@ -251,11 +277,12 @@ public struct BundleBuilder {
 
     private func flagFastSections(_ stops: [TripStop], trip: GTFSTrip, stations: [Station], report: inout BundleReport) {
         for (a, b) in zip(stops, stops.dropFirst()) {
-            let time = Double(b.arrival - a.departure), distance = b.metres - a.metres
+            let time = Double(b.arrival - a.departure)
+            let distance = b.metres - a.metres
             if time > 0, distance / time > fastSectionSpeed {
                 report.fastSections.append(
-                    "\(trip.code) \(stations[a.station].name) → \(stations[b.station].name): " +
-                    "\(Int((distance / 1000).rounded())) km in \(Int(time / 60)) min")
+                    "\(trip.code) \(stations[a.station].name) → \(stations[b.station].name): "
+                        + "\(Int((distance / 1000).rounded())) km in \(Int(time / 60)) min")
             }
         }
     }

@@ -29,7 +29,8 @@ struct HermeticLaunch {
             // Caches: no iCloud backup for a file that the app can download again, and if iOS
             // clears it, the app falls back to the copy that it ships.
             let folder = URL.cachesDirectory.appending(path: "Timetable", directoryHint: .isDirectory)
-            return HermeticLaunch(time: SystemTime(), starFolder: nil, settings: .standard, feed: TimetableFeed(folder: folder),
+            return HermeticLaunch(
+                time: SystemTime(), starFolder: nil, settings: .standard, feed: TimetableFeed(folder: folder),
                 mayWelcome: true, timetable: nil)
         }
         let folder = FileManager.default.temporaryDirectory.appending(path: "BegiaiSealed", directoryHint: .isDirectory)
@@ -44,14 +45,15 @@ struct HermeticLaunch {
             } else {
                 launch.now.map { FixedTime(now: $0) } ?? SystemTime()
             }
-        return HermeticLaunch(time: time, starFolder: folder, settings: settings, feed: nil, mayWelcome: launch.welcome, timetable: launch.timetable)
+        return HermeticLaunch(
+            time: time, starFolder: folder, settings: settings, feed: nil, mayWelcome: launch.welcome, timetable: launch.timetable)
     }
 
     func starContainer() -> ModelContainer {
         do {
             return try StarStorage.container(sealedFolder: starFolder)
         } catch {
-            Logger(subsystem: "com.mannychau.begiai", category: "stars")
+            Logger.begiai("stars")
                 .fault("The star store did not open; stars stay in memory: \(String(describing: error), privacy: .public)")
             do {
                 return try ModelContainer(for: Star.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))

@@ -35,12 +35,15 @@ enum Geometry {
         }
     }
 
-    static func project(_ station: Coordinate, onto points: [Coordinate], metres: [Double], from startMetres: Double,
-                        plane: LocalPlane = .lithuania) -> Projection {
+    static func project(
+        _ station: Coordinate, onto points: [Coordinate], metres: [Double], from startMetres: Double,
+        plane: LocalPlane = .lithuania
+    ) -> Projection {
         let p = plane.xy(station)
         var best = Projection(metres: startMetres, offTrack: .infinity)
         for index in 1..<points.count where metres[index] >= startMetres {
-            let a = plane.xy(points[index - 1]), b = plane.xy(points[index])
+            let a = plane.xy(points[index - 1])
+            let b = plane.xy(points[index])
             let ab = b - a
             let lengthSquared = (ab * ab).sum()
             let u = lengthSquared > 0 ? min(1, max(0, ((p - a) * ab).sum() / lengthSquared)) : 0
@@ -64,7 +67,8 @@ enum Geometry {
         keep[points.count - 1] = true
         var stack = [(0, points.count - 1)]
         while let (first, last) = stack.popLast() {
-            let a = xy[first], ab = xy[last] - a
+            let a = xy[first]
+            let ab = xy[last] - a
             let lengthSquared = (ab * ab).sum()
             var farthest = (index: -1, distance: 0.0)
             for index in (first + 1)..<last {

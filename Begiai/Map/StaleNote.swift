@@ -10,8 +10,10 @@ struct StaleNote: View {
     var body: some View {
         if let since {
             Label {
-                Text(.timetableStale(date: since.midnight.formatted(
-                    Date.FormatStyle(timeZone: Vilnius.timeZone).day().month(.abbreviated))))
+                Text(
+                    .timetableStale(
+                        date: since.midnight.formatted(
+                            Date.FormatStyle(timeZone: Vilnius.timeZone).day().month(.abbreviated))))
             } icon: {
                 Image(systemName: "clock.badge.exclamationmark")
             }

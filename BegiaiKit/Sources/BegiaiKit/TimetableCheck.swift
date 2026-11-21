@@ -58,7 +58,9 @@ extension Timetable {
 extension ServiceDate {
     /// A date written as YYYYMMDD, as in GTFS.
     public init?(number: Int) {
-        let year = number / 10_000, month = number / 100 % 100, day = number % 100
+        let year = number / 10_000
+        let month = number / 100 % 100
+        let day = number % 100
         guard let date = Vilnius.calendar.date(from: DateComponents(year: year, month: month, day: day)) else { return nil }
         self.init(date)
         guard self.number == number else { return nil }

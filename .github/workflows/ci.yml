@@ -1,0 +1,57 @@
+# The checks that need no simulator, on each push to main and each pull request: the same lanes
+# as on a developer Mac (script/test.sh unit, script/test.sh build).
+# The UI journeys (script/test.sh journey) are NOT part of CI. They need a booted simulator
+# ($BEGIAI_SIM) and run on a developer Mac.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+# Like timetable.yml, this takes the Xcode that the macos-26 image selects by default.
+# The "Show the toolchain" step prints it, so a log shows which Xcode ran.
+jobs:
+  unit:
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show the toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+      - name: Make sure timeout exists
+        # script/test.sh calls timeout; the GNU one comes with coreutils.
+        run: |
+          if ! command -v timeout > /dev/null; then
+            brew list coreutils > /dev/null 2>&1 || brew install coreutils
+            echo "$(brew --prefix coreutils)/libexec/gnubin" >> "$GITHUB_PATH"
+          fi
+      - name: Unit tests (headless swift test in BegiaiKit)
+        run: script/test.sh unit
+
+  build:
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show the toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+      - name: Make sure timeout exists
+        run: |
+          if ! command -v timeout > /dev/null; then
+            brew list coreutils > /dev/null 2>&1 || brew install coreutils
+            echo "$(brew --prefix coreutils)/libexec/gnubin" >> "$GITHUB_PATH"
+          fi
+      - name: Release build, unsigned, and the release checks
+        run: script/test.sh build

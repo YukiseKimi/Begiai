@@ -19,13 +19,13 @@ struct TimetableCheckTests {
 
     @Test func aTimetableWithNoTripOnItsFeedDateFails() {
         var timetable = FourStations.timetable
-        timetable.feedDate = 20250101
-        #expect(throws: TimetableProblem.noServiceOnFeedDate(20250101)) { try timetable.check() }
+        timetable.feedDate = 20_250_101
+        #expect(throws: TimetableProblem.noServiceOnFeedDate(20_250_101)) { try timetable.check() }
     }
 
     @Test func aManifestNamesOnlyItsOwnBundle() {
         let bundle = Data("{\"feedDate\":1}".utf8)
-        let manifest = Manifest(bundle: bundle, feedDate: 20261117)
+        let manifest = Manifest(bundle: bundle, feedDate: 20_261_117)
         #expect(manifest.format == Timetable.format)
         #expect(manifest.names(bundle))
         #expect(!manifest.names(Data("{\"feedDate\":2}".utf8)))
@@ -35,9 +35,9 @@ struct TimetableCheckTests {
 @Suite("Service date from a number", .sealed, .timeLimit(.minutes(1)))
 struct ServiceDateNumberTests {
     @Test func aRealDateReadsBackAndAnImpossibleOneDoesNot() {
-        #expect(ServiceDate(number: 20261117) == ServiceDate(year: 2026, month: 11, day: 17))
-        #expect(ServiceDate(number: 20260231) == nil)
-        #expect(ServiceDate(number: 20261300) == nil)
+        #expect(ServiceDate(number: 20_261_117) == ServiceDate(year: 2026, month: 11, day: 17))
+        #expect(ServiceDate(number: 20_260_231) == nil)
+        #expect(ServiceDate(number: 20_261_300) == nil)
     }
 }
 

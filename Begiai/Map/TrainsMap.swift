@@ -11,6 +11,7 @@ struct TrainsMap: View {
     @Binding var selection: PanelSelection?
     @Binding var following: Bool
     @Binding var panelHeight: PanelHeight
+    @Binding var locationNote: LocationNote?
     let bottomInset: CGFloat
     @State private var cameraHeading = 0.0
     @State private var cameraDistance = 400_000.0
@@ -25,7 +26,11 @@ struct TrainsMap: View {
 
     var body: some View {
         let cityZoom = trains.cityZoom
-        let chosen = trains.moving.first { selection == .train($0.id) }
+        let moving = trains.moving(for: store.revision)
+        let chosen = moving.first { selection == .train($0.id) }
+        // At country zoom a station's 44-point tap area reaches past its ring, so while a train
+        // stands there the station keeps only its ring and the train gets the taps around it.
+        let underTrains = cityZoom ? [] : Set(moving.compactMap(standingStation(of:)))
         MapReader { proxy in
             Map(position: $position, scope: mapScope) {
                 UserAnnotation()
@@ -35,14 +40,17 @@ struct TrainsMap: View {
                 }
                 ForEach(stations, id: \.index) { station, info in
                     Annotation("", coordinate: info.coordinate.location, anchor: .center) {
-                        StationMarker(name: info.name, chosen: selection == .station(station), compact: !cityZoom) {
+                        StationMarker(
+                            name: info.name, chosen: selection == .station(station), compact: !cityZoom,
+                            underTrain: underTrains.contains(station)
+                        ) {
                             selection = .station(station)
                             if panelHeight == .peek { panelHeight = .half }
                         }
                     }
                     .annotationTitles(.hidden)
                 }
-                ForEach(trains.moving) { train in
+                ForEach(moving) { train in
                     Annotation("", coordinate: train.coordinate.location, anchor: .center) {
                         capsule(for: train, cityZoom: cityZoom)
                     }
@@ -74,13 +82,15 @@ struct TrainsMap: View {
                 cameraDistance = context.camera.distance
             }
             .onMapCameraChange(frequency: .continuous) { _ in measureScale(with: proxy) }
-            .onGeometryChange(for: CGSize.self) { $0.size } action: { size in
+            .onGeometryChange(for: CGSize.self) {
+                $0.size
+            } action: { size in
                 mapSize = size
                 measureScale(with: proxy)
             }
         }
         .onChange(of: metresPerPoint) { buildStripes() }
-        .onChange(of: store.tracks.count, initial: true) { buildStripes() }
+        .onChange(of: store.revision, initial: true) { buildStripes() }
         .onChange(of: FollowTarget(following: following, coordinate: chosen?.coordinate), initial: true) {
             _, target in
             guard target.following, let coordinate = target.coordinate else { return }
@@ -97,7 +107,13 @@ struct TrainsMap: View {
         .ignoresSafeArea()
         .overlay(alignment: .topTrailing) {
             VStack(spacing: 10) {
-                LocateButton(position: $position) { following = false }
+                LocateButton(position: $position) { note in
+                    locationNote = note
+                    // The note is at the top of the panel's list, which a Small panel hides.
+                    if panelHeight == .peek { panelHeight = .half }
+                } willLocate: {
+                    following = false
+                }
                 AboutButton(timetable: store.timetable)
                 MapCompass(scope: mapScope)
             }
@@ -113,7 +129,8 @@ struct TrainsMap: View {
         guard let left = proxy.convert(CGPoint(x: centre.x - 50, y: centre.y), from: .local),
             let right = proxy.convert(CGPoint(x: centre.x + 50, y: centre.y), from: .local)
         else { return }
-        let metres = CLLocation(latitude: left.latitude, longitude: left.longitude)
+        let metres =
+            CLLocation(latitude: left.latitude, longitude: left.longitude)
             .distance(from: CLLocation(latitude: right.latitude, longitude: right.longitude)) / 100
         guard metres > 0 else { return }
         let step = pow(2, (log2(metres) * 4).rounded() / 4)
@@ -151,10 +168,9 @@ struct TrainsMap: View {
         }.map { ($0, timetable.stations[$0]) }
     }
 
-    /// The station a train stands at, from its timeline, so the rule lives in one place.
+    /// The station a train stands at, by the engine's rule.
     private func standingStation(of train: TrainState) -> Int? {
-        guard let timeline = store.engine?.timeline(of: train), let standing = timeline.standingAt else { return nil }
-        return timeline.stops[standing].stationIndex
+        store.engine?.standingStation(of: train)
     }
 
     private func capsule(for train: TrainState, cityZoom: Bool) -> some View {
@@ -163,7 +179,9 @@ struct TrainsMap: View {
             store.timetable?.stations.indices.contains(stop.station) == true
                 ? store.timetable?.stations[stop.station].name : nil
         }
-        let standing = train.phase == .atStation
+        // One rule, the engine's, for the ring drawn and the ring tapped: a train boarding at
+        // its first station stands there as much as one halfway along its trip.
+        let standingAt = standingStation(of: train)
         let open = {
             selection = .train(train.id)
             if panelHeight == .peek { panelHeight = .half }
@@ -172,22 +190,23 @@ struct TrainsMap: View {
         // decides: a tap on the station ring at its centre opens the station, the rest the train.
         return TrainCapsule(
             color: palette.color(forLine: trip?.line ?? 0), heading: train.heading - cameraHeading,
-            destination: destination, atStation: standing, showsLabel: cityZoom,
-            chosen: selection == .train(train.id))
-            .onTapGesture(coordinateSpace: .local) { point in
-                let size = TrainCapsule.size * markerStyle.scale
-                let away = hypot(point.x - size / 2, point.y - size / 2)
-                if standing, away <= TrainCapsule.ringTapRadius * markerStyle.scale,
-                    let station = standingStation(of: train)
-                {
-                    selection = .station(station)
-                    if panelHeight == .peek { panelHeight = .half }
-                } else {
-                    open()
-                }
+            destination: destination, atStation: standingAt != nil, showsLabel: cityZoom,
+            chosen: selection == .train(train.id), compact: !cityZoom
+        )
+        .onTapGesture(coordinateSpace: .local) { point in
+            // The same scale as the marker is drawn at, smaller at country zoom.
+            let scale = TrainCapsule.scale(markerStyle, compact: !cityZoom)
+            let size = TrainCapsule.size * scale
+            let away = hypot(point.x - size / 2, point.y - size / 2)
+            if let station = standingAt, away <= TrainCapsule.ringTapRadius * scale {
+                selection = .station(station)
+                if panelHeight == .peek { panelHeight = .half }
+            } else {
+                open()
             }
-            .accessibilityAddTraits(.isButton)
-            .accessibilityAction { open() }
+        }
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { open() }
     }
 }
 

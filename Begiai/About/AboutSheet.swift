@@ -53,9 +53,12 @@ struct AboutSheet: View {
 
                 Section {
                     if let built = timetable?.builtOn {
-                        Text(.aboutTimetableDate(date: built.midnight.formatted(
-                            Date.FormatStyle(timeZone: Vilnius.timeZone).day().month(.abbreviated).year())))
-                            .accessibilityIdentifier(A11yID.About.timetableDate)
+                        Text(
+                            .aboutTimetableDate(
+                                date: built.midnight.formatted(
+                                    Date.FormatStyle(timeZone: Vilnius.timeZone).day().month(.abbreviated).year()))
+                        )
+                        .accessibilityIdentifier(A11yID.About.timetableDate)
                     }
                     Link(destination: Self.gtfs) {
                         Text(.aboutSourceTimetable)

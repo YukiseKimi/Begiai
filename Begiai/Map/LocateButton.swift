@@ -4,16 +4,17 @@ import SwiftUI
 
 struct LocateButton: View {
     @Binding var position: MapCameraPosition
+    /// Called when the app may not locate the rider, so the panel can say why.
+    let blocked: (LocationNote) -> Void
     let willLocate: () -> Void
     @State private var session: CLServiceSession?
-    @Environment(\.openURL) private var openURL
     @ScaledMetric(relativeTo: .title3) private var size = 44.0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         Button {
-            if CLLocationManager().authorizationStatus == .denied {
-                if let settings = URL(string: UIApplication.openSettingsURLString) { openURL(settings) }
+            if let note = LocationNote.current {
+                blocked(note)
                 return
             }
             if session == nil { session = CLServiceSession(authorization: .whenInUse) }

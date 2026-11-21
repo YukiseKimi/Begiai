@@ -23,6 +23,10 @@ struct LineSpine: View {
 
     var body: some View {
         let height = rowHeight * CGFloat(max(diagram.stations.count - 1, 0))
+        let down = spread(.down)
+        let up = spread(.up)
+        // A tag pushed down past the last station still fits, so the tab bar hides none.
+        let lowestTag = (down + up).map { $0.y + tagStep / 2 }.max() ?? 0
         GeometryReader { proxy in
             let centre = proxy.size.width / 2
             let gutter = min(preferredGutter, centre * 0.45)
@@ -51,13 +55,13 @@ struct LineSpine: View {
                     .position(x: centre, y: CGFloat(row) * rowHeight)
                     .accessibilitySortPriority(-Double(row) * rowHeight)
                 }
-                ForEach(spread(.down), id: \.train.id) { item in
+                ForEach(down, id: \.train.id) { item in
                     tag(item.train, item.place)
                         .frame(width: max(centre - gutter - 12, 0), alignment: .trailing)
                         .position(x: (centre - gutter + 12) / 2, y: item.y)
                         .accessibilitySortPriority(-Double(item.y) - 0.5)
                 }
-                ForEach(spread(.up), id: \.train.id) { item in
+                ForEach(up, id: \.train.id) { item in
                     tag(item.train, item.place)
                         .frame(width: max(centre - gutter - 12, 0), alignment: .leading)
                         .position(x: centre + gutter + (centre - gutter - 12) / 2, y: item.y)
@@ -78,7 +82,7 @@ struct LineSpine: View {
                 }
             }
         }
-        .frame(height: height)
+        .frame(height: max(height, lowestTag))
         .padding(.vertical, 24)
     }
 

@@ -38,10 +38,14 @@ struct DiagramSheet: View {
                     }
                 case .station(let station):
                     let name = engine.timetable.stations[station].name
-                    StationHeader(name: name, starred: starred.contains(name), exit: .close, close: close) {
+                    let panel = StationPanel(
+                        index: station, name: name, starred: starred.contains(name), engine: engine, now: now, exit: .close,
+                        close: close
+                    ) {
                         modelContext.toggleStarOrRollBack(.station, name: name, at: now)
                     }
-                    LEDBoard(departures: engine.departures(from: station, at: now), now: now)
+                    panel.header
+                    panel.board
                 }
             }
             .padding(.top)
@@ -50,6 +54,6 @@ struct DiagramSheet: View {
     }
 
     private var starred: Set<String> {
-        Set(stars.filter { $0.kind == StarKind.station.rawValue }.map(\.name))
+        stars.names(.station)
     }
 }

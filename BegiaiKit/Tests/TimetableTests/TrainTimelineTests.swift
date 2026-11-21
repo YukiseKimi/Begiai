@@ -33,6 +33,14 @@ struct TrainTimelineTests {
         #expect(ThreeStops.timetable.stations[timeline.stops[standing].stationIndex].name == timeline.stops[standing].station)
     }
 
+    @Test func theStandingStationIsTheStationOfTheStopTheTimelineStandsAt() throws {
+        let standing = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 9 * 60 + 30)))
+        let stop = try #require(engine.timeline(of: standing).standingAt)
+        #expect(engine.standingStation(of: standing) == ThreeStops.timetable.trips[0].stops[stop].station)
+        let running = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 5 * 60)))
+        #expect(engine.standingStation(of: running) == nil)
+    }
+
     @Test func beforeDepartureNoStopIsPassed() throws {
         let train = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 - 60)))
         let timeline = engine.timeline(of: train)

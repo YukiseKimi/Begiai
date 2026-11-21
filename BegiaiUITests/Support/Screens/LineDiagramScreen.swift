@@ -15,7 +15,8 @@ struct LineDiagramScreen {
     var lineName: String { journey.element(A11yID.LineDiagram.page).label }
 
     func expectALineWithItsTrains(file: StaticString = #filePath, line: UInt = #line) {
-        journey.wait(for: journey.element(A11yID.LineDiagram.frequency), "the frequency of the line", on: "Line Diagram", file: file, line: line)
+        journey.wait(
+            for: journey.element(A11yID.LineDiagram.frequency), "the frequency of the line", on: "Line Diagram", file: file, line: line)
         let stations = journey.app.descendants(matching: .any).matching(identifier: A11yID.LineDiagram.station)
         XCTAssertGreaterThanOrEqual(stations.count, 2, "Line Diagram: \(stations.count) stations, not 2 or more", file: file, line: line)
         let train = journey.wait(for: journey.element(A11yID.LineDiagram.train), "a train", on: "Line Diagram", file: file, line: line)
@@ -53,7 +54,9 @@ struct LineDiagramScreen {
         other.tap()
         let title = journey.element(A11yID.LineDiagram.page)
         let shown = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", name), object: title)
-        XCTAssertEqual(XCTWaiter.wait(for: [shown], timeout: 5), .completed, "Line Diagram: the line did not change to \(name)", file: file, line: line)
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [shown], timeout: 5), .completed, "Line Diagram: the line did not change to \(name)", file: file, line: line
+        )
         return name
     }
 
@@ -71,7 +74,8 @@ struct LineDiagramScreen {
 
     /// Taps the first station, and gives its name.
     func openAStation(file: StaticString = #filePath, line: UInt = #line) -> String {
-        let station = journey.wait(for: journey.element(A11yID.LineDiagram.station), "a station", on: "Line Diagram", file: file, line: line)
+        let station = journey.wait(
+            for: journey.element(A11yID.LineDiagram.station), "a station", on: "Line Diagram", file: file, line: line)
         let name = station.label
         station.tap()
         return name
@@ -102,6 +106,7 @@ struct LineDiagramScreen {
     }
 
     func expectNoFollowButton(file: StaticString = #filePath, line: UInt = #line) {
-        XCTAssertFalse(journey.element(A11yID.Train.follow).exists, "Line Diagram: the train page has a Follow button", file: file, line: line)
+        XCTAssertFalse(
+            journey.element(A11yID.Train.follow).exists, "Line Diagram: the train page has a Follow button", file: file, line: line)
     }
 }

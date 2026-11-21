@@ -23,7 +23,8 @@ with each failure and a `rerun:` line.
 | `journey [<Journey>/<test>] [--no-build]` | UI journeys on `$BEGIAI_SIM` (a simulator UDID) | 600 s (one journey ~20–30 s) |
 | `build` | Release, unsigned; fails if the Release app allows a sealed launch | 15 min |
 | `a11y [--check]` | writes or checks `A11yID.md` | — |
-| `check` | a11y check, unit, build: run before each commit | — |
+| `format` | `swift-format lint --strict` on the Swift folders | — |
+| `check` | format, a11y check, unit, build: run before each commit | — |
 | `all` | check, then journey | — |
 
 Areas and their unit targets and journeys: `TestPlans/areas.json`.

@@ -10,7 +10,8 @@ public struct TimetableFeed: Sendable {
         case tooSoon
         /// The feed has no newer timetable of a format that this app reads.
         case upToDate
-        /// A newer timetable is saved. The app uses it at the next launch.
+        /// A newer timetable is saved. The store adopts it at the next launch, or when the app
+        /// comes back to the front with no train or station open.
         case saved(feedDate: Int)
         case failed(String)
     }
@@ -34,6 +35,13 @@ public struct TimetableFeed: Sendable {
         guard let saved = Self.feedDate(of: savedTimetable), let shipped = Self.feedDate(of: bundled), saved > shipped
         else { return [bundled] }
         return [savedTimetable, bundled]
+    }
+
+    /// The saved timetable, if its feed date is later than `loaded`.
+    @concurrent
+    func pending(newerThan loaded: Int) async -> URL? {
+        guard let saved = Self.feedDate(of: savedTimetable), saved > loaded else { return nil }
+        return savedTimetable
     }
 
     /// Saves a newer timetable than `loaded` if the feed has one. A network error does not

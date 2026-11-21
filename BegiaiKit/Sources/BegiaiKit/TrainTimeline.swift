@@ -21,16 +21,26 @@ public struct TrainTimeline: Equatable, Sendable {
 }
 
 extension MotionEngine {
+    /// The stop of its trip a train stands at: its first while it boards, its last while it
+    /// stands at a station, else nil.
+    public func standingStop(of train: TrainState) -> Int? {
+        switch train.phase {
+        case .boarding: 0
+        case .atStation: train.lastStop
+        case .running, .arrived: nil
+        }
+    }
+
+    /// The station a train stands at, as an index in the timetable's stations.
+    public func standingStation(of train: TrainState) -> Int? {
+        standingStop(of: train).map { timetable.trips[train.trip].stops[$0].station }
+    }
+
     public func timeline(of train: TrainState) -> TrainTimeline {
         let trip = timetable.trips[train.trip]
         let zero = train.day.timetableZero
         let schedule = schedule(of: train.trip)
-        let standing: Int? =
-            switch train.phase {
-            case .boarding: 0
-            case .atStation: train.lastStop
-            case .running, .arrived: nil
-            }
+        let standing = standingStop(of: train)
         let next: Int? =
             switch train.phase {
             case .boarding, .running: train.nextStop
