@@ -43,6 +43,13 @@ jobs:
       - name: Unit tests (headless swift test in BegiaiKit)
         run: script/test.sh unit
 
+      - name: Show the lane's log when it fails
+        if: failure()
+        run: |
+          for log in "$HOME"/Library/Caches/Begiai/*/runs/unit.log; do
+            echo "== $log"; tail -n 150 "$log"
+          done
+
   build:
     runs-on: xcode-27
     timeout-minutes: 30
@@ -60,3 +67,10 @@ jobs:
           fi
       - name: Release build, unsigned, and the release checks
         run: script/test.sh build
+
+      - name: Show the lane's log when it fails
+        if: failure()
+        run: |
+          for log in "$HOME"/Library/Caches/Begiai/*/runs/build.log; do
+            echo "== $log"; tail -n 150 "$log"
+          done
