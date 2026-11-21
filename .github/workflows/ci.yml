@@ -38,7 +38,11 @@ jobs:
         run: |
           if ! command -v timeout > /dev/null; then
             brew list coreutils > /dev/null 2>&1 || brew install coreutils
-            echo "$(brew --prefix coreutils)/libexec/gnubin" >> "$GITHUB_PATH"
+            # Only timeout: the rest of gnubin would shadow the BSD mktemp and sed that
+            # script/test/limit.sh relies on (mktemp -t lane, sed -l).
+            mkdir -p "$RUNNER_TEMP/bin"
+            ln -sf "$(brew --prefix coreutils)/bin/gtimeout" "$RUNNER_TEMP/bin/timeout"
+            echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
           fi
       - name: Unit tests (headless swift test in BegiaiKit)
         run: script/test.sh unit
@@ -63,7 +67,11 @@ jobs:
         run: |
           if ! command -v timeout > /dev/null; then
             brew list coreutils > /dev/null 2>&1 || brew install coreutils
-            echo "$(brew --prefix coreutils)/libexec/gnubin" >> "$GITHUB_PATH"
+            # Only timeout: the rest of gnubin would shadow the BSD mktemp and sed that
+            # script/test/limit.sh relies on (mktemp -t lane, sed -l).
+            mkdir -p "$RUNNER_TEMP/bin"
+            ln -sf "$(brew --prefix coreutils)/bin/gtimeout" "$RUNNER_TEMP/bin/timeout"
+            echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
           fi
       - name: Release build, unsigned, and the release checks
         run: script/test.sh build
