@@ -42,4 +42,21 @@ final class TrainJourney: XCTestCase {
         BoardScreen(journey: journey).expectBoard(of: station)
         journey.holdLastScreen()
     }
+
+    @MainActor
+    func testATapOnTheMapClosesThePageThenLowersThePanel() {
+        continueAfterFailure = false
+        let journey = JourneyApp()
+        journey.launch(.map)
+        let map = MapScreen(journey: journey)
+
+        let destination = map.openFirstTrain()
+        TrainScreen(journey: journey).expectTrain(to: destination)
+        map.tapOutsideThePanel()
+        map.expectNoPage()
+        map.expectPanel("Half")
+        map.tapOutsideThePanel()
+        map.expectPanel("Small")
+        journey.holdLastScreen()
+    }
 }

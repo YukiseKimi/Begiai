@@ -71,6 +71,15 @@ struct TrainsMap: View {
                     .annotationTitles(.hidden)
                 }
             }
+            // A tap on the map away from the markers is a tap outside the panel: it closes the
+            // train or station open there, or else lowers the panel to show the map.
+            .onTapGesture {
+                if selection != nil {
+                    selection = nil
+                } else if panelHeight != .peek {
+                    panelHeight = .peek
+                }
+            }
             .mapStyle(.standard(emphasis: .muted, pointsOfInterest: .excludingAll))
             .mapControls {
                 MapScaleView()
