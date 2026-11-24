@@ -41,7 +41,9 @@ struct LinePanel<Header: View, Content: View>: View {
     let total: CGFloat
     @ViewBuilder let header: () -> Header
     @ViewBuilder let content: () -> Content
-    @GestureState private var drag: CGFloat = 0
+    /// How far the finger has moved the panel. When the finger lifts, it goes back to 0 with the
+    /// same spring as the new height, so the panel glides to its height and does not jump first.
+    @GestureState(resetTransaction: Transaction(animation: .snappy)) private var drag: CGFloat = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -74,6 +76,8 @@ struct LinePanel<Header: View, Content: View>: View {
             content()
         }
         .frame(height: min(total, max(80, height.points(in: total) - drag)), alignment: .top)
+        // With Reduce Motion the panel lands at once when the finger lifts.
+        .transaction(value: drag) { if reduceMotion { $0.animation = nil } }
         .frame(maxWidth: .infinity)
         .clipShape(.rect(cornerRadius: 28))
         .glassEffect(in: .rect(cornerRadius: 28))
@@ -84,7 +88,9 @@ struct LinePanel<Header: View, Content: View>: View {
     }
 
     private var resize: some Gesture {
-        DragGesture()
+        // Measured on the screen: the handle moves with the panel, so in its own space the
+        // finger would seem to stand still, and the panel would shake and go the wrong way.
+        DragGesture(coordinateSpace: .global)
             .updating($drag) { value, state, _ in state = value.translation.height }
             .onEnded { value in
                 let target = height.points(in: total) - value.predictedEndTranslation.height

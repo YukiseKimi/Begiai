@@ -26,4 +26,19 @@ final class LaunchJourney: XCTestCase {
         map.expectPanel("Small")
         journey.holdLastScreen()
     }
+
+    @MainActor
+    func testThePanelFollowsAFingerThatDragsItsHandle() {
+        continueAfterFailure = false
+        let journey = JourneyApp()
+        journey.launch(.map)
+        let map = MapScreen(journey: journey)
+
+        map.expectPanel("Half")
+        map.dragPanelHandle(toHeight: 0.1)
+        map.expectPanel("Full")
+        map.dragPanelHandle(toHeight: 0.9)
+        map.expectPanel("Small")
+        journey.holdLastScreen()
+    }
 }

@@ -62,4 +62,19 @@ final class LineDiagramJourney: XCTestCase {
         board.expectMinutesWithinTheHour(now: (17, 55), busy: true)
         journey.holdLastScreen()
     }
+
+    @MainActor
+    func testATapOutsideTheSheetClosesIt() {
+        continueAfterFailure = false
+        let journey = JourneyApp()
+        journey.launch(.map)
+
+        let diagram = LineDiagramScreen(journey: journey)
+        diagram.open()
+        let destination = diagram.openATrain()
+        TrainScreen(journey: journey).expectTrain(to: destination)
+        diagram.tapAboveTheSheet()
+        diagram.expectTheSheetClosed()
+        journey.holdLastScreen()
+    }
 }

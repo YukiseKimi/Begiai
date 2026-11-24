@@ -135,6 +135,41 @@ struct MapScreen {
         journey.wait(for: journey.element(A11yID.Map.panel), "the panel's handle", on: "Map", file: file, line: line).tap()
     }
 
+    /// Holds the panel's handle and drags it slowly to `height` of the screen from the top, the
+    /// way a finger moves it, so that the panel follows the finger the whole way.
+    func dragPanelHandle(toHeight height: CGFloat, file: StaticString = #filePath, line: UInt = #line) {
+        let handle = journey.wait(for: journey.element(A11yID.Map.panel), "the panel's handle", on: "Map", file: file, line: line)
+        let target = journey.app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: height))
+        handle.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            .press(forDuration: 0.2, thenDragTo: target, withVelocity: .slow, thenHoldForDuration: 0.3)
+    }
+
+    /// Taps the map above the panel where no train or station is, as a rider taps outside the panel.
+    func tapOutsideThePanel(file: StaticString = #filePath, line: UInt = #line) {
+        let panel = journey.wait(for: journey.element(A11yID.Map.panel), "the panel's handle", on: "Map", file: file, line: line)
+        let markers =
+            (journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
+            + journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.station).allElementsBoundByIndex)
+            .map { $0.frame.insetBy(dx: -30, dy: -30) }
+        let size = journey.app.frame.size
+        // Clear of the status bar, of the buttons at the top right and of the panel's top edge.
+        let spots = stride(from: 0.15, through: 0.6, by: 0.05).flatMap { x in
+            stride(from: 0.15, to: 0.45, by: 0.03).map { y in CGPoint(x: size.width * x, y: size.height * y) }
+        }
+        guard let spot = spots.first(where: { spot in spot.y < panel.frame.minY - 40 && markers.allSatisfy { !$0.contains(spot) } })
+        else {
+            XCTFail("Map: no empty spot of the map shows above the panel", file: file, line: line)
+            return
+        }
+        journey.app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: spot.x, dy: spot.y)).tap()
+    }
+
+    func expectNoPage(file: StaticString = #filePath, line: UInt = #line) {
+        expectLines(file: file, line: line)
+        XCTAssertFalse(journey.element(A11yID.Train.title).exists, "Map: the train page is still open", file: file, line: line)
+        XCTAssertFalse(journey.element(A11yID.Board.title).exists, "Map: the station board is still open", file: file, line: line)
+    }
+
     func expectLines(file: StaticString = #filePath, line: UInt = #line) {
         journey.wait(for: journey.element(A11yID.Map.runningCount), "the running count", on: "Map", file: file, line: line)
     }

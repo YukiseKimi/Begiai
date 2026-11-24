@@ -105,6 +105,18 @@ struct LineDiagramScreen {
         XCTAssertEqual(exit.label, "Close", "Line Diagram: the sheet's button reads \(exit.label)", file: file, line: line)
     }
 
+    /// Taps the diagram above the sheet, as a rider taps outside it.
+    func tapAboveTheSheet() {
+        journey.app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2)).tap()
+    }
+
+    func expectTheSheetClosed(file: StaticString = #filePath, line: UInt = #line) {
+        let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: journey.element(A11yID.Train.title))
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [gone], timeout: 3), .completed, "Line Diagram: the sheet stays open after a tap outside it",
+            file: file, line: line)
+    }
+
     func expectNoFollowButton(file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertFalse(
             journey.element(A11yID.Train.follow).exists, "Line Diagram: the train page has a Follow button", file: file, line: line)
