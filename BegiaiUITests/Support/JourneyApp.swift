@@ -82,6 +82,16 @@ struct JourneyApp {
         return app.buttons.matching(NSPredicate(format: "label == %@", place.title)).firstMatch
     }
 
+    /// The app's window. Its frame is the screen as the app lays it out, in the same space as
+    /// the elements' frames. The app's own frame is not: on the open iPhone Duo, held wide, it
+    /// stays 669 × 951 points, as if upright, while the window and the elements are 951 × 669.
+    var window: XCUIElement { app.windows.firstMatch }
+
+    /// The spot `point` points from the window's top left corner, in the elements' space.
+    func spot(_ point: CGPoint) -> XCUICoordinate {
+        window.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: point.x, dy: point.y))
+    }
+
     func element(_ identifier: String) -> XCUIElement {
         app.descendants(matching: .any).matching(NSPredicate(format: "identifier == %@", identifier)).firstMatch
     }

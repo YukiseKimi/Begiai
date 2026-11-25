@@ -80,8 +80,7 @@ struct MapScreen {
         for train in trains {
             // On the train beyond its station ring: past the ring radius (8 points at city zoom, 6 at
             // country zoom), inside the train.
-            let spot = CGVector(dx: train.midX, dy: train.midY + train.height * 0.38)
-            journey.app.coordinate(withNormalizedOffset: .zero).withOffset(spot).tap()
+            journey.spot(CGPoint(x: train.midX, y: train.midY + train.height * 0.38)).tap()
             let now = journey.element(A11yID.Train.now)
             guard now.waitForExistence(timeout: 3) else { continue }
             if now.label.hasPrefix("At ") { return page.place(file: file, line: line) }
@@ -139,9 +138,12 @@ struct MapScreen {
         let middle = CGPoint(x: sight.midX, y: sight.midY)
         let trains = journey.app.descendants(matching: .any).matching(NSPredicate(format: "identifier == %@", A11yID.Map.train))
             .matching(NSPredicate(format: "label BEGINSWITH %@", "Train to \(destination),"))
+        // At city zoom a train's frame takes in its label, which hangs to the right of the
+        // marker; the marker is the square at the frame's left.
+        let marker = { (frame: CGRect) in CGPoint(x: frame.minX + frame.height / 2, y: frame.midY) }
         let centred = XCTNSPredicateExpectation(
             predicate: NSPredicate { _, _ in
-                trains.allElementsBoundByIndex.contains { hypot($0.frame.midX - middle.x, $0.frame.midY - middle.y) < 60 }
+                trains.allElementsBoundByIndex.contains { hypot(marker($0.frame).x - middle.x, marker($0.frame).y - middle.y) < 40 }
             }, object: nil)
         XCTAssertEqual(
             XCTWaiter.wait(for: [centred], timeout: 10), .completed,
@@ -151,14 +153,14 @@ struct MapScreen {
 
     /// The map where the panel does not cover it: above a half-height sheet, or before the column.
     private var mapInSight: CGRect {
-        let size = journey.app.frame.size
+        let size = journey.window.frame.size
         guard column.exists else { return CGRect(x: 0, y: 0, width: size.width, height: size.height * 0.45) }
         return CGRect(x: 0, y: 0, width: column.frame.minX, height: size.height)
     }
 
     /// The map where the panel does not cover it, `margin` points from the panel's edge.
     private func clearOfThePanel(by margin: CGFloat, file: StaticString, line: UInt) -> CGRect {
-        let size = journey.app.frame.size
+        let size = journey.window.frame.size
         if column.exists { return CGRect(x: 0, y: 0, width: column.frame.minX - margin, height: size.height) }
         let panel = journey.wait(for: journey.element(A11yID.Map.panel), "the panel's handle", on: "Map", file: file, line: line)
         return CGRect(x: 0, y: 0, width: size.width, height: panel.frame.minY - margin)
@@ -227,7 +229,7 @@ struct MapScreen {
             + journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.station).allElementsBoundByIndex
             + [journey.element(A11yID.Map.locate), journey.element(A11yID.About.open)])
             .map { $0.frame.insetBy(dx: -30, dy: -30) }
-        let size = journey.app.frame.size
+        let size = journey.window.frame.size
         let spots = stride(from: 0.15, through: 0.6, by: 0.05).flatMap { x in
             stride(from: 0.15, to: 0.45, by: 0.03).map { y in CGPoint(x: size.width * x, y: size.height * y) }
         }
@@ -236,7 +238,7 @@ struct MapScreen {
             XCTFail("Map: no empty spot of the map shows above the panel", file: file, line: line)
             return nil
         }
-        return journey.app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: spot.x, dy: spot.y))
+        return journey.spot(spot)
     }
 
     func expectNoPage(file: StaticString = #filePath, line: UInt = #line) {
@@ -285,8 +287,7 @@ struct MapScreen {
             })
         else { return nil }
         let name = station.label
-        journey.app.coordinate(withNormalizedOffset: .zero)
-            .withOffset(CGVector(dx: station.frame.midX, dy: station.frame.midY)).tap()
+        journey.spot(CGPoint(x: station.frame.midX, y: station.frame.midY)).tap()
         return name
     }
 

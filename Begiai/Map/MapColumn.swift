@@ -30,7 +30,15 @@ struct MapColumn<Map: View, Panel: View>: View {
         } secondary: {
             map(
                 divided || !shows
-                    ? EdgeInsets() : EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: max(0, screenMaxX - columnMinX)))
+                    ? EdgeInsets() : EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: max(0, screenMaxX - columnMinX))
+            )
+            // The map reaches under the safe area, such as the tab strip on the right of the
+            // open Duo held wide, so the screen's edge is past the map's frame by that inset.
+            .onGeometryChange(for: CGFloat.self) {
+                $0.frame(in: .global).maxX + $0.safeAreaInsets.trailing
+            } action: {
+                screenMaxX = $0
+            }
         }
         .arrangementViewStyle(.overlay)
         // With Reduce Motion the column shows and goes at once.
@@ -40,20 +48,14 @@ struct MapColumn<Map: View, Panel: View>: View {
         } action: {
             divided = $0
         }
-        .background {
-            Color.clear
-                .ignoresSafeArea()
-                .onGeometryChange(for: CGFloat.self) {
-                    $0.frame(in: .global).maxX
-                } action: {
-                    screenMaxX = $0
-                }
-        }
     }
 
     private var column: some View {
         let shape = ConcentricRectangle(corners: .concentric(minimum: 28), isUniform: true)
         return panel()
+            // The arrangement gives its views no margins, so a list's rows would touch the
+            // column's edges; these are the margins the sheet's lists have on an iPhone.
+            .contentMargins(.horizontal, 16, for: .scrollContent)
             .padding(.top, 12)
             .frame(maxWidth: divided ? .infinity : LayoutMetric.column, maxHeight: .infinity, alignment: .top)
             .clipShape(shape)
