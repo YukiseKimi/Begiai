@@ -14,7 +14,16 @@ struct NoticesLink: View {
             }
         }
         .font(.footnote)
+        .speaksAsLink()
         .accessibilityIdentifier(A11yID.Notices.link)
+    }
+}
+
+extension View {
+    /// Makes VoiceOver call a `Link` a link, which says that it leaves the app. iOS 26.1 gives a
+    /// SwiftUI `Link` the button trait instead; iOS 27 gives it the link trait.
+    func speaksAsLink() -> some View {
+        accessibilityRemoveTraits(.isButton).accessibilityAddTraits(.isLink)
     }
 }
 
