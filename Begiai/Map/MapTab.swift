@@ -81,7 +81,10 @@ struct MapTab: View {
                                 }
                             case nil:
                                 if searching {
-                                    StationResults(names: engine.timetable.stations.map(\.name), query: query) {
+                                    StationResults(
+                                        names: engine.timetable.stations.map(\.name), calls: engine.timetable.callsPerStation,
+                                        query: query
+                                    ) {
                                         selection = .station($0)
                                         if panelHeight == .peek { panelHeight = .half }
                                     }

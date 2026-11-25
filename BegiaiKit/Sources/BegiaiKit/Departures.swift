@@ -57,10 +57,7 @@ extension MotionEngine {
     }
 
     public func bigStations(minimumTrips: Int = 10, spacingMetres: Double = 25_000) -> Set<Int> {
-        var count = Array(repeating: 0, count: timetable.stations.count)
-        for trip in timetable.trips {
-            for stop in trip.stops { count[stop.station] += 1 }
-        }
+        let count = timetable.callsPerStation
         var kept: [Int] = []
         for station in count.indices.sorted(by: { count[$0] > count[$1] }) where count[station] >= minimumTrips {
             let here = timetable.stations[station].coordinate
@@ -69,6 +66,17 @@ extension MotionEngine {
             }
         }
         return Set(kept)
+    }
+}
+
+extension Timetable {
+    /// How many trips call at each station, by station index: how busy the station is.
+    public var callsPerStation: [Int] {
+        var count = Array(repeating: 0, count: stations.count)
+        for trip in trips {
+            for stop in trip.stops { count[stop.station] += 1 }
+        }
+        return count
     }
 }
 

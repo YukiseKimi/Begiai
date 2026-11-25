@@ -39,11 +39,13 @@ struct StationSearchField: View {
 /// The stations whose names hold the search, in place of the lines; a tap opens a board.
 struct StationResults: View {
     let names: [String]
+    /// The trips that call at each station, which put the busier stations first.
+    var calls: [Int] = []
     let query: String
     let open: (Int) -> Void
 
     var body: some View {
-        let found = StationSearch.matches(query, in: names)
+        let found = StationSearch.matches(query, in: names, calls: calls)
         List {
             ForEach(found, id: \.self) { station in
                 Button {
