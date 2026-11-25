@@ -10,6 +10,8 @@ struct MapTab: View {
     @Environment(\.timeSource) private var time
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
+    /// Regular on a wide screen such as the open iPhone Duo, where the panel is a column beside the map.
+    @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var trains = TrainsModel()
     @State private var lowPower = ProcessInfo.processInfo.isLowPowerModeEnabled
     @State private var panelHeight: PanelHeight = .half
@@ -28,25 +30,35 @@ struct MapTab: View {
         let chosen = chosenTrain
         let timeline = chosen.flatMap { train in store.engine.map { $0.timeline(of: train) } }
         let settled = trains.settled(for: store.revision)
-        ZStack(alignment: .bottom) {
-            TrainsMap(
-                store: store, trains: trains, position: $position, selection: $selection, following: $following,
-                panelHeight: $panelHeight, locationNote: $locationNote,
-                bottomInset: store.state == .ready ? panelHeight.points(in: panelTotal) : 0
-            )
-            if store.state == .ready, let engine = store.engine, let now = trains.now {
-                GeometryReader { proxy in
-                    LinePanel(height: $panelHeight, total: proxy.size.height) {
-                        panel(.header, engine: engine, now: now, settled: settled, timeline: timeline, color: color(of: chosen))
-                    } content: {
-                        panel(.content, engine: engine, now: now, settled: settled, timeline: timeline, color: color(of: chosen))
+        Group {
+            if #available(iOS 27.1, *), sizeClass == .regular {
+                MapColumn { insets in
+                    trainsMap(insets: insets)
+                } panel: {
+                    if store.state == .ready, let engine = store.engine, let now = trains.now {
+                        panel(.whole, engine: engine, now: now, settled: settled, timeline: timeline, color: color(of: chosen))
                     }
-                    .frame(maxHeight: .infinity, alignment: .bottom)
                 }
-                .onGeometryChange(for: CGFloat.self) {
-                    $0.size.height
-                } action: {
-                    panelTotal = $0
+            } else {
+                ZStack(alignment: .bottom) {
+                    trainsMap(
+                        insets: EdgeInsets(
+                            top: 0, leading: 0, bottom: store.state == .ready ? panelHeight.points(in: panelTotal) : 0, trailing: 0))
+                    if store.state == .ready, let engine = store.engine, let now = trains.now {
+                        GeometryReader { proxy in
+                            LinePanel(height: $panelHeight, total: proxy.size.height) {
+                                panel(.header, engine: engine, now: now, settled: settled, timeline: timeline, color: color(of: chosen))
+                            } content: {
+                                panel(.content, engine: engine, now: now, settled: settled, timeline: timeline, color: color(of: chosen))
+                            }
+                            .frame(maxHeight: .infinity, alignment: .bottom)
+                        }
+                        .onGeometryChange(for: CGFloat.self) {
+                            $0.size.height
+                        } action: {
+                            panelTotal = $0
+                        }
+                    }
                 }
             }
         }
@@ -88,6 +100,13 @@ struct MapTab: View {
         if time.isPinned || scenePhase != .active { return .still }
         if reduceMotion || lowPower || !trains.trainInSight { return .every(.seconds(1)) }
         return .every(trains.frame)
+    }
+
+    /// The map, keeping `insets` from the screen's edges clear for the panel.
+    private func trainsMap(insets: EdgeInsets) -> TrainsMap {
+        TrainsMap(
+            store: store, trains: trains, position: $position, selection: $selection, following: $following,
+            panelHeight: $panelHeight, locationNote: $locationNote, bottomInset: insets.bottom)
     }
 
     private func panel(
