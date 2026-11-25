@@ -1730,7 +1730,7 @@
       }
     },
     "Train.Follow" : {
-      "comment" : "Button on a train's page that keeps the map centred on the train.",
+      "comment" : "Button on a train's page that keeps the map centred on the train and shows it on the Lock Screen.",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -1748,7 +1748,7 @@
       }
     },
     "Train.Following" : {
-      "comment" : "The Follow button while the map follows the train.",
+      "comment" : "The Follow button while the rider follows the train.",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -1851,6 +1851,24 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Kita stotis: %1$(station)@, %2$(time)@"
+          }
+        }
+      }
+    },
+    "Train.OnLockScreen" : {
+      "comment" : "VoiceOver value of the Follow button while the followed train's Live Activity shows.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On the Lock Screen"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Užrakinimo ekrane"
           }
         }
       }
@@ -1970,13 +1988,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Its page shows the next stop. Follow keeps it in the middle of the map. Star a line or a station to keep it at the top."
+            "value" : "Its page shows the next stop. Follow keeps it in the middle of the map and on the Lock Screen. Star a line or a station to keep it at the top."
           }
         },
         "lt" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Jo puslapyje matysite kitą stotį. „Sekti“ laiko traukinį žemėlapio centre. Pažymėkite liniją ar stotį žvaigždute, kad ji būtų viršuje."
+            "value" : "Jo puslapyje matysite kitą stotį. „Sekti“ laiko traukinį žemėlapio centre ir užrakinimo ekrane. Pažymėkite liniją ar stotį žvaigždute, kad ji būtų viršuje."
           }
         }
       }

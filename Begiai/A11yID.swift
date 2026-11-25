@@ -64,6 +64,16 @@ enum A11yID {
         static let link = "notices.link"
     }
 
+    /// In the widget extension: the Live Activity of a followed train.
+    enum LiveActivity {
+        static let title = "liveActivity.title"
+        static let bar = "liveActivity.bar"
+        static let next = "liveActivity.next"
+        static let end = "liveActivity.end"
+        static let compactNext = "liveActivity.compactNext"
+        static let compactEnd = "liveActivity.compactEnd"
+    }
+
     struct Entry {
         let id: String
         let element: String
@@ -112,5 +122,11 @@ enum A11yID {
         Entry(id: About.tipThanks, element: "the thank-you, or the waiting or failed note, after a tip", screen: "About"),
         Entry(id: Notices.link, element: "the link to LTG Link's notices", screen: "Line Diagram, Train"),
         Entry(id: Timetable.stale, element: "the note that the timetable is old", screen: "Map, Line Diagram"),
+        Entry(id: LiveActivity.title, element: "the title of a followed train's Live Activity", screen: "Lock Screen"),
+        Entry(id: LiveActivity.bar, element: "the journey bar of a followed train's Live Activity", screen: "Lock Screen, Dynamic Island"),
+        Entry(id: LiveActivity.next, element: "the next stop of a followed train's Live Activity", screen: "Lock Screen"),
+        Entry(id: LiveActivity.end, element: "the last stop and its time in a followed train's Live Activity", screen: "Lock Screen"),
+        Entry(id: LiveActivity.compactNext, element: "the next stop's time in the Dynamic Island", screen: "Dynamic Island"),
+        Entry(id: LiveActivity.compactEnd, element: "the time to the last stop in the Dynamic Island", screen: "Dynamic Island"),
     ]
 }

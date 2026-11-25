@@ -14,6 +14,9 @@ struct HermeticLaunch {
     let mayWelcome: Bool
     /// The timetable to load instead of the shipped one: only a sealed launch sets it.
     let timetable: URL?
+    /// True in a sealed launch with --reset: the app ends the Live Activities that an earlier
+    /// run left, as it empties the star folder.
+    let endsActivities: Bool
 
     private static let sealedSettings = "com.mannychau.begiai.sealed"
 
@@ -31,7 +34,7 @@ struct HermeticLaunch {
             let folder = URL.cachesDirectory.appending(path: "Timetable", directoryHint: .isDirectory)
             return HermeticLaunch(
                 time: SystemTime(), starFolder: nil, settings: .standard, feed: TimetableFeed(folder: folder),
-                mayWelcome: true, timetable: nil)
+                mayWelcome: true, timetable: nil, endsActivities: false)
         }
         let folder = FileManager.default.temporaryDirectory.appending(path: "BegiaiSealed", directoryHint: .isDirectory)
         guard let settings = UserDefaults(suiteName: sealedSettings) else { fatalError("Sealed launch: no settings suite") }
@@ -46,7 +49,8 @@ struct HermeticLaunch {
                 launch.now.map { FixedTime(now: $0) } ?? SystemTime()
             }
         return HermeticLaunch(
-            time: time, starFolder: folder, settings: settings, feed: nil, mayWelcome: launch.welcome, timetable: launch.timetable)
+            time: time, starFolder: folder, settings: settings, feed: nil, mayWelcome: launch.welcome, timetable: launch.timetable,
+            endsActivities: launch.reset)
     }
 
     func starContainer() -> ModelContainer {

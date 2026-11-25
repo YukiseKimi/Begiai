@@ -47,4 +47,5 @@ struct RootView: View {
 
 #Preview {
     RootView(store: TimetableStore())
+        .environment(TrainFollower())
 }

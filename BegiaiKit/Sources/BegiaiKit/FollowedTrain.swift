@@ -140,9 +140,11 @@ extension FollowedTrain {
     /// How long an ended activity stays on the Lock Screen after the train arrives.
     public static let linger: TimeInterval = 15 * 60
 
-    /// When the system removes the activity once it ends: a short while after the last
-    /// arrival, or at once if that has passed.
+    /// When the system removes the activity once the app ends it: a short while after the
+    /// last arrival, so the rider sees that the train is in. Nil for at once: before the train
+    /// arrives, as the rider stopped following it, or once that while has passed.
     public func dismissal(at device: Date) -> Date? {
+        guard hasArrived(at: device) else { return nil }
         let end = deviceDate(arrival).addingTimeInterval(Self.linger)
         return end > device ? end : nil
     }

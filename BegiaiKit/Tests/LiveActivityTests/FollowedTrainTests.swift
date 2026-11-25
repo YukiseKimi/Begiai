@@ -92,8 +92,10 @@ struct FollowedTrainTests {
         #expect(shifted.hasArrived(at: Trains.at(15, 2)))
     }
 
-    @Test func anEndedActivityStaysAShortWhileAfterTheArrival() {
-        #expect(train.dismissal(at: Trains.at(9, 0)) == Trains.at(9, 37))
+    @Test func anEndedActivityStaysAShortWhileAfterTheArrivalOnly() {
+        // Ended on the way: the rider stopped following, so it goes at once.
+        #expect(train.dismissal(at: Trains.at(9, 0)) == nil)
+        #expect(train.dismissal(at: Trains.at(9, 22)) == Trains.at(9, 37))
         #expect(train.dismissal(at: Trains.at(9, 30)) == Trains.at(9, 37))
         #expect(train.dismissal(at: Trains.at(9, 37)) == nil)
     }

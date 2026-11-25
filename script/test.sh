@@ -36,7 +36,7 @@ lane_a11y() {
   echo "$out"
 }
 
-FORMAT_DIRS=(Begiai BegiaiKit/Sources BegiaiKit/Tests BegiaiUITests)
+FORMAT_DIRS=(Begiai BegiaiWidgets BegiaiKit/Sources BegiaiKit/Tests BegiaiUITests)
 
 lane_format() {
   local start=$SECONDS log="$RUNS/format.log"

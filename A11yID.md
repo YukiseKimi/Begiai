@@ -45,3 +45,9 @@ Generated from `Begiai/A11yID.swift` by `script/test.sh a11y`. Do not edit.
 | `about.tipThanks` | the thank-you, or the waiting or failed note, after a tip | About |
 | `notices.link` | the link to LTG Link's notices | Line Diagram, Train |
 | `timetable.stale` | the note that the timetable is old | Map, Line Diagram |
+| `liveActivity.title` | the title of a followed train's Live Activity | Lock Screen |
+| `liveActivity.bar` | the journey bar of a followed train's Live Activity | Lock Screen, Dynamic Island |
+| `liveActivity.next` | the next stop of a followed train's Live Activity | Lock Screen |
+| `liveActivity.end` | the last stop and its time in a followed train's Live Activity | Lock Screen |
+| `liveActivity.compactNext` | the next stop's time in the Dynamic Island | Dynamic Island |
+| `liveActivity.compactEnd` | the time to the last stop in the Dynamic Island | Dynamic Island |

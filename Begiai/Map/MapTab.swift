@@ -23,6 +23,7 @@ struct MapTab: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var stars: [Star]
     @Environment(\.linePalette) private var palette
+    @Environment(TrainFollower.self) private var follower
 
     var body: some View {
         let chosen = chosenTrain
@@ -41,7 +42,9 @@ struct MapTab: View {
                         switch selection {
                         case .train:
                             TrainPage(
-                                timeline: timeline, color: color(of: chosen), now: now, following: $following,
+                                timeline: timeline, color: color(of: chosen), now: now,
+                                following: chosen.flatMap { train in timeline.flatMap { follow(train, timeline: $0) } },
+                                onLockScreen: follower.onLockScreen,
                                 openStation: { selection = .station($0) }
                             ) {
                                 selection = nil
@@ -229,6 +232,24 @@ struct MapTab: View {
         modelContext.toggleStarOrRollBack(kind, name: name, at: time.now)
     }
 
+    /// Follow on the train's page: the map keeps the train in the middle, and its Live Activity
+    /// starts, or takes the place of the one before. Follow off ends both. A drag on the map
+    /// stops only the map, so the Lock Screen keeps the train.
+    private func follow(_ train: TrainState, timeline: TrainTimeline) -> Binding<Bool>? {
+        guard let timetable = store.timetable, timetable.trips.indices.contains(train.trip) else { return nil }
+        let trip = timetable.trips[train.trip]
+        return Binding {
+            follower.isFollowing(trip: trip.id, day: train.day)
+        } set: { on in
+            following = on
+            guard on else { return follower.unfollow() }
+            follower.follow(
+                FollowedTrain(
+                    timeline: timeline, trip: trip.id, day: train.day, line: timetable.lines[trip.line].name,
+                    colour: palette.slot(of: trip.line), shift: Date().timeIntervalSince(time.now)))
+        }
+    }
+
     private func color(of train: TrainState?) -> Color {
         palette.color(forLine: train.flatMap { store.timetable?.trips[$0.trip].line } ?? 0)
     }
@@ -249,6 +270,7 @@ extension MKCoordinateRegion {
 #Preview {
     @Previewable @State var store = TimetableStore()
     MapTab(store: store, selection: .constant(nil))
+        .environment(TrainFollower())
         .task { await store.load(from: Bundle.main.bundleURL.appending(path: "timetable.json")) }
 }
 

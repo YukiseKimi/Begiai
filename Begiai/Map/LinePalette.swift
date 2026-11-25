@@ -6,13 +6,7 @@ import UIKit
 /// never share a colour; views read the palette from the environment. Each slot has a light
 /// and a dark colour, picked by the appearance.
 struct LinePalette: Equatable {
-    static let colors: [Color] = zip(LinePaletteRGB.light, LinePaletteRGB.dark).map { light, dark in
-        Color(
-            UIColor { traits in
-                let rgb = traits.userInterfaceStyle == .dark ? dark : light
-                return UIColor(red: rgb.red, green: rgb.green, blue: rgb.blue, alpha: 1)
-            })
-    }
+    static let colors: [Color] = LinePaletteRGB.light.indices.map { Color(lineSlot: $0) }
 
     /// The slot of each line, by line index. A line with no slot uses its index.
     var slots: [Int] = []
@@ -27,7 +21,8 @@ struct LinePalette: Equatable {
         return lines.compactMap { line in seen.insert(slot(of: line)).inserted ? Self.colors[slot(of: line)] : nil }
     }
 
-    private func slot(of line: Int) -> Int {
+    /// The palette slot of a line, which the Live Activity takes with it.
+    func slot(of line: Int) -> Int {
         (slots.indices.contains(line) ? slots[line] : line) % Self.colors.count
     }
 }
