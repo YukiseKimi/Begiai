@@ -17,8 +17,10 @@ struct LockScreen {
         XCUIDevice.shared.press(.home)
         let top = springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.2, dy: 0.005))
         top.press(forDuration: 0.1, thenDragTo: springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.2, dy: 0.7)))
-        journey.wait(
-            for: springboard.otherElements["combined-list-view"], "the Notification Centre", on: "Lock Screen", file: file, line: line)
+        // iOS 27 names the list of the Notification Centre; iOS 26 only its window.
+        let centre = springboard.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier IN %@", ["combined-list-view", "SBCoverSheetWindow"])).firstMatch
+        journey.wait(for: centre, "the Notification Centre", on: "Lock Screen", file: file, line: line)
     }
 
     /// The one Live Activity of the app shows this route, and the next stop or the stop the
