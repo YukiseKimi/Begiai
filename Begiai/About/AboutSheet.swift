@@ -5,21 +5,23 @@ import SwiftUI
 struct AboutButton: View {
     let timetable: Timetable?
     @State private var showsAbout = false
-    @ScaledMetric(relativeTo: .title3) private var size = 44.0
 
     var body: some View {
         Button {
             showsAbout = true
         } label: {
-            Image(systemName: "info")
-                .font(.title3)
-                .frame(width: size, height: size)
-                // A plain button takes taps only on the symbol: the whole circle takes them.
-                .contentShape(.circle)
+            MapCircleLabel(systemName: "info")
         }
         .buttonStyle(.plain)
         .glassEffect(in: .circle)
         .accessibilityLabel(Text(.aboutOpen))
+        .accessibilityShowsLargeContentViewer {
+            Label {
+                Text(.aboutOpen)
+            } icon: {
+                Image(systemName: "info")
+            }
+        }
         .accessibilityIdentifier(A11yID.About.open)
         .sheet(isPresented: $showsAbout) {
             AboutSheet(timetable: timetable)
