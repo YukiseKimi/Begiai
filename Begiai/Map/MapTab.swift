@@ -106,7 +106,7 @@ struct MapTab: View {
     private func trainsMap(insets: EdgeInsets) -> TrainsMap {
         TrainsMap(
             store: store, trains: trains, position: $position, selection: $selection, following: $following,
-            panelHeight: $panelHeight, locationNote: $locationNote, bottomInset: insets.bottom)
+            panelHeight: $panelHeight, locationNote: $locationNote, insets: insets)
     }
 
     private func panel(
