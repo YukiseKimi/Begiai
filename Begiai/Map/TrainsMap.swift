@@ -1,6 +1,7 @@
 import BegiaiKit
 import MapKit
 import SwiftUI
+import UIKit.UIGestureRecognizerSubclass
 
 /// The map with its tracks, stations and trains. It is the one view that reads the trains
 /// each frame, so a frame redraws the markers and not the panel.
@@ -73,13 +74,15 @@ struct TrainsMap: View {
             }
             // A tap on the map away from the markers is a tap outside the panel: it closes the
             // train or station open there, or else lowers the panel to show the map.
-            .onTapGesture {
-                if selection != nil {
+            .gesture(
+                MapTap {
+                    guard selection != nil else { return false }
                     selection = nil
-                } else if panelHeight != .peek {
-                    panelHeight = .peek
+                    return true
+                } unlessDoubleTap: {
+                    if panelHeight != .peek { panelHeight = .peek }
                 }
-            }
+            )
             .mapStyle(.standard(emphasis: .muted, pointsOfInterest: .excludingAll))
             .mapControls {
                 MapScaleView()
@@ -261,4 +264,81 @@ private struct TrackStripe: Identifiable {
 private struct FollowTarget: Equatable {
     let following: Bool
     let coordinate: Coordinate?
+}
+
+/// A tap on the map itself, not on a marker. SwiftUI's `onTapGesture` on a `Map` waits about a
+/// third of a second to tell a tap from MapKit's double-tap zoom; this tap acts as the finger
+/// lifts, through `now`. When `now` has nothing to do, `unlessDoubleTap` acts once that wait is
+/// over, unless a second tap came: what it changes would stop the zoom. The second tap of a
+/// double-tap zooms, and does not count again.
+private struct MapTap: UIGestureRecognizerRepresentable {
+    /// Acts at once, and says whether it did anything.
+    let now: () -> Bool
+    let unlessDoubleTap: () -> Void
+
+    func makeCoordinator(converter: CoordinateSpaceConverter) -> Coordinator { Coordinator() }
+
+    func makeUIGestureRecognizer(context: Context) -> StillTapRecognizer {
+        let tap = StillTapRecognizer()
+        tap.delegate = context.coordinator
+        tap.cancelsTouchesInView = false
+        return tap
+    }
+
+    func handleUIGestureRecognizerAction(_ recognizer: StillTapRecognizer, context: Context) {
+        guard recognizer.state == .ended, !now() else { return }
+        context.coordinator.afterTheDoubleTapWait(unlessDoubleTap)
+    }
+
+    @MainActor
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        /// The longest gap between the two taps of a double-tap.
+        static let doubleTapWait = Duration.milliseconds(350)
+        private var waiting: Task<Void, Never>?
+
+        func afterTheDoubleTapWait(_ action: @escaping () -> Void) {
+            waiting?.cancel()
+            waiting = Task {
+                try? await Task.sleep(for: Self.doubleTapWait)
+                if !Task.isCancelled { action() }
+            }
+        }
+
+        func gestureRecognizer(_ recognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+            // The second tap of a double-tap zooms: what waits for it does not happen.
+            guard touch.tapCount == 1 else {
+                waiting?.cancel()
+                return false
+            }
+            // A train or a station takes its own taps.
+            return !sequence(first: touch.view, next: { $0?.superview }).contains { $0 is MKAnnotationView }
+        }
+
+        func gestureRecognizer(
+            _ recognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer
+        ) -> Bool { true }
+    }
+}
+
+/// A tap that fails once the finger moves 10 points, where MapKit starts to pan the map. Less
+/// is a hand that shakes on a moving train. A plain tap recognizer lets the finger go much
+/// further, so a short drag would both move the map and close the panel.
+private final class StillTapRecognizer: UITapGestureRecognizer {
+    private var start: CGPoint?
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+        start = touches.first?.location(in: nil)
+        super.touchesBegan(touches, with: event)
+    }
+
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesMoved(touches, with: event)
+        guard let start, let point = touches.first?.location(in: nil) else { return }
+        if hypot(point.x - start.x, point.y - start.y) >= 10 { state = .failed }
+    }
+
+    override func reset() {
+        super.reset()
+        start = nil
+    }
 }

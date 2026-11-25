@@ -146,22 +146,44 @@ struct MapScreen {
 
     /// Taps the map above the panel where no train or station is, as a rider taps outside the panel.
     func tapOutsideThePanel(file: StaticString = #filePath, line: UInt = #line) {
+        emptySpot(file: file, line: line)?.tap()
+    }
+
+    /// Double-taps the map above the panel where no train or station is, as a rider zooms in.
+    func doubleTapOutsideThePanel(file: StaticString = #filePath, line: UInt = #line) {
+        emptySpot(file: file, line: line)?.doubleTap()
+    }
+
+    /// Taps the map above the panel with a finger that slides 5 points, as on a moving train.
+    func shakyTapOutsideThePanel(file: StaticString = #filePath, line: UInt = #line) {
+        guard let spot = emptySpot(file: file, line: line) else { return }
+        spot.press(forDuration: 0.05, thenDragTo: spot.withOffset(CGVector(dx: 3, dy: 4)))
+    }
+
+    /// Drags the map from a spot above the panel where no train or station is, as a rider moves the map.
+    func dragOutsideThePanel(file: StaticString = #filePath, line: UInt = #line) {
+        guard let spot = emptySpot(file: file, line: line) else { return }
+        spot.press(forDuration: 0.05, thenDragTo: spot.withOffset(CGVector(dx: 20, dy: 15)))
+    }
+
+    /// A spot of the map above the panel, clear of the trains, the stations, the status bar, the
+    /// buttons at the top right and the panel's top edge.
+    private func emptySpot(file: StaticString, line: UInt) -> XCUICoordinate? {
         let panel = journey.wait(for: journey.element(A11yID.Map.panel), "the panel's handle", on: "Map", file: file, line: line)
         let markers =
             (journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
             + journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.station).allElementsBoundByIndex)
             .map { $0.frame.insetBy(dx: -30, dy: -30) }
         let size = journey.app.frame.size
-        // Clear of the status bar, of the buttons at the top right and of the panel's top edge.
         let spots = stride(from: 0.15, through: 0.6, by: 0.05).flatMap { x in
             stride(from: 0.15, to: 0.45, by: 0.03).map { y in CGPoint(x: size.width * x, y: size.height * y) }
         }
         guard let spot = spots.first(where: { spot in spot.y < panel.frame.minY - 40 && markers.allSatisfy { !$0.contains(spot) } })
         else {
             XCTFail("Map: no empty spot of the map shows above the panel", file: file, line: line)
-            return
+            return nil
         }
-        journey.app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: spot.x, dy: spot.y)).tap()
+        return journey.app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: spot.x, dy: spot.y))
     }
 
     func expectNoPage(file: StaticString = #filePath, line: UInt = #line) {
@@ -234,6 +256,15 @@ struct MapScreen {
     func expectNoStaleNote(file: StaticString = #filePath, line: UInt = #line) {
         journey.wait(for: journey.element(A11yID.Map.runningCount), "the running count", on: "Map", file: file, line: line)
         XCTAssertFalse(journey.element(A11yID.Timetable.stale).exists, "Map: a fresh timetable says it is old", file: file, line: line)
+    }
+
+    /// The trains on the screen above the panel. Fewer show once the map zooms in.
+    func trainsInSight(file: StaticString = #filePath, line: UInt = #line) -> Int {
+        journey.wait(for: journey.element(A11yID.Map.train), "a train", on: "Map", timeout: 15, file: file, line: line)
+        let panel = journey.element(A11yID.Map.panel).frame
+        let sight = CGRect(x: 0, y: 0, width: journey.app.frame.width, height: panel.minY)
+        return journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
+            .filter { sight.contains(CGPoint(x: $0.frame.midX, y: $0.frame.midY)) }.count
     }
 
     /// The width of a train marker on the map, in points.
