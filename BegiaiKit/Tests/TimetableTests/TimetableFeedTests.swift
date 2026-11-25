@@ -33,10 +33,7 @@ struct TimetableFeedTests {
     @Test func aBundleThatIsNotTheOneInTheManifestIsNotSaved() async throws {
         let pages = try FakePages(feedDate: 20_261_118, tamper: true)
         let feed = try pages.feed()
-        guard case .failed = await feed.refresh(now: now, loaded: shipped) else {
-            Issue.record("saved a changed bundle")
-            return
-        }
+        #expect(await feed.refresh(now: now, loaded: shipped) == .failed("the bundle is not the one that the manifest names"))
         let bundled = try writeBundled()
         #expect(await feed.candidates(bundled: bundled) == [bundled])
     }
@@ -47,10 +44,8 @@ struct TimetableFeedTests {
         bad.trips[0].line = 7
         let pages = try FakePages(timetable: bad)
         let feed = try pages.feed()
-        guard case .failed = await feed.refresh(now: now, loaded: shipped) else {
-            Issue.record("saved a bad bundle")
-            return
-        }
+        let problem = TimetableProblem.outOfRange("trip stopping")
+        #expect(await feed.refresh(now: now, loaded: shipped) == .failed(String(describing: problem)))
         let bundled = try writeBundled()
         #expect(await feed.candidates(bundled: bundled) == [bundled])
     }
@@ -72,8 +67,9 @@ struct TimetableFeedTests {
     @Test func theFeedChecksOneTimeADayButTriesAgainAfterANetworkError() async throws {
         let pages = try FakePages(feedDate: shipped)
         pages.offline(true)
-        guard case .failed = try await pages.feed().refresh(now: now, loaded: shipped) else {
-            Issue.record("no error offline")
+        let offline = try await pages.feed().refresh(now: now, loaded: shipped)
+        guard case .failed(let reason) = offline, reason.hasPrefix("no manifest") else {
+            Issue.record("offline, the refresh gave \(offline)")
             return
         }
         pages.offline(false)

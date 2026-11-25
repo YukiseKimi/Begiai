@@ -1,4 +1,5 @@
 import BegiaiKit
+import BegiaiKitTestSupport
 import Foundation
 import Testing
 

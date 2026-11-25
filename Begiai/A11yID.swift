@@ -1,4 +1,9 @@
 enum A11yID {
+    enum Tabs {
+        static let map = "tabs.map"
+        static let lineDiagram = "tabs.lineDiagram"
+    }
+
     enum Map {
         static let page = "map.page"
         static let runningCount = "map.runningCount"
@@ -71,6 +76,8 @@ enum A11yID {
     }
 
     static let entries: [Entry] = [
+        Entry(id: Tabs.map, element: "the Map tab in the tab bar", screen: "Tabs"),
+        Entry(id: Tabs.lineDiagram, element: "the Line Diagram tab in the tab bar", screen: "Tabs"),
         Entry(id: Map.page, element: "the Map tab's content", screen: "Map"),
         Entry(id: Map.runningCount, element: "the count of trains running now", screen: "Map"),
         Entry(id: Map.train, element: "each train on the map", screen: "Map"),

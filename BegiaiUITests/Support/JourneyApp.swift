@@ -8,6 +8,9 @@ struct JourneyApp {
     nonisolated static let frozenTimetable = URL(filePath: #filePath)
         .deletingLastPathComponent().appending(path: "../../Fixtures/timetable-20261117.json").standardizedFileURL.path
 
+    /// The journeys read English labels, so the app runs in English whatever the simulator's language.
+    nonisolated static let english = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+
     let app = XCUIApplication()
     private let clock = Clock()
 
@@ -51,7 +54,7 @@ struct JourneyApp {
 
     private func start(_ opening: Opening, now: String, arguments: [String], file: StaticString, line: UInt) {
         FailureScreens.watch()
-        app.launchArguments = ["--sealed", "--now", now, "--timetable", Self.frozenTimetable] + arguments
+        app.launchArguments = ["--sealed", "--now", now, "--timetable", Self.frozenTimetable] + Self.english + arguments
         app.launch()
         wait(for: element(opening.page), "the opening's page", on: "Launch", timeout: 15, file: file, line: line)
     }
@@ -69,9 +72,5 @@ struct JourneyApp {
             element.exists || element.waitForExistence(timeout: timeout),
             "\(screen): \(what) never appeared", file: file, line: line)
         return element
-    }
-
-    func holdLastScreen() {
-        _ = XCTWaiter.wait(for: [XCTestExpectation(description: "the last screen")], timeout: 1)
     }
 }

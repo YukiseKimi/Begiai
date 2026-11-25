@@ -4,11 +4,11 @@ import XCTest
 /// a folder, so the journey lane skips it. `Store/Screenshots/take.sh` runs it and sets the
 /// simulator's appearance; `Store/Screenshots/shots.json` says what each shot shows.
 /// `script/readme-gif.sh` runs `test07MapTimelapse`, the README's GIF.
-final class StoreShotsJourney: XCTestCase {
+final class StoreShotsJourney: JourneyCase {
     private var folder: URL!
 
     override func setUpWithError() throws {
-        continueAfterFailure = false
+        try super.setUpWithError()
         let path = ProcessInfo.processInfo.environment["BEGIAI_SHOTS"] ?? ""
         try XCTSkipIf(path.isEmpty, "Store shots: run them with Store/Screenshots/take.sh or script/readme-gif.sh")
         folder = URL(filePath: path, directoryHint: .isDirectory)
@@ -67,7 +67,7 @@ final class StoreShotsJourney: XCTestCase {
         let board = BoardScreen(journey: journey)
         board.star()
         board.back()
-        journey.wait(for: journey.app.tabBars.buttons.element(boundBy: 0), "the Map tab", on: "Tabs").tap()
+        journey.wait(for: journey.element(A11yID.Tabs.map), "the Map tab", on: "Tabs").tap()
         let map = MapScreen(journey: journey)
         map.expectLines()
         zoomToVilnius(journey)

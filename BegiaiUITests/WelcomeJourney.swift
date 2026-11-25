@@ -1,9 +1,8 @@
 import XCTest
 
-final class WelcomeJourney: XCTestCase {
+final class WelcomeJourney: JourneyCase {
     @MainActor
     func testTheFirstLaunchWelcomesOneTime() {
-        continueAfterFailure = false
         let journey = JourneyApp()
         journey.launch(.welcome)
 
@@ -15,6 +14,5 @@ final class WelcomeJourney: XCTestCase {
 
         journey.relaunch(welcome: true)
         welcome.expectNoWelcome()
-        journey.holdLastScreen()
     }
 }

@@ -4,23 +4,27 @@ import XCTest
 struct WelcomeScreen {
     let journey: JourneyApp
 
-    /// Reads each card and taps Next, then Start on the last one; gives the titles in order.
+    /// Reads each card and taps Next, then Start on the last one, until the sheet closes;
+    /// gives the titles in order. Stops after `limit` cards, so a sheet that never closes fails.
     @discardableResult
-    func readEachCardAndStart(file: StaticString = #filePath, line: UInt = #line) -> [String] {
+    func readEachCardAndStart(limit: Int = 10, file: StaticString = #filePath, line: UInt = #line) -> [String] {
+        let title = journey.element(A11yID.Welcome.title)
+        let next = journey.element(A11yID.Welcome.next)
         var titles: [String] = []
-        for _ in 0..<3 {
-            let title = journey.wait(for: journey.element(A11yID.Welcome.title), "a card title", on: "Welcome", file: file, line: line)
-            titles.append(title.label)
-            journey.wait(for: journey.element(A11yID.Welcome.next), "the Next button", on: "Welcome", file: file, line: line).tap()
-            _ = XCTWaiter.wait(
-                for: [
-                    XCTNSPredicateExpectation(
-                        predicate: NSPredicate(format: "label != %@", titles.last ?? ""), object: journey.element(A11yID.Welcome.title))
-                ], timeout: 2)
+        while titles.count < limit {
+            journey.wait(for: title, "a card title", on: "Welcome", file: file, line: line)
+            let shown = title.label
+            titles.append(shown)
+            journey.wait(for: next, "the Next button", on: "Welcome", file: file, line: line).tap()
+            // Either the next card shows, or Start closed the sheet.
+            let moved = XCTNSPredicateExpectation(
+                predicate: NSPredicate { _, _ in !next.exists || title.label != shown }, object: nil)
+            XCTAssertEqual(
+                XCTWaiter.wait(for: [moved], timeout: 5), .completed, "Welcome: Next did not move on from \(shown)",
+                file: file, line: line)
+            if !next.exists { return titles }
         }
-        XCTAssertTrue(
-            journey.element(A11yID.Welcome.next).waitForNonExistence(timeout: 5),
-            "Welcome: the sheet stays after Start", file: file, line: line)
+        XCTFail("Welcome: the sheet stays after \(limit) cards", file: file, line: line)
         return titles
     }
 

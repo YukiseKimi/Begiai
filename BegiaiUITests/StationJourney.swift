@@ -1,9 +1,8 @@
 import XCTest
 
-final class StationJourney: XCTestCase {
+final class StationJourney: JourneyCase {
     @MainActor
     func testATappedStationShowsItsNextDepartures() {
-        continueAfterFailure = false
         let journey = JourneyApp()
         journey.launch(.map)
 
@@ -12,22 +11,18 @@ final class StationJourney: XCTestCase {
         board.expectBoard(of: station)
         // The sealed time, 15:55 UTC, is 17:55 in Vilnius.
         board.expectMinutesWithinTheHour(now: (17, 55))
-        journey.holdLastScreen()
     }
 
     @MainActor
     func testASearchWithoutLithuanianLettersOpensTheStationsBoard() {
-        continueAfterFailure = false
         let journey = JourneyApp()
         journey.launch(.map)
         MapScreen(journey: journey).searchStation("kaisiad", expect: ["Kaišiadorys"])
         BoardScreen(journey: journey).expectBoard(of: "Kaišiadorys")
-        journey.holdLastScreen()
     }
 
     @MainActor
     func testAStationUnderATrainStillOpensItsBoard() {
-        continueAfterFailure = false
         let journey = JourneyApp()
         journey.launch(.map)
         guard let station = MapScreen(journey: journey).openStationUnderATrain() else {
@@ -35,6 +30,5 @@ final class StationJourney: XCTestCase {
             return
         }
         BoardScreen(journey: journey).expectBoard(of: station)
-        journey.holdLastScreen()
     }
 }

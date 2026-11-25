@@ -14,12 +14,12 @@ struct ServiceDayTests {
         #expect(running == [RunningTrip(trip: 0, day: tuesday, seconds: 24 * 3600 + 20 * 60)])
     }
 
-    @Test func onTheNightTheClocksGoBackATrainStillLeavesAtItsTimetableTime() {
+    @Test func onTheNightTheClocksGoBackATrainStillLeavesAtItsTimetableTime() throws {
         let clocksBack = ServiceDate(year: 2026, month: 10, day: 25)
         let timetable = TinyTimetable.make(trips: [("morning", "1111111", 10 * 3600, 11 * 3600)])
-        let tenOClock = Vilnius.calendar.date(from: DateComponents(year: 2026, month: 10, day: 25, hour: 10))!
-        let running = timetable.runningTrips(at: tenOClock).first { $0.day == clocksBack }
-        #expect(abs((running?.seconds ?? 0) - 10 * 3600) < 0.001)
+        let tenOClock = try #require(Vilnius.calendar.date(from: DateComponents(year: 2026, month: 10, day: 25, hour: 10)))
+        let running = try #require(timetable.runningTrips(at: tenOClock).first { $0.day == clocksBack })
+        #expect(abs(running.seconds - 10 * 3600) < 0.001)
     }
 
     @Test func aRemovedDateStopsTheService() {
