@@ -83,6 +83,10 @@ struct LineDiagramTab: View {
         let chosen = lines.first { $0.name == chosenName } ?? lines.first
         return VStack(spacing: 0) {
             LineChips(lines: lines, chosen: chosen?.id) { chosenName = $0.name }
+                // A scroll view draws its content into the safe area along its axis; the chips
+                // stay in the row's own frame, clear of the status bar and the tab strip that the
+                // open Duo shows on the right.
+                .clipped()
             if let chosen {
                 let diagram = store.diagrams[chosen.id]
                 ScrollView {
