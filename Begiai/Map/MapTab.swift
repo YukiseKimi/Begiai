@@ -55,7 +55,8 @@ struct MapTab: View {
                                     RunningHeader(count: settled.count)
                                 }
                                 // At night, with no trains, the field still finds a station's first trains.
-                                StationSearchField(query: $query)
+                                // With the keyboard up, a half panel shows two results: the panel rises.
+                                StationSearchField(query: $query) { panelHeight = .full }
                                     .padding(.horizontal)
                                 // A Small panel keeps the count and the field; the filter needs room for the lines,
                                 // and goes while the field searches, as it filters lines, not stations.
@@ -81,9 +82,13 @@ struct MapTab: View {
                                 }
                             case nil:
                                 if searching {
-                                    StationResults(names: engine.timetable.stations.map(\.name), query: query) {
+                                    StationResults(
+                                        names: engine.timetable.stations.map(\.name), calls: engine.timetable.callsPerStation,
+                                        query: query
+                                    ) {
                                         selection = .station($0)
-                                        if panelHeight == .peek { panelHeight = .half }
+                                        // The search raised the panel; at half height the map shows again beside the board.
+                                        panelHeight = .half
                                     }
                                 } else if settled.isEmpty, let first = engine.firstTrain(after: now) {
                                     VStack(spacing: 12) {
