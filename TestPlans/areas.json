@@ -28,6 +28,26 @@
       "wayIn": "the first screen"
     },
     {
+      "id": "liveActivity",
+      "paths": [
+        "BegiaiKit/Sources/BegiaiKit/FollowedTrain.swift",
+        "BegiaiKit/Sources/BegiaiKit/FollowedTrain+ActivityKit.swift",
+        "Begiai/Follow/",
+        "BegiaiWidgets/"
+      ],
+      "unit": [
+        "LiveActivityTests"
+      ],
+      "journeys": [
+        "LiveActivityJourney"
+      ],
+      "devices": [
+        "iPhone 17 Pro Max",
+        "iPhone 17 Pro"
+      ],
+      "wayIn": "a train's page, from the first screen"
+    },
+    {
       "id": "bundle",
       "paths": [
         "BegiaiKit/Sources/BundleBuilder/",

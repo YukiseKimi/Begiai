@@ -50,6 +50,43 @@ struct TrainScreen {
         return name
     }
 
+    /// The train's route, “Vilnius → Kaunas”: its title after the departure time.
+    func route(file: StaticString = #filePath, line: UInt = #line) -> String {
+        let title = journey.wait(for: journey.element(A11yID.Train.title), "the train's title", on: "Train", file: file, line: line)
+        guard let space = title.label.firstIndex(of: " ") else {
+            XCTFail("Train: the title reads \(title.label)", file: file, line: line)
+            return ""
+        }
+        return String(title.label[title.label.index(after: space)...])
+    }
+
+    /// Taps Follow, and checks that the button now says the train is followed and on the Lock Screen.
+    func follow(file: StaticString = #filePath, line: UInt = #line) {
+        let button = journey.wait(for: journey.element(A11yID.Train.follow), "the Follow button", on: "Train", file: file, line: line)
+        XCTAssertEqual(button.label, "Follow", "Train: the train is already followed", file: file, line: line)
+        button.tap()
+        expectFollowing(true, file: file, line: line)
+        let onLockScreen = NSPredicate(format: "value == %@", "On the Lock Screen")
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: onLockScreen, object: button)], timeout: 5), .completed,
+            "Train: Following does not say On the Lock Screen: \(button.value ?? "")", file: file, line: line)
+    }
+
+    /// Taps Following, and checks that the button says Follow again.
+    func unfollow(file: StaticString = #filePath, line: UInt = #line) {
+        expectFollowing(true, file: file, line: line)
+        journey.element(A11yID.Train.follow).tap()
+        expectFollowing(false, file: file, line: line)
+    }
+
+    func expectFollowing(_ following: Bool, file: StaticString = #filePath, line: UInt = #line) {
+        let button = journey.wait(for: journey.element(A11yID.Train.follow), "the Follow button", on: "Train", file: file, line: line)
+        let label = NSPredicate(format: "label == %@", following ? "Following" : "Follow")
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: label, object: button)], timeout: 3), .completed,
+            "Train: the Follow button reads \(button.label)", file: file, line: line)
+    }
+
     /// Lines in the panel; Close in a sheet.
     func back(file: StaticString = #filePath, line: UInt = #line) {
         journey.wait(for: journey.element(A11yID.Train.back), "the way back", on: "Train", file: file, line: line).tap()
