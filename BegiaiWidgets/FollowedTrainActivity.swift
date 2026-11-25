@@ -182,7 +182,7 @@ private struct CompactNext: View {
     }
 }
 
-/// “Kaunas 34 minutes”: the last stop and the time left to it, which counts down by itself.
+/// “Kaunas 34:10”: the last stop and the time left to it, which counts down by itself.
 /// Where the island is narrow, only the time left.
 private struct CompactEnd: View {
     let facts: TrainFacts
@@ -221,18 +221,18 @@ private struct NarrowIsland<Content: View>: View {
     }
 }
 
-/// The minutes to the last arrival, counting down by itself. A timer text takes all the
-/// width it is offered, so it sits over a still copy of its widest value, the one at the
-/// start, which sets its width.
+/// The time left to the last arrival, counting down by itself. A timer text takes all the
+/// width it is offered, which would stretch the island across the screen, so it sits over a
+/// still text of its widest form, which sets its width.
 private struct Countdown: View {
     let facts: TrainFacts
 
     var body: some View {
-        let style = SystemFormatStyle.Timer(countingDownIn: facts.toArrival, showsHours: false, maxPrecision: .seconds(60))
-        Text(facts.toArrival.lowerBound, format: style)
+        let hours = facts.train.arrival.timeIntervalSince(facts.train.departure) >= 3600
+        Text(verbatim: hours ? "0:00:00" : "00:00")
             .hidden()
             .overlay(alignment: .trailing) {
-                Text(.currentDate, format: style)
+                Text(timerInterval: facts.toArrival.lowerBound...facts.toArrival.upperBound, countsDown: true)
                     .multilineTextAlignment(.trailing)
             }
             .monospacedDigit()

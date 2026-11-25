@@ -42,6 +42,13 @@ struct LockScreen {
             file: file, line: line)
     }
 
+    /// Ends every Live Activity of the app: a sealed launch with --reset does, then the app quits.
+    static func endActivities() {
+        let journey = JourneyApp()
+        journey.launch(.map)
+        journey.app.terminate()
+    }
+
     /// Back to the app, where it was.
     func close() {
         journey.app.activate()

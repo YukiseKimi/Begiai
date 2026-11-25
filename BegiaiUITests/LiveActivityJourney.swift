@@ -1,6 +1,7 @@
 import XCTest
 
 /// Follow on a train's page puts the train on the Lock Screen and in the Dynamic Island.
+/// Each test ends with no Live Activity running.
 final class LiveActivityJourney: JourneyCase {
     /// Follow starts the Live Activity of that train; Follow off ends it.
     @MainActor
@@ -44,5 +45,16 @@ final class LiveActivityJourney: JourneyCase {
         lockScreen.open()
         lockScreen.expectActivity(route: second, place: place)
         lockScreen.close()
+        train.unfollow()
+    }
+
+    /// A Live Activity left running makes the next install of the app stop the app that a
+    /// test has just launched, and it comes back without its launch arguments. So a test
+    /// that fails with a train followed ends its activity: a sealed launch with --reset does.
+    override func tearDown() {
+        if testRun?.hasSucceeded == false {
+            MainActor.assumeIsolated { LockScreen.endActivities() }
+        }
+        super.tearDown()
     }
 }

@@ -36,6 +36,8 @@ final class LiveActivityShots: JourneyCase {
         LockScreen(journey: journey).open()
         save("lock-screen")
         LockScreen(journey: journey).close()
+        // A Live Activity left running upsets the next install: see LiveActivityJourney.
+        TrainScreen(journey: journey).unfollow()
     }
 
     private func save(_ name: String) {
