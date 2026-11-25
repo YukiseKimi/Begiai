@@ -87,7 +87,8 @@ struct MapTab: View {
                                         query: query
                                     ) {
                                         selection = .station($0)
-                                        if panelHeight == .peek { panelHeight = .half }
+                                        // The search raised the panel; at half height the map shows again beside the board.
+                                        panelHeight = .half
                                     }
                                 } else if settled.isEmpty, let first = engine.firstTrain(after: now) {
                                     VStack(spacing: 12) {
