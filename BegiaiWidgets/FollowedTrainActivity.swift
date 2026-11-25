@@ -23,15 +23,18 @@ struct FollowedTrainActivity: Widget {
                 DynamicIslandExpandedRegion(.bottom) {
                     VStack(spacing: 8) {
                         JourneyBar(train: facts.train, passed: facts.passed, standing: facts.standing, colour: facts.colour)
-                        HStack {
+                        HStack(spacing: 8) {
                             ScheduledLabel()
-                            Spacer()
+                            Spacer(minLength: 0)
                             Text(verbatim: facts.train.line)
                                 .font(.caption.weight(.medium))
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)
+                                .truncationMode(.tail)
                         }
                     }
+                    // Clear of the island's rounded ends, so a long line name ends in “…”.
+                    .padding(.horizontal, 8)
                     .padding(.top, 4)
                 }
             } compactLeading: {
@@ -95,6 +98,7 @@ private struct LockScreenView: View {
                 Text(facts.title)
                     .font(.headline)
                     .lineLimit(1)
+                    .truncationMode(.tail)
                     .accessibilityAddTraits(.isHeader)
                     .accessibilityIdentifier(A11yID.LiveActivity.title)
                 Spacer(minLength: 8)
@@ -105,11 +109,19 @@ private struct LockScreenView: View {
                 NextLine(facts: facts)
                     .font(.subheadline.weight(.medium))
                 Spacer(minLength: 8)
-                Text(verbatim: "\(facts.train.destination) \(facts.train.arrival.vilniusTime)")
-                    .font(.subheadline.weight(.semibold))
-                    .monospacedDigit()
-                    .lineLimit(1)
-                    .accessibilityIdentifier(A11yID.LiveActivity.end)
+                // The last stop's name gives way before its time, and before the next stop.
+                HStack(spacing: 4) {
+                    Text(verbatim: facts.train.destination)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    Text(verbatim: facts.train.arrival.vilniusTime)
+                        .monospacedDigit()
+                        .fixedSize()
+                }
+                .font(.subheadline.weight(.semibold))
+                .layoutPriority(1)
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier(A11yID.LiveActivity.end)
             }
         }
         .padding(14)
@@ -150,6 +162,9 @@ private struct ScheduledLabel: View {
         .font(.caption.weight(.semibold))
         .foregroundStyle(.secondary)
         .lineLimit(1)
+        // It keeps its room: a long title or line name gives way instead.
+        .fixedSize()
+        .layoutPriority(2)
         .accessibilityElement(children: .combine)
     }
 }
@@ -198,7 +213,7 @@ private struct CompactEnd: View {
     private func content(narrow: Bool) -> some View {
         HStack(spacing: 4) {
             if !narrow {
-                Text(verbatim: facts.train.destination)
+                Text(verbatim: facts.train.destination.shortened(to: 12))
                     .lineLimit(1)
             }
             Countdown(facts: facts)
@@ -307,5 +322,13 @@ private struct MinimalJourney: View {
         .tint(facts.colour)
         .foregroundStyle(facts.colour)
         .accessibilityLabel(Text(facts.title))
+    }
+}
+
+extension String {
+    /// The first characters and “…”, for a name in the compact island, where a text cannot
+    /// truncate by itself beside a timer, which takes all the width it gets.
+    func shortened(to length: Int) -> String {
+        count <= length ? self : String(prefix(length - 1)).trimmingCharacters(in: .whitespaces) + "…"
     }
 }

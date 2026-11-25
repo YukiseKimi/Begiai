@@ -19,6 +19,21 @@ extension FollowedTrain {
     }
 }
 
+extension FollowedTrain {
+    /// The longest names in the timetable, to check that each line ends in “…” and not at the edge.
+    static var longNames: FollowedTrain {
+        let start = Date.now.addingTimeInterval(-40 * 60)
+        func at(_ minutes: Double) -> Date { start.addingTimeInterval(minutes * 60) }
+        return FollowedTrain(
+            trip: "preview-long", day: ServiceDate(.now).number, line: "Vilnius – Rīgas Centrālā stacija", colour: 1,
+            stops: [
+                Stop(name: "Elektrinių traukinių depas-1", arrival: at(0), departure: at(0)),
+                Stop(name: "Švenčionėliai", arrival: at(55), departure: at(57)),
+                Stop(name: "Rīgas Centrālā stacija", arrival: at(240), departure: at(240)),
+            ])
+    }
+}
+
 extension FollowedTrain.Status {
     static let running = FollowedTrain.Status(place: .leaving(1))
     static let standing = FollowedTrain.Status(place: .at(3))
@@ -51,4 +66,22 @@ extension FollowedTrain.Status {
     FollowedTrainActivity()
 } contentStates: {
     FollowedTrain.Status.running
+}
+
+#Preview("Lock Screen, long names", as: .content, using: FollowedTrain.longNames) {
+    FollowedTrainActivity()
+} contentStates: {
+    FollowedTrain.Status(place: .leaving(0))
+}
+
+#Preview("Expanded, long names", as: .dynamicIsland(.expanded), using: FollowedTrain.longNames) {
+    FollowedTrainActivity()
+} contentStates: {
+    FollowedTrain.Status(place: .leaving(0))
+}
+
+#Preview("Compact, long names", as: .dynamicIsland(.compact), using: FollowedTrain.longNames) {
+    FollowedTrainActivity()
+} contentStates: {
+    FollowedTrain.Status(place: .leaving(0))
 }
