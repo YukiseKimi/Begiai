@@ -38,10 +38,11 @@ final class TrainJourney: JourneyCase {
     }
 
     @MainActor
-    func testATapOnTheMapClosesThePageThenLowersThePanel() {
+    func testATapOnTheMapClosesThePageThenLowersThePanel() throws {
         let journey = JourneyApp()
         journey.launch(.map)
         let map = MapScreen(journey: journey)
+        try XCTSkipIf(map.hasColumn(), "Duo: the column cannot be lowered; DuoJourney checks that a tap on the map closes the page")
 
         let destination = map.openFirstTrain()
         TrainScreen(journey: journey).expectTrain(to: destination)

@@ -57,9 +57,12 @@ final class LineDiagramJourney: JourneyCase {
     }
 
     @MainActor
-    func testATapOutsideTheSheetClosesIt() {
+    func testATapOutsideTheSheetClosesIt() throws {
         let journey = JourneyApp()
         journey.launch(.map)
+        try XCTSkipIf(
+            MapScreen(journey: journey).hasColumn(),
+            "Duo: a train opens in a column beside the diagram, not in a sheet; its Close button closes it")
 
         let diagram = LineDiagramScreen(journey: journey)
         diagram.open()
