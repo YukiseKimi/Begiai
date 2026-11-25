@@ -18,6 +18,7 @@ struct MapTab: View {
     @State private var position: MapCameraPosition = .region(.lithuania)
     @State private var following = false
     @State private var query = ""
+    @FocusState private var searchFocused: Bool
     @State private var locationNote: LocationNote?
     @Environment(\.modelContext) private var modelContext
     @Query private var stars: [Star]
@@ -55,8 +56,7 @@ struct MapTab: View {
                                     RunningHeader(count: settled.count)
                                 }
                                 // At night, with no trains, the field still finds a station's first trains.
-                                // With the keyboard up, a half panel shows two results: the panel rises.
-                                StationSearchField(query: $query) { panelHeight = .full }
+                                StationSearchField(query: $query, focused: $searchFocused)
                                     .padding(.horizontal)
                                 // A Small panel keeps the count and the field; the filter needs room for the lines,
                                 // and goes while the field searches, as it filters lines, not stations.
@@ -119,6 +119,15 @@ struct MapTab: View {
             for await _ in NotificationCenter.default.notifications(named: .NSProcessInfoPowerStateDidChange) {
                 lowPower = ProcessInfo.processInfo.isLowPowerModeEnabled
             }
+        }
+        // The keyboard shows only with the panel at full height. A half panel shows two results above
+        // it, and over the map iOS 27.3 loses taps on the right of those rows. So the field raises
+        // the panel, and a lower panel, from a drag or a tap on the map, puts the keyboard away.
+        .onChange(of: searchFocused) { _, focused in
+            if focused { panelHeight = .full }
+        }
+        .onChange(of: panelHeight) { _, height in
+            if height != .full { searchFocused = false }
         }
         .onChange(of: scenePhase) { _, phase in
             // Access is granted in Settings, so the note goes when the rider comes back with it.
