@@ -4,6 +4,8 @@ import SwiftUI
 /// notices, and the notices name no line, so each line links to the same list.
 struct NoticesLink: View {
     static let notices = URL(string: "https://ltglink.lt/svarbus-pranesimai")!
+    /// Footnote under a page's facts; a list row in About gives the body size of the rows around it.
+    var font: Font = .footnote
 
     var body: some View {
         Link(destination: Self.notices) {
@@ -13,7 +15,7 @@ struct NoticesLink: View {
                 Image(systemName: "arrow.up.right.square")
             }
         }
-        .font(.footnote)
+        .font(font)
         .speaksAsLink()
         .accessibilityIdentifier(A11yID.Notices.link)
     }

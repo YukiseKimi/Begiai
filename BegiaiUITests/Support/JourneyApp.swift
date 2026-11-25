@@ -59,6 +59,17 @@ struct JourneyApp {
         wait(for: element(opening.page), "the opening's page", on: "Launch", timeout: 15, file: file, line: line)
     }
 
+    /// The tabs by their place in the tab bar. A `Tab` has no identifier to find it by: iOS 27
+    /// drops one set with `accessibilityIdentifier` now and then.
+    enum TabPlace: Int {
+        case map
+        case lineDiagram
+    }
+
+    func tab(_ place: TabPlace) -> XCUIElement {
+        app.tabBars.buttons.element(boundBy: place.rawValue)
+    }
+
     func element(_ identifier: String) -> XCUIElement {
         app.descendants(matching: .any).matching(NSPredicate(format: "identifier == %@", identifier)).firstMatch
     }

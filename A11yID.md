@@ -4,8 +4,6 @@ Generated from `Begiai/A11yID.swift` by `script/test.sh a11y`. Do not edit.
 
 | Identifier | Element | Screen |
 | --- | --- | --- |
-| `tabs.map` | the Map tab in the tab bar | Tabs |
-| `tabs.lineDiagram` | the Line Diagram tab in the tab bar | Tabs |
 | `map.page` | the Map tab's content | Map |
 | `map.runningCount` | the count of trains running now | Map |
 | `map.train` | each train on the map | Map |
