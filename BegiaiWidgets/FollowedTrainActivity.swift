@@ -182,26 +182,60 @@ private struct CompactNext: View {
     }
 }
 
-/// “Kaunas 34 min”: the time left to the last stop, which counts down by itself.
+/// “Kaunas 34 minutes”: the last stop and the time left to it, which counts down by itself.
+/// Where the island is narrow, only the time left.
 private struct CompactEnd: View {
     let facts: TrainFacts
 
     var body: some View {
-        Countdown(facts: facts)
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(facts.colour)
-            .accessibilityIdentifier(A11yID.LiveActivity.compactEnd)
+        if #available(iOS 27.0, *) {
+            NarrowIsland { narrow in content(narrow: narrow) }
+        } else {
+            content(narrow: false)
+        }
+    }
+
+    private func content(narrow: Bool) -> some View {
+        HStack(spacing: 4) {
+            if !narrow {
+                Text(verbatim: facts.train.destination)
+                    .lineLimit(1)
+            }
+            Countdown(facts: facts)
+        }
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(facts.colour)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier(A11yID.LiveActivity.compactEnd)
     }
 }
 
-/// The minutes to the last arrival, counting down by itself.
+/// Reads whether the Dynamic Island is narrow, as on iPhone in landscape.
+@available(iOS 27.0, *)
+private struct NarrowIsland<Content: View>: View {
+    @Environment(\.isDynamicIslandLimitedInWidth) private var narrow
+    @ViewBuilder let content: (Bool) -> Content
+
+    var body: some View {
+        content(narrow)
+    }
+}
+
+/// The minutes to the last arrival, counting down by itself. A timer text takes all the
+/// width it is offered, so it sits over a still copy of its widest value, the one at the
+/// start, which sets its width.
 private struct Countdown: View {
     let facts: TrainFacts
 
     var body: some View {
-        Text(.currentDate, format: .timer(countingDownIn: facts.toArrival, showsHours: false, maxPrecision: .seconds(60)))
+        let style = SystemFormatStyle.Timer(countingDownIn: facts.toArrival, showsHours: false, maxPrecision: .seconds(60))
+        Text(facts.toArrival.lowerBound, format: style)
+            .hidden()
+            .overlay(alignment: .trailing) {
+                Text(.currentDate, format: style)
+                    .multilineTextAlignment(.trailing)
+            }
             .monospacedDigit()
-            .multilineTextAlignment(.trailing)
     }
 }
 
