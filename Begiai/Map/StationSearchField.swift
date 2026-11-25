@@ -4,9 +4,8 @@ import SwiftUI
 /// The field above the line filter that finds a station by name.
 struct StationSearchField: View {
     @Binding var query: String
-    /// Runs as the field takes the keyboard, so the panel can rise and give the results room.
-    var onFocus: () -> Void = {}
-    @FocusState private var focused: Bool
+    /// The map tab holds the focus: the field has the keyboard only while the panel is at full height.
+    var focused: FocusState<Bool>.Binding
 
     var body: some View {
         HStack(spacing: 6) {
@@ -19,10 +18,7 @@ struct StationSearchField: View {
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled()
             .submitLabel(.search)
-            .focused($focused)
-            .onChange(of: focused) { _, now in
-                if now { onFocus() }
-            }
+            .focused(focused)
             .frame(minHeight: 44)
             .accessibilityIdentifier(A11yID.Map.search)
             if !query.isEmpty {
@@ -81,8 +77,9 @@ struct StationResults: View {
 
 #Preview {
     @Previewable @State var query = "kai"
+    @Previewable @FocusState var focused: Bool
     VStack {
-        StationSearchField(query: $query)
+        StationSearchField(query: $query, focused: $focused)
             .padding(.horizontal)
         StationResults(names: ["Vilnius", "Kaišiadorys", "Kaunas"], query: query) { _ in }
     }
