@@ -67,7 +67,7 @@ final class StoreShotsJourney: JourneyCase {
         let board = BoardScreen(journey: journey)
         board.star()
         board.back()
-        journey.wait(for: journey.element(A11yID.Tabs.map), "the Map tab", on: "Tabs").tap()
+        journey.wait(for: journey.tab(.map), "the Map tab", on: "Tabs").tap()
         let map = MapScreen(journey: journey)
         map.expectLines()
         zoomToVilnius(journey)

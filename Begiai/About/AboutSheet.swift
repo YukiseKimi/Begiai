@@ -68,7 +68,7 @@ struct AboutSheet: View {
                     .speaksAsLink()
                     .accessibilityIdentifier(A11yID.About.source)
                     Text(.aboutSourceMap)
-                    NoticesLink()
+                    NoticesLink(font: .body)
                 } header: {
                     Text(.aboutSourcesTitle)
                 }
