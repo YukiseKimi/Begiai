@@ -34,6 +34,7 @@ Generated from `Begiai/A11yID.swift` by `script/test.sh a11y`. Do not edit.
 | `lineDiagram.frequency` | how often the trains of the chosen line leave | Line Diagram |
 | `lineDiagram.station` | each station on the line diagram | Line Diagram |
 | `lineDiagram.train` | each train on the line diagram | Line Diagram |
+| `lineDiagram.column` | the glass column that holds a train or station on a wide screen | Line Diagram |
 | `welcome.title` | the title of the welcome card that shows | Welcome |
 | `welcome.next` | the Next or Start button of the welcome sheet | Welcome |
 | `about.open` | the ⓘ button on the map | Map |

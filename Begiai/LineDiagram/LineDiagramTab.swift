@@ -11,18 +11,58 @@ struct LineDiagramTab: View {
     @AppStorage("lineDiagram.line") private var chosenName = ""
     @Query private var stars: [Star]
     @Environment(\.linePalette) private var palette
+    /// Regular on a wide screen such as the open iPhone Duo, where a page opens in a column.
+    @Environment(\.horizontalSizeClass) private var sizeClass
 
     var body: some View {
         if let engine = store.engine {
-            TimelineView(.periodic(from: .now, by: 1)) { _ in
-                content(engine: engine, now: time.now)
+            Group {
+                if #available(iOS 27.1, *), sizeClass == .regular {
+                    // On a wide screen the train or station opens in a column over the diagram's
+                    // trailing side, as the map's panel does.
+                    MapColumn(identifier: A11yID.LineDiagram.column, shows: selection != nil) { insets in
+                        diagram(engine: engine)
+                            .safeAreaPadding(.trailing, insets.trailing)
+                    } panel: {
+                        if let selection {
+                            DiagramSheet(engine: engine, selection: selection) { self.selection = nil }
+                                // A new train or station starts its page afresh, as a new sheet does.
+                                .id(selection)
+                        }
+                    }
+                } else {
+                    diagram(engine: engine)
+                }
             }
-            .sheet(item: $selection) { chosen in
+            // The sheet holds the page only on a narrow screen: a fold or an unfold moves the page
+            // between the sheet and the column, and the dismissed sheet does not close it.
+            .sheet(item: inSheet) { chosen in
                 DiagramSheet(engine: engine, selection: chosen) { selection = nil }
                     .presentationDetents([.medium, .large])
             }
         } else {
             TimetableUnavailable(state: store.state)
+        }
+    }
+
+    private func diagram(engine: MotionEngine) -> some View {
+        TimelineView(.periodic(from: .now, by: 1)) { _ in
+            content(engine: engine, now: time.now)
+        }
+    }
+
+    /// True where the page opens in a column rather than a sheet.
+    private var inColumn: Bool {
+        guard #available(iOS 27.1, *) else { return false }
+        return sizeClass == .regular
+    }
+
+    /// The selection, while a sheet shows it.
+    private var inSheet: Binding<DiagramSelection?> {
+        Binding {
+            inColumn ? nil : selection
+        } set: { chosen in
+            if !inColumn { selection = chosen }
         }
     }
 

@@ -39,6 +39,7 @@ enum A11yID {
         static let frequency = "lineDiagram.frequency"
         static let station = "lineDiagram.station"
         static let train = "lineDiagram.train"
+        static let column = "lineDiagram.column"
     }
 
     enum Timetable {
@@ -102,6 +103,7 @@ enum A11yID {
         Entry(id: LineDiagram.frequency, element: "how often the trains of the chosen line leave", screen: "Line Diagram"),
         Entry(id: LineDiagram.station, element: "each station on the line diagram", screen: "Line Diagram"),
         Entry(id: LineDiagram.train, element: "each train on the line diagram", screen: "Line Diagram"),
+        Entry(id: LineDiagram.column, element: "the glass column that holds a train or station on a wide screen", screen: "Line Diagram"),
         Entry(id: Welcome.title, element: "the title of the welcome card that shows", screen: "Welcome"),
         Entry(id: Welcome.next, element: "the Next or Start button of the welcome sheet", screen: "Welcome"),
         Entry(id: About.open, element: "the ⓘ button on the map", screen: "Map"),
