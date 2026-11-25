@@ -6,7 +6,9 @@ import UIKit
 
 extension Color {
     /// A line's colour from the palette: its light colour, or its dark colour in Dark Mode.
-    init(lineSlot slot: Int) {
+    /// Nonisolated: SwiftUI resolves the colour off the main thread, so a main-actor provider
+    /// (the default isolation of both targets) traps there.
+    nonisolated init(lineSlot slot: Int) {
         let light = LinePaletteRGB.light[slot % LinePaletteRGB.light.count]
         let dark = LinePaletteRGB.dark[slot % LinePaletteRGB.dark.count]
         self.init(
