@@ -17,6 +17,9 @@ struct StationHeader: View {
                 StarButton(name: name, starred: starred, toggle: toggleStar)
                     .accessibilityIdentifier(A11yID.Board.star)
             }
+            // The page's controls stop growing at the first accessibility size, so at the largest
+            // sizes they leave the panel to the station's name and its board.
+            .dynamicTypeSize(...DynamicTypeSize.accessibility1)
             Text(verbatim: name)
                 .font(.headline)
                 .accessibilityIdentifier(A11yID.Board.title)

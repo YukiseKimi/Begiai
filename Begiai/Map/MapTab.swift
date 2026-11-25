@@ -9,6 +9,7 @@ struct MapTab: View {
     @Binding var selection: PanelSelection?
     @Environment(\.timeSource) private var time
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.scenePhase) private var scenePhase
     @State private var trains = TrainsModel()
     @State private var lowPower = ProcessInfo.processInfo.isLowPowerModeEnabled
@@ -53,10 +54,14 @@ struct MapTab: View {
                         case nil:
                             VStack(spacing: 10) {
                                 if !settled.isEmpty {
+                                    // Capped, so at the largest sizes the header leaves the half panel room for lines.
                                     RunningHeader(count: settled.count)
+                                        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+                                        .padding(.horizontal)
                                 }
                                 // At night, with no trains, the field still finds a station's first trains.
                                 StationSearchField(query: $query, focused: $searchFocused)
+                                    .dynamicTypeSize(...DynamicTypeSize.accessibility2)
                                     .padding(.horizontal)
                                 // A Small panel keeps the count and the field; the filter needs room for the lines,
                                 // and goes while the field searches, as it filters lines, not stations.
@@ -123,6 +128,10 @@ struct MapTab: View {
         // The keyboard shows only with the panel at full height. A half panel shows two results above
         // it, and over the map iOS 27.3 loses taps on the right of those rows. So the field raises
         // the panel, and a lower panel, from a drag or a tap on the map, puts the keyboard away.
+        .onChange(of: selection) { _, selection in
+            // At the accessibility text sizes a page's fixed top is taller than a half panel.
+            if selection != nil, typeSize.isAccessibilitySize { panelHeight = .full }
+        }
         .onChange(of: searchFocused) { _, focused in
             if focused { panelHeight = .full }
         }

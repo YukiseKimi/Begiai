@@ -43,6 +43,9 @@ struct TrainPage: View {
                     .accessibilityIdentifier(A11yID.Train.follow)
                 }
             }
+            // The page's controls stop growing at the first accessibility size, so at the largest
+            // sizes they leave the panel to where the train goes and where it is.
+            .dynamicTypeSize(...DynamicTypeSize.accessibility1)
             if let timeline {
                 HStack(alignment: .top, spacing: 10) {
                     // The line's colour beside the title ties the page to the train on the map.
