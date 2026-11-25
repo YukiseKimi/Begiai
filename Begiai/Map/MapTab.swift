@@ -55,7 +55,8 @@ struct MapTab: View {
                                     RunningHeader(count: settled.count)
                                 }
                                 // At night, with no trains, the field still finds a station's first trains.
-                                StationSearchField(query: $query)
+                                // With the keyboard up, a half panel shows two results: the panel rises.
+                                StationSearchField(query: $query) { panelHeight = .full }
                                     .padding(.horizontal)
                                 // A Small panel keeps the count and the field; the filter needs room for the lines,
                                 // and goes while the field searches, as it filters lines, not stations.

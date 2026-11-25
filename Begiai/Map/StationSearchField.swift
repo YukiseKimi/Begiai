@@ -4,6 +4,9 @@ import SwiftUI
 /// The field above the line filter that finds a station by name.
 struct StationSearchField: View {
     @Binding var query: String
+    /// Runs as the field takes the keyboard, so the panel can rise and give the results room.
+    var onFocus: () -> Void = {}
+    @FocusState private var focused: Bool
 
     var body: some View {
         HStack(spacing: 6) {
@@ -16,6 +19,10 @@ struct StationSearchField: View {
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled()
             .submitLabel(.search)
+            .focused($focused)
+            .onChange(of: focused) { _, now in
+                if now { onFocus() }
+            }
             .frame(minHeight: 44)
             .accessibilityIdentifier(A11yID.Map.search)
             if !query.isEmpty {
