@@ -147,9 +147,8 @@ enum Trains {
             .init(name: "Kaunas", arrival: at(9, 22), departure: at(9, 22)),
         ])
 
-    /// 23:40 from S0, past midnight into S2 at 00:25, on the service day of 17 Nov: built
-    /// through the motion engine, as the app builds it.
-    static func overMidnight() throws -> FollowedTrain {
+    /// One trip, "night": 23:40 from S0, past midnight into S2 at 00:25, every day in 2026 and 2027.
+    static var nightTimetable: Timetable {
         let points = (0...2).map {
             ShapePoint(coordinate: Coordinate(latitude: 55, longitude: 24 + Double($0) * 0.4), metres: Double($0) * 25_000)
         }
@@ -158,14 +157,18 @@ enum Trains {
             TripStop(station: 1, arrival: 23 * 3600 + 58 * 60, departure: 24 * 3600, metres: 25_000),
             TripStop(station: 2, arrival: 24 * 3600 + 25 * 60, departure: 24 * 3600 + 25 * 60, metres: 50_000),
         ]
-        let timetable = Timetable(
+        return Timetable(
             feedDate: 20_261_117,
             stations: (0..<3).map { Station(name: "S\($0)", coordinate: points[$0].coordinate) },
             lines: [Line(name: "S0 – S2", ends: [0, 2], international: false)],
             shapes: [Shape(points: points)],
             trips: [Trip(id: "night", code: "9", line: 0, shape: 0, service: 0, stops: stops)],
             services: [Service(weekdays: "1111111", start: 20_260_101, end: 20_271_231, added: [], removed: [])])
-        let engine = MotionEngine(timetable: timetable)
+    }
+
+    /// The night train of 17 Nov, built through the motion engine, as the app builds it.
+    static func overMidnight() throws -> FollowedTrain {
+        let engine = MotionEngine(timetable: nightTimetable)
         let day = ServiceDate(year: 2026, month: 11, day: 17)
         let state = try #require(engine.state(of: RunningTrip(trip: 0, day: day, seconds: 23 * 3600 + 45 * 60)))
         return FollowedTrain(timeline: engine.timeline(of: state), trip: "night", day: day, line: "S0 – S2", colour: 0)

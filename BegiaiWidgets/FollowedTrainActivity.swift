@@ -11,6 +11,7 @@ struct FollowedTrainActivity: Widget {
         ActivityConfiguration(for: FollowedTrain.self) { context in
             LockScreenView(facts: TrainFacts(context))
                 .activitySystemActionForegroundColor(.secondary)
+                .widgetURL(context.attributes.link?.url)
         } dynamicIsland: { context in
             let facts = TrainFacts(context)
             return DynamicIsland {
@@ -45,6 +46,7 @@ struct FollowedTrainActivity: Widget {
                 MinimalJourney(facts: facts)
             }
             .keylineTint(facts.colour)
+            .widgetURL(context.attributes.link?.url)
         }
     }
 }

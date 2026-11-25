@@ -14,6 +14,7 @@ enum A11yID {
         static let stationChip = "map.stationChip"
         static let search = "map.search"
         static let searchResult = "map.searchResult"
+        static let trainGone = "map.trainGone"
     }
 
     enum Train {
@@ -101,6 +102,7 @@ enum A11yID {
         Entry(id: Map.stationChip, element: "the station button over a chosen train that stands at a station", screen: "Map"),
         Entry(id: Map.search, element: "the field that finds a station, above the line filter", screen: "Map"),
         Entry(id: Map.searchResult, element: "each station found by the search field", screen: "Map"),
+        Entry(id: Map.trainGone, element: "the note that a linked train has finished its trip", screen: "Map"),
         Entry(id: Board.title, element: "the station name on its board", screen: "Board"),
         Entry(id: Board.back, element: "the Lines button on a station board, or its Close button in a sheet", screen: "Board"),
         Entry(id: Board.row, element: "each departure on a station board", screen: "Board"),

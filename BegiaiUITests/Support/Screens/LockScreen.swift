@@ -44,6 +44,14 @@ struct LockScreen {
             file: file, line: line)
     }
 
+    /// Taps the Live Activity, which opens the app on its train.
+    func openActivity(file: StaticString = #filePath, line: UInt = #line) {
+        journey.wait(for: titles.firstMatch, "the Live Activity", on: "Lock Screen", file: file, line: line).tap()
+        XCTAssertTrue(
+            journey.app.wait(for: .runningForeground, timeout: 10), "Lock Screen: a tap on the Live Activity did not open the app",
+            file: file, line: line)
+    }
+
     /// Ends every Live Activity of the app: a sealed launch with --reset does, then the app quits.
     static func endActivities() {
         let journey = JourneyApp()
