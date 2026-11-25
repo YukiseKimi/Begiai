@@ -1,9 +1,8 @@
 import XCTest
 
-final class TrainJourney: XCTestCase {
+final class TrainJourney: JourneyCase {
     @MainActor
     func testATappedTrainOpensItsOwnPage() {
-        continueAfterFailure = false
         let journey = JourneyApp()
         journey.launch(.map)
         let map = MapScreen(journey: journey)
@@ -14,23 +13,19 @@ final class TrainJourney: XCTestCase {
         train.expectWhereTheTrainIs()
         train.back()
         map.expectLines()
-        journey.holdLastScreen()
     }
 
     @MainActor
     func testWhereTheTrainIsOpensThatStationsBoard() {
-        continueAfterFailure = false
         let journey = JourneyApp()
         journey.launch(.map)
         _ = MapScreen(journey: journey).openFirstTrain()
         let station = TrainScreen(journey: journey).openPlace()
         BoardScreen(journey: journey).expectBoard(of: station)
-        journey.holdLastScreen()
     }
 
     @MainActor
-    func testATrainAtAStationLeadsToTheStation() throws {
-        continueAfterFailure = false
+    func testATrainAtAStationLeadsToTheStation() {
         let journey = JourneyApp()
         journey.launch(.map)
         let map = MapScreen(journey: journey)
@@ -40,12 +35,10 @@ final class TrainJourney: XCTestCase {
         }
         map.openStationChip(station)
         BoardScreen(journey: journey).expectBoard(of: station)
-        journey.holdLastScreen()
     }
 
     @MainActor
     func testATapOnTheMapClosesThePageThenLowersThePanel() {
-        continueAfterFailure = false
         let journey = JourneyApp()
         journey.launch(.map)
         let map = MapScreen(journey: journey)
@@ -57,6 +50,5 @@ final class TrainJourney: XCTestCase {
         map.expectPanel("Half")
         map.tapOutsideThePanel()
         map.expectPanel("Small")
-        journey.holdLastScreen()
     }
 }

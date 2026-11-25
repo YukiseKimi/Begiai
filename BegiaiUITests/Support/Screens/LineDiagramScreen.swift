@@ -6,7 +6,7 @@ struct LineDiagramScreen {
 
     func open(file: StaticString = #filePath, line: UInt = #line) {
         let tab = journey.wait(
-            for: journey.app.tabBars.buttons.element(boundBy: 1), "the Line Diagram tab", on: "Tabs", file: file, line: line)
+            for: journey.element(A11yID.Tabs.lineDiagram), "the Line Diagram tab", on: "Tabs", file: file, line: line)
         tab.tap()
         journey.wait(for: journey.element(A11yID.LineDiagram.page), "the name of the line", on: "Line Diagram", file: file, line: line)
     }

@@ -1,9 +1,8 @@
 import XCTest
 
-final class LocateJourney: XCTestCase {
+final class LocateJourney: JourneyCase {
     @MainActor
     func testLocationIsAskedOnlyAfterATapOnLocate() {
-        continueAfterFailure = false
         let journey = JourneyApp()
         journey.app.resetAuthorizationStatus(for: .location)
         journey.launch(.map)
@@ -12,6 +11,5 @@ final class LocateJourney: XCTestCase {
         map.expectNoLocationPrompt()
         map.tapLocate()
         map.expectLocationPrompt()
-        journey.holdLastScreen()
     }
 }

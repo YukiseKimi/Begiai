@@ -20,9 +20,11 @@ struct RootView: View {
             Tab(.tabMap, systemImage: "map") {
                 MapTab(store: store, selection: $mapSelection)
             }
+            .accessibilityIdentifier(A11yID.Tabs.map)
             Tab(.tabLineDiagram, systemImage: "point.topleft.down.to.point.bottomright.curvepath") {
                 LineDiagramTab(store: store, selection: $diagramSelection)
             }
+            .accessibilityIdentifier(A11yID.Tabs.lineDiagram)
         }
         .environment(\.linePalette, LinePalette(slots: store.lineColours))
         .modifier(MarkerStyleReader())

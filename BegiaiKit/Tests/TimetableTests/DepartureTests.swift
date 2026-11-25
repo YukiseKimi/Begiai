@@ -7,11 +7,10 @@ import Testing
 struct DepartureTests {
     let engine = MotionEngine(timetable: ThreeStops.timetable)
 
-    @Test func aBoardListsOnlyTrainsThatHaveNotLeft() {
+    @Test func aBoardListsOnlyTrainsThatHaveNotLeft() throws {
         let afterFirst = ThreeStops.day.timetableZero.addingTimeInterval(8 * 3600 + 11 * 60)
-        #expect(engine.departures(from: 1, at: afterFirst).first?.time != nil)
-        let beforeNext = engine.departures(from: 1, at: afterFirst).first?.time ?? .distantPast
-        #expect(beforeNext > afterFirst)
+        let next = try #require(engine.departures(from: 1, at: afterFirst).first)
+        #expect(next.time > afterFirst)
     }
 
     @Test func theFirstStationSaysStartsHereAndTheLastHasNoDepartures() {

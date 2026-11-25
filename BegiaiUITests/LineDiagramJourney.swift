@@ -1,9 +1,8 @@
 import XCTest
 
-final class LineDiagramJourney: XCTestCase {
+final class LineDiagramJourney: JourneyCase {
     @MainActor
     func testAtTheLargestTextSizeTheTrainsStayApart() {
-        continueAfterFailure = false
         let journey = JourneyApp()
         journey.launch(.map, largeText: true)
 
@@ -11,24 +10,21 @@ final class LineDiagramJourney: XCTestCase {
         diagram.open()
         diagram.expectALineWithItsTrains()
         diagram.expectTrainsApart()
-        journey.holdLastScreen()
     }
 
     @MainActor
-    func testTheDiagramShowsATrainBetweenTwoStations() {
-        continueAfterFailure = false
+    func testAtTheDefaultTextSizeTheTrainsStayApart() {
         let journey = JourneyApp()
         journey.launch(.map)
 
         let diagram = LineDiagramScreen(journey: journey)
         diagram.open()
         diagram.expectALineWithItsTrains()
-        journey.holdLastScreen()
+        diagram.expectTrainsApart()
     }
 
     @MainActor
     func testTheTabOpensOnTheLastLineSeen() {
-        continueAfterFailure = false
         let journey = JourneyApp()
         journey.launch(.map)
 
@@ -38,12 +34,10 @@ final class LineDiagramJourney: XCTestCase {
         journey.relaunch(.map)
         diagram.open()
         diagram.expectLine(chosen)
-        journey.holdLastScreen()
     }
 
     @MainActor
     func testATapOpensTheTrainPageAndTheStationBoard() {
-        continueAfterFailure = false
         let journey = JourneyApp()
         journey.launch(.map)
 
@@ -60,12 +54,10 @@ final class LineDiagramJourney: XCTestCase {
         board.expectBoard(of: station)
         // The first station of the busiest line, at 17:55 in Vilnius.
         board.expectMinutesWithinTheHour(now: (17, 55), busy: true)
-        journey.holdLastScreen()
     }
 
     @MainActor
     func testATapOutsideTheSheetClosesIt() {
-        continueAfterFailure = false
         let journey = JourneyApp()
         journey.launch(.map)
 
@@ -75,6 +67,5 @@ final class LineDiagramJourney: XCTestCase {
         TrainScreen(journey: journey).expectTrain(to: destination)
         diagram.tapAboveTheSheet()
         diagram.expectTheSheetClosed()
-        journey.holdLastScreen()
     }
 }

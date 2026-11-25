@@ -62,7 +62,11 @@ struct BundleBuilderTests {
         let feed = try SmallFeed(trips: [
             .init(id: "90_alone", stops: [("A", "08:00:00")])
         ]).write()
-        #expect(throws: BundleError.self) { try BundleBuilder().build(feed: feed, feedDate: 20_261_117) }
+        let error = #expect(throws: BundleError.self) { try BundleBuilder().build(feed: feed, feedDate: 20_261_117) }
+        guard case .noTrips = error else {
+            Issue.record("the build failed with \(error.map(String.init(describing:)) ?? "no error"), not noTrips")
+            return
+        }
     }
 
     @Test func aStopWithNoTimesIsLeftOutInsteadOfFailingTheBundle() throws {
@@ -79,7 +83,11 @@ struct BundleBuilderTests {
         ]).write()
         try FileManager.default.removeItem(at: feed.appending(path: "calendar.txt"))
         try FileManager.default.removeItem(at: feed.appending(path: "calendar_dates.txt"))
-        #expect(throws: BundleError.self) { try BundleBuilder().build(feed: feed, feedDate: 20_261_117) }
+        let error = #expect(throws: BundleError.self) { try BundleBuilder().build(feed: feed, feedDate: 20_261_117) }
+        guard case .noCalendar = error else {
+            Issue.record("the build failed with \(error.map(String.init(describing:)) ?? "no error"), not noCalendar")
+            return
+        }
     }
 
     @Test func aSectionFasterThan160KilometresAnHourIsFlagged() throws {
