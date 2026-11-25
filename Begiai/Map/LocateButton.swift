@@ -27,6 +27,8 @@ struct LocateButton: View {
             Image(systemName: position.followsUserLocation ? "location.fill" : "location")
                 .font(.title3)
                 .frame(width: size, height: size)
+                // A plain button takes taps only on the symbol: the whole circle takes them.
+                .contentShape(.circle)
         }
         .buttonStyle(.plain)
         .glassEffect(in: .circle)

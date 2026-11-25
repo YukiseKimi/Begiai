@@ -14,6 +14,8 @@ struct AboutButton: View {
             Image(systemName: "info")
                 .font(.title3)
                 .frame(width: size, height: size)
+                // A plain button takes taps only on the symbol: the whole circle takes them.
+                .contentShape(.circle)
         }
         .buttonStyle(.plain)
         .glassEffect(in: .circle)
@@ -63,6 +65,7 @@ struct AboutSheet: View {
                     Link(destination: Self.gtfs) {
                         Text(.aboutSourceTimetable)
                     }
+                    .speaksAsLink()
                     .accessibilityIdentifier(A11yID.About.source)
                     Text(.aboutSourceMap)
                     NoticesLink()
