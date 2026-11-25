@@ -63,4 +63,20 @@ final class DuoJourney: JourneyCase {
         BoardScreen(journey: journey).expectBoard(of: station)
         column.expectHolds(A11yID.Board.title, "the station's name")
     }
+
+    /// As a tap on the map closes the map's page, a tap on the diagram closes its column.
+    @MainActor
+    func testATapOnTheDiagramClosesTheColumn() throws {
+        let (journey, _) = try launchWide()
+        let diagram = LineDiagramScreen(journey: journey)
+        diagram.open()
+        let destination = diagram.openATrain()
+        TrainScreen(journey: journey).expectTrain(to: destination)
+        let column = ColumnScreen(journey: journey, identifier: A11yID.LineDiagram.column)
+        column.expectOnTheRight()
+        diagram.tapTheDiagramBeside(column.element.frame.minX)
+        column.expectGone()
+        diagram.expectTheSheetClosed()
+        diagram.expectALineWithItsTrains()
+    }
 }

@@ -62,7 +62,7 @@ final class LineDiagramJourney: JourneyCase {
         journey.launch(.map)
         try XCTSkipIf(
             MapScreen(journey: journey).hasColumn(),
-            "Duo: a train opens in a column beside the diagram, not in a sheet; its Close button closes it")
+            "Duo: a train opens in a column, not a sheet; DuoJourney checks that a tap on the diagram closes the column")
 
         let diagram = LineDiagramScreen(journey: journey)
         diagram.open()

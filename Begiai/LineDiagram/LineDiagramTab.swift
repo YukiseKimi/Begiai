@@ -109,6 +109,10 @@ struct LineDiagramTab: View {
                         trains: trains.compactMap { train in diagram.place(of: train).map { (train, $0) } }
                     ) { selection = $0 }
                 }
+                // A tap on the diagram away from its trains and stations closes the column, as a
+                // tap on the map closes the map's page. A sheet closes on such a tap by itself.
+                .contentShape(.rect)
+                .gesture(TapGesture().onEnded { selection = nil }, isEnabled: inColumn && selection != nil)
             } else {
                 ContentUnavailableView(.diagramNoLines, systemImage: "tram")
             }
