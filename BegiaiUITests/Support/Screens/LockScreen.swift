@@ -12,11 +12,16 @@ struct LockScreen {
         springboard.descendants(matching: .any).matching(identifier: A11yID.LiveActivity.title)
     }
 
-    /// Leaves the app and pulls down the Notification Centre.
+    /// Leaves the app and pulls down the Notification Centre, from the top left of the screen.
+    /// Measured in a window's frame, as the elements are: on the open iPhone Duo, held wide, the
+    /// springboard's own frame is 466 × 678 points, so a spot worked out from it lands elsewhere.
     func open(file: StaticString = #filePath, line: UInt = #line) {
         XCUIDevice.shared.press(.home)
-        let top = springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.2, dy: 0.005))
-        top.press(forDuration: 0.1, thenDragTo: springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.2, dy: 0.7)))
+        let window = springboard.windows.firstMatch
+        journey.wait(for: window, "the Home Screen", on: "Lock Screen", file: file, line: line)
+        let size = window.frame.size
+        let top = window.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: size.width * 0.2, dy: 1))
+        top.press(forDuration: 0.1, thenDragTo: top.withOffset(CGVector(dx: 0, dy: size.height * 0.7)))
         // iOS 27 names the list of the Notification Centre; iOS 26 only its window.
         let centre = springboard.descendants(matching: .any)
             .matching(NSPredicate(format: "identifier IN %@", ["combined-list-view", "SBCoverSheetWindow"])).firstMatch
