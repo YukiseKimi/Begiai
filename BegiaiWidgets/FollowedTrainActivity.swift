@@ -23,7 +23,7 @@ struct FollowedTrainActivity: Widget {
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     VStack(spacing: 8) {
-                        JourneyBar(train: facts.train, passed: facts.passed, standing: facts.standing, colour: facts.colour)
+                        JourneyBar(runs: facts.train.deviceRuns, passed: facts.passed, standing: facts.standing, colour: facts.colour)
                         HStack(spacing: 8) {
                             ScheduledLabel()
                             Spacer(minLength: 0)
@@ -111,7 +111,7 @@ private struct LockScreenView: View {
                 Spacer(minLength: 8)
                 ScheduledLabel()
             }
-            JourneyBar(train: facts.train, passed: facts.passed, standing: facts.standing, colour: facts.colour)
+            JourneyBar(runs: facts.train.deviceRuns, passed: facts.passed, standing: facts.standing, colour: facts.colour)
             HStack(alignment: .firstTextBaseline) {
                 NextLine(facts: facts)
                     .font(.subheadline.weight(.medium))

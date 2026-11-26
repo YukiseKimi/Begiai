@@ -109,6 +109,12 @@ extension FollowedTrain {
     /// a part of the bar by the time it lasts, but at least `minimumShare` of it, so that
     /// stops a short run apart keep their dots apart.
     public func stopFractions(minimumShare: Double = 0) -> [Double] {
+        Self.stopFractions(of: runs, minimumShare: minimumShare)
+    }
+
+    /// Where each stop sits on the journey bar of these runs, as `stopFractions(minimumShare:)`
+    /// says. The runs may be on either clock, as only their lengths count.
+    public static func stopFractions(of runs: [ClosedRange<Date>], minimumShare: Double = 0) -> [Double] {
         let durations = runs.map { $0.upperBound.timeIntervalSince($0.lowerBound) }
         let total = durations.reduce(0, +)
         let share = min(max(minimumShare, 0), 1 / Double(durations.count))
@@ -124,6 +130,11 @@ extension FollowedTrain {
 extension FollowedTrain {
     /// The device time of a time on the train's clock, for the timers of the Live Activity.
     public func deviceDate(_ date: Date) -> Date { date.addingTimeInterval(shift) }
+
+    /// Each run between two stops, on the device clock, for the journey bar's timers.
+    public var deviceRuns: [ClosedRange<Date>] {
+        runs.map { deviceDate($0.lowerBound)...deviceDate($0.upperBound) }
+    }
 
     /// The train's time at a device time.
     public func trainDate(_ device: Date) -> Date { device.addingTimeInterval(-shift) }

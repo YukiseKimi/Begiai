@@ -87,6 +87,8 @@ struct FollowedTrainTests {
         let shifted = train.shifted(by: device.timeIntervalSince(Trains.at(8, 20)))
         #expect(shifted.status(at: device).place == .leaving(0))
         #expect(shifted.staleDate == Trains.at(15, 2))
+        #expect(shifted.deviceRuns == [Trains.at(13, 40)...Trains.at(14, 28), Trains.at(14, 30)...Trains.at(15, 2)])
+        #expect(FollowedTrain.stopFractions(of: shifted.deviceRuns) == train.stopFractions())
         #expect(shifted.nextChange(after: device) == Trains.at(14, 28))
         #expect(!shifted.hasArrived(at: Trains.at(15, 1)))
         #expect(shifted.hasArrived(at: Trains.at(15, 2)))

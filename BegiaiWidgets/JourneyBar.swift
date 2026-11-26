@@ -5,7 +5,8 @@ import SwiftUI
 /// has left it, and between each two dots a bar that fills by itself from the departure to
 /// the next arrival, so it moves on with no update from the app.
 struct JourneyBar: View {
-    let train: FollowedTrain
+    /// Each run between two stops, on the device clock.
+    let runs: [ClosedRange<Date>]
     let passed: Int
     /// The stop the train stands at, which gets a ring around its dot.
     let standing: Int?
@@ -14,54 +15,90 @@ struct JourneyBar: View {
     private static let height = 12.0
 
     var body: some View {
+        // A Live Activity is laid out by the system, so the bar measures itself here.
         GeometryReader { proxy in
-            let dot = min(Self.height - 2, proxy.size.width / Double(train.stops.count * 3))
-            let gap = max(1, dot / 4)
-            let span = proxy.size.width - dot
-            let fractions = train.stopFractions(minimumShare: Double(dot + 2 * gap + 2) / max(span, 1))
-            let runs = train.runs
+            let marks = JourneyMarks(
+                runs: runs, passed: passed, standing: standing, width: proxy.size.width, height: Self.height)
             ZStack(alignment: .leading) {
-                ForEach(runs.indices, id: \.self) { k in
-                    let from = fractions[k] * span + dot + gap
-                    let width = max(0, (fractions[k + 1] - fractions[k]) * span - dot - 2 * gap)
-                    ProgressView(
-                        timerInterval: train.deviceDate(runs[k].lowerBound)...train.deviceDate(runs[k].upperBound),
-                        countsDown: false
-                    ) {
-                        EmptyView()
-                    } currentValueLabel: {
-                        EmptyView()
-                    }
-                    .progressViewStyle(.linear)
-                    .labelsHidden()
-                    .tint(colour)
-                    .frame(width: width)
-                    .offset(x: from)
-                }
-                ForEach(train.stops.indices, id: \.self) { k in
-                    StopDot(colour: colour, passed: k < passed, standing: k == standing)
-                        .frame(width: dot, height: dot)
-                        .offset(x: fractions[k] * span)
-                }
+                ForEach(marks.runs) { RunBar(mark: $0) }
+                ForEach(marks.stops) { StopDot(mark: $0) }
             }
             .frame(maxHeight: .infinity)
         }
         .frame(height: Self.height)
+        .tint(colour)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(.activityStopsPassed(passed: passed, total: train.stops.count)))
+        .accessibilityLabel(Text(.activityStopsPassed(passed: passed, total: runs.count + 1)))
         .accessibilityIdentifier(A11yID.LiveActivity.bar)
     }
 }
 
+/// Where each stop's dot and each run's bar sit on a bar `width` wide. A stop's place in the
+/// train's list is its identity: the stops of a followed train never change.
+struct JourneyMarks {
+    struct Run: Identifiable {
+        let id: Int
+        let interval: ClosedRange<Date>
+        let x: Double
+        let width: Double
+    }
+
+    struct Stop: Identifiable {
+        let id: Int
+        let x: Double
+        let size: Double
+        let filled: Bool
+        let ringed: Bool
+    }
+
+    let runs: [Run]
+    let stops: [Stop]
+
+    init(runs intervals: [ClosedRange<Date>], passed: Int, standing: Int?, width: Double, height: Double) {
+        let count = intervals.count + 1
+        let dot = min(height - 2, width / Double(count * 3))
+        let gap = max(1, dot / 4)
+        let span = width - dot
+        let fractions = FollowedTrain.stopFractions(of: intervals, minimumShare: (dot + 2 * gap + 2) / max(span, 1))
+        runs = intervals.indices.map { k in
+            Run(
+                id: k, interval: intervals[k], x: fractions[k] * span + dot + gap,
+                width: max(0, (fractions[k + 1] - fractions[k]) * span - dot - 2 * gap))
+        }
+        stops = (0..<count).map { k in
+            Stop(id: k, x: fractions[k] * span, size: dot, filled: k < passed || k == standing, ringed: k == standing)
+        }
+    }
+}
+
+/// The bar between two stops, which fills by itself over the run.
+private struct RunBar: View {
+    let mark: JourneyMarks.Run
+
+    var body: some View {
+        ProgressView(timerInterval: mark.interval, countsDown: false) {
+            EmptyView()
+        } currentValueLabel: {
+            EmptyView()
+        }
+        .progressViewStyle(.linear)
+        .labelsHidden()
+        .frame(width: mark.width)
+        .offset(x: mark.x)
+    }
+}
+
+/// A stop's dot in the bar's tint: filled once the train has left the stop, with a ring
+/// while it stands there.
 private struct StopDot: View {
-    let colour: Color
-    let passed: Bool
-    let standing: Bool
+    let mark: JourneyMarks.Stop
 
     var body: some View {
         Circle()
-            .strokeBorder(colour, lineWidth: 2)
-            .background(Circle().fill(passed || standing ? colour : .clear))
-            .padding(standing ? -2 : 0)
+            .strokeBorder(.tint, lineWidth: 2)
+            .background(mark.filled ? AnyShapeStyle(.tint) : AnyShapeStyle(.clear), in: .circle)
+            .padding(mark.ringed ? -2 : 0)
+            .frame(width: mark.size, height: mark.size)
+            .offset(x: mark.x)
     }
 }
