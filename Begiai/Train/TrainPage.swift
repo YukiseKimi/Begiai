@@ -92,6 +92,8 @@ private struct FollowButton: View {
                 // As in Maps: filled while the map keeps the train in the middle, an outline when not.
                 Image(systemName: state == .following ? "location.fill" : "location")
             }
+            // The capsule takes the colour; the words and the arrow take a colour that reads on it.
+            .foregroundStyle(state.isFollowed ? AnyShapeStyle(LineLabelStyle(line: color)) : AnyShapeStyle(.primary))
         }
         .buttonStyle(.bordered)
         // The line's colour while the train is followed, also once the map was moved away.

@@ -31,6 +31,21 @@ extension EnvironmentValues {
     @Entry var linePalette = LinePalette()
 }
 
+/// Text and symbols in a line's colour on a button that the same colour tints: darker in the
+/// light look and lighter in the dark look where the colour alone is too faint to read, by
+/// BegiaiKit's `LineLabel`. With Increase Contrast it reads at 7:1 instead of 4.5:1.
+struct LineLabelStyle: ShapeStyle {
+    let line: Color
+
+    func resolve(in environment: EnvironmentValues) -> Color {
+        let colour = line.resolve(in: environment)
+        let label = LineLabel.colour(
+            for: (Double(colour.red), Double(colour.green), Double(colour.blue)), dark: environment.colorScheme == .dark,
+            contrast: environment.colorSchemeContrast == .increased ? 7 : 4.5)
+        return Color(red: label.red, green: label.green, blue: label.blue)
+    }
+}
+
 /// Text on a line colour: white or black, whichever has more contrast on that colour in the
 /// current appearance. The dark set has light colours, such as yellow, where white is lost.
 struct ReadableText: ShapeStyle {
