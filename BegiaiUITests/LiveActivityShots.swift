@@ -6,12 +6,13 @@ import XCTest
 /// `TEST_RUNNER_BEGIAI_ACTIVITY_SHOTS=<folder> script/test.sh journey LiveActivityShots`.
 /// The activity takes the simulator's language; `TEST_RUNNER_BEGIAI_ACTIVITY_LOCALE=lt_LT` runs
 /// the app in it too, as on a Lithuanian iPhone. `TEST_RUNNER_BEGIAI_ACTIVITY_TO=Klaipėda` follows
-/// a train to that station, and `TEST_RUNNER_BEGIAI_ACTIVITY_NOW` sets the sealed time: at
-/// 2026-11-17T17:45:00Z, Klaipėda is over three hours away and Panevėžys 24 minutes.
+/// a train to that station, or to the first of `Panevėžys|Kybartai` that a tap opens, and
+/// `TEST_RUNNER_BEGIAI_ACTIVITY_NOW` sets the sealed time: at 2026-11-17T17:45:00Z, Klaipėda is
+/// over an hour away, and Panevėžys, Kybartai and Turmantas under half an hour.
 final class LiveActivityShots: JourneyCase {
     private var folder: URL!
     private var locale: String?
-    private var destination: String?
+    private var destinations: [String] = []
     private var now = JourneyApp.sealedNow
 
     override func setUpWithError() throws {
@@ -22,7 +23,7 @@ final class LiveActivityShots: JourneyCase {
         folder = URL(filePath: path, directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         locale = environment["BEGIAI_ACTIVITY_LOCALE"].flatMap { $0.isEmpty ? nil : $0 }
-        destination = environment["BEGIAI_ACTIVITY_TO"].flatMap { $0.isEmpty ? nil : $0 }
+        destinations = (environment["BEGIAI_ACTIVITY_TO"] ?? "").split(separator: "|").map(String.init)
         now = environment["BEGIAI_ACTIVITY_NOW"].flatMap { $0.isEmpty ? nil : $0 } ?? now
     }
 
@@ -33,7 +34,7 @@ final class LiveActivityShots: JourneyCase {
     func testShots() {
         let journey = JourneyApp(locale: locale)
         journey.launch(.map, at: now)
-        MapScreen(journey: journey).tapFirstTrain(to: destination)
+        MapScreen(journey: journey).openFirstTrain(to: destinations)
         let follow = journey.wait(for: journey.element(A11yID.Train.follow), "the Follow button", on: "Train")
         follow.tap()
         // Starting the activity takes a moment.

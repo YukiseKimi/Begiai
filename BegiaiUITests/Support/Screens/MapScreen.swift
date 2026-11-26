@@ -46,28 +46,51 @@ struct MapScreen {
         return open(train, file: file, line: line)
     }
 
-    /// Taps the first train above the panel, or the first to `destination`, for the shots. A
-    /// station's name is the same in each language, so this works in any language. Few trains
-    /// to one station are clear of every station marker, so one to `destination` need not be.
-    func tapFirstTrain(to destination: String? = nil, file: StaticString = #filePath, line: UInt = #line) {
-        let train: XCUIElement?
-        if let destination {
-            journey.wait(for: journey.element(A11yID.Map.train), "a train", on: "Map", file: file, line: line)
-            let sight = mapInSight
-            train = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
-                .first {
-                    // “Train to Kaunas, scheduled”, “Traukinys į stotį Kaunas, pagal tvarkaraštį”.
-                    $0.label.contains("\(destination),") && $0.isHittable && sight.contains(centre(of: $0.frame))
-                        && ($0.value as? String) != Self.standing
-                }
-        } else {
-            train = movingTrainsAboveThePanel(file: file, line: line).first
-        }
-        guard let train else {
-            XCTFail("Map: no train to \(destination ?? "anywhere") shows above the panel", file: file, line: line)
+    /// Opens the first train above the panel, or the first to one of `destinations`, in order,
+    /// for the shots. A station's name is the same in each language, so this works in any
+    /// language. A tap on the centre of a train at a station opens the station, so where that
+    /// happens it goes back and taps the train beyond the station's ring, above, below or to a
+    /// side. A tap beside the train can open a train next to it, so the page's route must end
+    /// at the station; a train that another marker covers is left for the next.
+    func openFirstTrain(to destinations: [String], file: StaticString = #filePath, line: UInt = #line) {
+        guard !destinations.isEmpty else {
+            movingTrainsAboveThePanel(file: file, line: line).first?.tap()
             return
         }
-        train.tap()
+        journey.wait(for: journey.element(A11yID.Map.train), "a train", on: "Map", file: file, line: line)
+        let sight = mapInSight
+        // A name can come through the environment with its letters decomposed, “e” and “˙”.
+        let names = destinations.map(\.precomposedStringWithCanonicalMapping)
+        let title = journey.element(A11yID.Train.title)
+        // The trains move on, so a train covered now may be clear a few seconds later.
+        for _ in 0..<4 {
+            let all = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
+            // “Train to Kaunas, scheduled”, “Traukinys į stotį Kaunas, pagal tvarkaraštį”.
+            let trains = names.flatMap { name in
+                all.filter {
+                    $0.label.precomposedStringWithCanonicalMapping.contains(name + ",") && $0.isHittable
+                        && sight.contains(centre(of: $0.frame))
+                }
+                .map { (name, $0.frame) }
+            }
+            for (name, train) in trains {
+                let reach = train.height * 0.38
+                let spots = [(0, 0), (0, reach), (0, -reach), (reach, 0), (-reach, 0)]
+                    .map { CGPoint(x: train.midX + $0.0, y: train.midY + $0.1) }
+                for spot in spots {
+                    journey.spot(spot).tap()
+                    if title.waitForExistence(timeout: 3) {
+                        if title.label.precomposedStringWithCanonicalMapping.hasSuffix(name) { return }
+                        TrainScreen(journey: journey).back(file: file, line: line)
+                        _ = title.waitForNonExistence(timeout: 3)
+                    }
+                    let board = journey.element(A11yID.Board.back)
+                    if board.exists { board.tap() }
+                }
+            }
+            _ = XCTWaiter.wait(for: [XCTestExpectation(description: "move")], timeout: 5)
+        }
+        XCTFail("Map: no train to \(destinations.formatted()) opens from above the panel", file: file, line: line)
     }
 
     /// Opens the first train whose page has another route than `route` (“Vilnius → Kaunas”),
