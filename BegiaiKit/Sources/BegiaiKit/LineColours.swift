@@ -22,7 +22,7 @@ extension Timetable {
             }!
             let used = neighbours[next].map { colour[$0] }.filter { $0 >= 0 }
             colour[next] = (0..<count).min { a, b in
-                (used.filter { $0 == a }.count, a) < (used.filter { $0 == b }.count, b)
+                (used.count { $0 == a }, a) < (used.count { $0 == b }, b)
             }!
         }
         return colour

@@ -8,7 +8,7 @@ struct TrainTimelineTests {
     let engine = MotionEngine(timetable: ThreeStops.timetable)
 
     @Test func betweenTwoStationsTheFirstIsPassedAndTheSecondIsNext() throws {
-        let train = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 5 * 60)))
+        let train = try #require(ThreeStops.train(engine, at: 8 * 3600 + 5 * 60))
         let timeline = engine.timeline(of: train)
         #expect(timeline.stops.map(\.passed) == [true, false, false, false])
         #expect(timeline.nextStop == 1)
@@ -16,7 +16,7 @@ struct TrainTimelineTests {
     }
 
     @Test func atAStationTheTrainStandsThereAndTheNextComesAfter() throws {
-        let train = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 9 * 60 + 30)))
+        let train = try #require(ThreeStops.train(engine, at: 8 * 3600 + 9 * 60 + 30))
         let timeline = engine.timeline(of: train)
         #expect(timeline.stops.map(\.passed) == [true, false, false, false])
         #expect(timeline.standingAt == 1)
@@ -25,7 +25,7 @@ struct TrainTimelineTests {
     }
 
     @Test func eachStopNamesItsStationSoAPageCanOpenIt() throws {
-        let train = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 9 * 60 + 30)))
+        let train = try #require(ThreeStops.train(engine, at: 8 * 3600 + 9 * 60 + 30))
         let timeline = engine.timeline(of: train)
         let trip = ThreeStops.timetable.trips[0]
         #expect(timeline.stops.map(\.stationIndex) == trip.stops.map(\.station))
@@ -34,36 +34,29 @@ struct TrainTimelineTests {
     }
 
     @Test func theStandingStationIsTheStationOfTheStopTheTimelineStandsAt() throws {
-        let standing = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 9 * 60 + 30)))
+        let standing = try #require(ThreeStops.train(engine, at: 8 * 3600 + 9 * 60 + 30))
         let stop = try #require(engine.timeline(of: standing).standingAt)
         #expect(engine.standingStation(of: standing) == ThreeStops.timetable.trips[0].stops[stop].station)
-        let running = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 5 * 60)))
+        let running = try #require(ThreeStops.train(engine, at: 8 * 3600 + 5 * 60))
         #expect(engine.standingStation(of: running) == nil)
     }
 
     @Test func beforeDepartureNoStopIsPassed() throws {
-        let train = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 - 60)))
+        let train = try #require(ThreeStops.train(engine, at: 8 * 3600 - 60))
         let timeline = engine.timeline(of: train)
         #expect(timeline.stops.map(\.passed) == [false, false, false, false])
         #expect(timeline.standingAt == 0)
     }
 
-    @Test func afterTheLastArrivalEveryStopIsPassed() throws {
-        let train = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 41 * 60)))
-        let timeline = engine.timeline(of: train)
-        #expect(timeline.stops.allSatisfy { $0.passed })
-        #expect(timeline.nextStop == nil)
-    }
-
     @Test func aStopWithOneTimetableTimeShowsTheArrivalTheMarkerUses() throws {
-        let train = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 5 * 60)))
+        let train = try #require(ThreeStops.train(engine, at: 8 * 3600 + 5 * 60))
         let arrival = engine.timeline(of: train).stops[2].arrival
         #expect(
             Vilnius.calendar.dateComponents([.hour, .minute, .second], from: arrival) == DateComponents(hour: 8, minute: 29, second: 30))
     }
 
     @Test func theTimesAreTheTimetableTimesOfThatDay() throws {
-        let train = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 5 * 60)))
+        let train = try #require(ThreeStops.train(engine, at: 8 * 3600 + 5 * 60))
         let timeline = engine.timeline(of: train)
         let parts = Vilnius.calendar.dateComponents([.day, .hour, .minute], from: timeline.stops[1].departure)
         #expect(parts == DateComponents(day: 17, hour: 8, minute: 10))

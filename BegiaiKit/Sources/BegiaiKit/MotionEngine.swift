@@ -59,7 +59,7 @@ public struct MotionEngine: Sendable {
         return train?.phase == .arrived ? nil : train
     }
 
-    public func state(of running: RunningTrip) -> TrainState? {
+    func state(of running: RunningTrip) -> TrainState? {
         let trip = timetable.trips[running.trip]
         let stops = trip.stops
         guard stops.count >= 2 else { return nil }

@@ -40,16 +40,11 @@ public struct ServiceDate: Hashable, Comparable, Sendable, CustomStringConvertib
     public var description: String { String(number) }
 }
 
-public struct RunningTrip: Equatable, Sendable {
-    public let trip: Int
-    public let day: ServiceDate
-    public let seconds: Double
-
-    public init(trip: Int, day: ServiceDate, seconds: Double) {
-        self.trip = trip
-        self.day = day
-        self.seconds = seconds
-    }
+/// A trip of a service day, and how far into that day the moment is.
+struct RunningTrip: Equatable, Sendable {
+    let trip: Int
+    let day: ServiceDate
+    let seconds: Double
 }
 
 extension Service {
@@ -75,12 +70,6 @@ extension Timetable {
             let trip = trips[index]
             guard trip.stops.count >= 2, services[trip.service].runs(on: day) else { return false }
             return seen.insert(DuplicateKey(code: trip.code, station: trip.stops[0].station, departure: trip.stops[0].departure)).inserted
-        }
-    }
-
-    public func runningTrips(at date: Date, until end: (Int) -> Double = { _ in 0 }) -> [RunningTrip] {
-        runningTrips(at: date, until: end) { day in
-            ServiceDay(date: day, zero: day.timetableZero, trips: trips(on: day), tripsPerLine: [])
         }
     }
 
