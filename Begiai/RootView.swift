@@ -18,11 +18,6 @@ struct RootView: View {
     @State private var mapFollowing: TrainState.ID?
     @State private var diagramSelection: PageSelection?
 
-    /// Open on the first launch; closing it marks the welcome as seen.
-    private var showsWelcome: Binding<Bool> {
-        Binding(get: { mayWelcome && !welcomeSeen }, set: { if !$0 { welcomeSeen = true } })
-    }
-
     var body: some View {
         TabView(selection: $tab) {
             Tab(.tabMap, systemImage: "map", value: .map) {
@@ -34,21 +29,23 @@ struct RootView: View {
         }
         .overlay(alignment: .top) {
             if linkedTrainGone {
-                TrainGoneNote { linkedTrainGone = false }
+                TrainGoneNote(shown: $linkedTrainGone)
             }
         }
         .environment(\.linePalette, LinePalette(slots: store.lineColours))
-        .modifier(MarkerStyleReader())
-        .sheet(isPresented: showsWelcome) {
-            WelcomeSheet { welcomeSeen = true }
+        .markerStyleFromSettings()
+        // Open on the first launch; closing it marks the welcome as seen.
+        .sheet(isPresented: $welcomeSeen[toShowIf: mayWelcome]) {
+            WelcomeSheet(seen: $welcomeSeen)
                 .interactiveDismissDisabled()
         }
         // On a return to the app, a newer saved timetable takes over, but only when no train
         // or station is open, so nothing the rider looks at jumps. The store asks again just
-        // before the swap, since a page can open while it reads the saved copy.
-        .onChange(of: scenePhase) { _, phase in
-            guard phase == .active, idle else { return }
-            Task { await store.adoptPending { idle } }
+        // before the swap, since a page can open while it reads the saved copy. At launch the
+        // timetable is still loading, and the store has nothing to swap.
+        .task(id: scenePhase) {
+            guard scenePhase == .active, idle else { return }
+            await store.adoptPending { idle }
         }
         .onOpenURL { url in
             link = TrainLink(url: url)
@@ -78,6 +75,15 @@ struct RootView: View {
     /// True when no train or station is open on either tab.
     private var idle: Bool {
         mapSelection == nil && diagramSelection == nil
+    }
+}
+
+extension Bool {
+    /// True while `allowed` and this flag, which says a thing was seen, is false: what is still
+    /// to show. Setting it to false marks the thing seen.
+    subscript(toShowIf allowed: Bool) -> Bool {
+        get { allowed && !self }
+        set { if !newValue { self = true } }
     }
 }
 

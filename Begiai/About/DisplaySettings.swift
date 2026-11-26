@@ -42,8 +42,15 @@ struct DisplaySettings: View {
     }
 }
 
+extension View {
+    /// Gives the views inside the marker style that the rider set in About, with Increase Contrast.
+    func markerStyleFromSettings() -> some View {
+        modifier(MarkerStyleReader())
+    }
+}
+
 /// Reads the two settings and the iOS contrast setting, and gives the map its marker style.
-struct MarkerStyleReader: ViewModifier {
+private struct MarkerStyleReader: ViewModifier {
     @AppStorage(MarkerStyle.largerKey) private var larger = false
     @AppStorage(MarkerStyle.highContrastKey) private var highContrast = false
     @Environment(\.colorSchemeContrast) private var systemContrast
