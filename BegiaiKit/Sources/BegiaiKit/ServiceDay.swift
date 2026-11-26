@@ -78,12 +78,6 @@ extension Timetable {
         }
     }
 
-    public func runningTrips(at date: Date, until end: (Int) -> Double = { _ in 0 }) -> [RunningTrip] {
-        runningTrips(at: date, until: end) { day in
-            ServiceDay(date: day, zero: day.timetableZero, trips: trips(on: day), tripsPerLine: [])
-        }
-    }
-
     func runningTrips(at date: Date, until end: (Int) -> Double, days: (ServiceDate) -> ServiceDay) -> [RunningTrip] {
         let today = ServiceDate(date)
         return [today.adding(days: -1), today].flatMap { service in

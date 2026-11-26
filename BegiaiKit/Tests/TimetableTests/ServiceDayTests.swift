@@ -10,16 +10,21 @@ struct ServiceDayTests {
     @Test func aTripPastMidnightRunsOnTheServiceDayItStarted() throws {
         let timetable = TinyTimetable.make(trips: [("late", "1111111", 23 * 3600 + 50 * 60, 24 * 3600 + 40 * 60)])
         let twentyPastMidnight = tuesday.adding(days: 1).midnight.addingTimeInterval(20 * 60)
-        let running = timetable.runningTrips(at: twentyPastMidnight)
-        #expect(running == [RunningTrip(trip: 0, day: tuesday, seconds: 24 * 3600 + 20 * 60)])
+        let running = MotionEngine(timetable: timetable).trains(at: twentyPastMidnight)
+        #expect(running.map { "\($0.trip)@\($0.day)" } == ["0@\(tuesday)"])
+        #expect(running.first?.phase == .running)
     }
 
     @Test func onTheNightTheClocksGoBackATrainStillLeavesAtItsTimetableTime() throws {
         let clocksBack = ServiceDate(year: 2026, month: 10, day: 25)
         let timetable = TinyTimetable.make(trips: [("morning", "1111111", 10 * 3600, 11 * 3600)])
         let tenOClock = try #require(Vilnius.calendar.date(from: DateComponents(year: 2026, month: 10, day: 25, hour: 10)))
-        let running = try #require(timetable.runningTrips(at: tenOClock).first { $0.day == clocksBack })
-        #expect(abs(running.seconds - 10 * 3600) < 0.001)
+        let engine = MotionEngine(timetable: timetable)
+        // At 10:00 sharp the train has just left: an hour off either way finds it not running.
+        let running = try #require(engine.trains(at: tenOClock).first { $0.day == clocksBack })
+        #expect(running.phase == .running)
+        #expect(running.metres == 0)
+        #expect(!engine.trains(at: tenOClock.addingTimeInterval(-1)).contains { $0.day == clocksBack })
     }
 
     @Test func aRemovedDateStopsTheService() {
@@ -33,19 +38,26 @@ struct ServiceDayTests {
         #expect(timetable.trips(on: tuesday) == [0])
     }
 
-    @Test func theEngineAgreesWithTheTimetableHourByHourThroughAWeekAndBack() {
+    @Test func theEngineFindsEachDaysTrainsHourByHourThroughAWeekAndBack() {
         let timetable = TinyTimetable.make(trips: [
             ("weekday", "1111100", 8 * 3600, 9 * 3600), ("late", "1111111", 23 * 3600 + 30 * 60, 24 * 3600 + 50 * 60),
             ("sunday", "0000001", 12 * 3600, 13 * 3600),
         ])
+        // One engine walks 8 days and back, past the days it keeps, so a day it kept must
+        // never stand in for another.
         let engine = MotionEngine(timetable: timetable)
         let hours = Array(0..<(8 * 24)) + (0..<(8 * 24)).reversed()
         for hour in hours {
             let date = tuesday.midnight.addingTimeInterval(Double(hour) * 3600 + 15 * 60)
-            let expected = timetable.runningTrips(at: date, until: { engine.schedule(of: $0).arrivals.last ?? 0 })
-            #expect(engine.trains(at: date).map { "\($0.trip)@\($0.day)" } == expected.map { "\($0.trip)@\($0.day)" })
-            let today = timetable.trips(on: ServiceDate(date)).count
-            #expect(engine.lineSummaries(at: date, trains: []).map(\.tripsToday).reduce(0, +) == today)
+            let today = ServiceDate(date)
+            let weekday = Vilnius.calendar.component(.weekday, from: date)
+            var expected: [String] = []
+            if hour % 24 == 0 { expected.append("1@\(today.adding(days: -1))") }
+            if hour % 24 == 8, (2...6).contains(weekday) { expected.append("0@\(today)") }
+            if hour % 24 == 12, weekday == 1 { expected.append("2@\(today)") }
+            #expect(engine.trains(at: date).map { "\($0.trip)@\($0.day)" } == expected, "at \(date)")
+            let tripsToday = timetable.trips(on: today).count
+            #expect(engine.lineSummaries(at: date, trains: []).map(\.tripsToday).reduce(0, +) == tripsToday)
         }
     }
 
