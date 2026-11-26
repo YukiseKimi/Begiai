@@ -22,7 +22,7 @@ struct MapTab: View {
     @State private var panelTotal: CGFloat = 700
     @State private var filter: LineFilter = .all
     @State private var position: MapCameraPosition = .region(.lithuania)
-    @State private var query = ""
+    @State private var query = StationQuery()
     @FocusState private var searchFocused: Bool
     @State private var locationNote: LocationNote?
     @Query private var stars: [Star]
@@ -33,26 +33,48 @@ struct MapTab: View {
         let chosen = chosenTrain
         let timeline = chosen.flatMap { train in store.engine.map { $0.timeline(of: train) } }
         let settled = trains.settled(for: store.revision)
+        let followState = chosen.flatMap { train in timeline.flatMap { follow(train, timeline: $0) } }
+        let color = color(of: chosen)
         Group {
             if #available(iOS 27.1, *), sizeClass == .regular {
                 MapColumn { insets in
-                    trainsMap(insets: insets)
+                    TrainsMap(
+                        store: store, trains: trains, position: $position, selection: $selection, following: $following,
+                        panelHeight: $panelHeight, locationNote: $locationNote, insets: insets)
                 } panel: {
                     if store.state == .ready, let engine = store.engine, let now = trains.now {
-                        panel(.whole, engine: engine, now: now, settled: settled, timeline: timeline, color: color(of: chosen))
+                        VStack(spacing: 0) {
+                            MapPanelHeader(
+                                engine: engine, now: now, running: settled.count, timeline: timeline, color: color,
+                                selection: $selection, following: followState, onLockScreen: follower.onLockScreen,
+                                height: panelHeight, filter: $filter, query: query, searchFocused: $searchFocused, stars: stars)
+                            MapPanelContent(
+                                engine: engine, now: now, settled: settled, timeline: timeline, color: color, selection: $selection,
+                                height: $panelHeight, filter: filter, query: query, locationNote: $locationNote, stars: stars)
+                        }
                     }
                 }
             } else {
                 ZStack(alignment: .bottom) {
-                    trainsMap(
+                    TrainsMap(
+                        store: store, trains: trains, position: $position, selection: $selection, following: $following,
+                        panelHeight: $panelHeight, locationNote: $locationNote,
                         insets: EdgeInsets(
                             top: 0, leading: 0, bottom: store.state == .ready ? panelHeight.points(in: panelTotal) : 0, trailing: 0))
                     if store.state == .ready, let engine = store.engine, let now = trains.now {
                         GeometryReader { proxy in
+                            // The panel's heights are shares of this height, which its drag needs
+                            // as a number, so a reader gives it rather than a layout.
                             LinePanel(height: $panelHeight, total: proxy.size.height) {
-                                panel(.header, engine: engine, now: now, settled: settled, timeline: timeline, color: color(of: chosen))
+                                MapPanelHeader(
+                                    engine: engine, now: now, running: settled.count, timeline: timeline, color: color,
+                                    selection: $selection, following: followState, onLockScreen: follower.onLockScreen,
+                                    height: panelHeight, filter: $filter, query: query, searchFocused: $searchFocused, stars: stars)
                             } content: {
-                                panel(.content, engine: engine, now: now, settled: settled, timeline: timeline, color: color(of: chosen))
+                                MapPanelContent(
+                                    engine: engine, now: now, settled: settled, timeline: timeline, color: color,
+                                    selection: $selection, height: $panelHeight, filter: filter, query: query,
+                                    locationNote: $locationNote, stars: stars)
                             }
                             .frame(maxHeight: .infinity, alignment: .bottom)
                         }
@@ -107,24 +129,6 @@ struct MapTab: View {
         if time.isPinned || scenePhase != .active { return .still }
         if reduceMotion || lowPower || !trains.trainInSight { return .every(.seconds(1)) }
         return .every(trains.frame)
-    }
-
-    /// The map, keeping `insets` from the screen's edges clear for the panel.
-    private func trainsMap(insets: EdgeInsets) -> TrainsMap {
-        TrainsMap(
-            store: store, trains: trains, position: $position, selection: $selection, following: $following,
-            panelHeight: $panelHeight, locationNote: $locationNote, insets: insets)
-    }
-
-    private func panel(
-        _ part: MapPanel.Part, engine: MotionEngine, now: Date, settled: [TrainState], timeline: TrainTimeline?, color: Color
-    ) -> MapPanel {
-        MapPanel(
-            part: part, engine: engine, now: now, settled: settled, timeline: timeline, color: color,
-            selection: $selection,
-            following: chosenTrain.flatMap { train in timeline.flatMap { follow(train, timeline: $0) } },
-            onLockScreen: follower.onLockScreen, height: $panelHeight, filter: $filter, query: $query,
-            searchFocused: $searchFocused, locationNote: $locationNote, stars: stars)
     }
 
     /// Follow on the train's page: the map keeps the train in the middle, and its Live Activity

@@ -11,20 +11,37 @@ struct MapColumn<Map: View, Panel: View>: View {
     /// False while the column has nothing to show: the map then has the whole screen.
     var shows = true
     /// What the map keeps clear for the column, from the screen's edges.
-    @ViewBuilder let map: (EdgeInsets) -> Map
-    @ViewBuilder let panel: () -> Panel
+    let map: (EdgeInsets) -> Map
+    let panel: Panel
     /// True while a fold divides the screen, so the panel has a side of its own.
     @State private var divided = false
     @State private var screenMaxX: CGFloat = 0
     @State private var columnMinX: CGFloat = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    init(
+        identifier: String = A11yID.Map.column, shows: Bool = true, @ViewBuilder map: @escaping (EdgeInsets) -> Map,
+        @ViewBuilder panel: () -> Panel
+    ) {
+        self.identifier = identifier
+        self.shows = shows
+        self.map = map
+        self.panel = panel()
+    }
+
     var body: some View {
         // The overlay style puts the primary view over the secondary one on a flat screen, and
         // the secondary above or before the fold, the primary below or after it.
         ArrangementView {
             if shows {
-                column
+                ColumnGlass(identifier: identifier, divided: divided, content: panel)
+                    .onGeometryChange(for: CGFloat.self) {
+                        $0.frame(in: .global).minX
+                    } action: {
+                        columnMinX = $0
+                    }
+                    .padding(8)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
                     .transition(.move(edge: .trailing).combined(with: .opacity))
             }
         } secondary: {
@@ -50,9 +67,20 @@ struct MapColumn<Map: View, Panel: View>: View {
         }
     }
 
-    private var column: some View {
+}
+
+/// The panel in a glass column; on a side of its own beside a fold, it takes that whole side.
+private struct ColumnGlass<Content: View>: View {
+    /// The column's accessibility identifier, which the journeys find it by.
+    let identifier: String
+    /// True while a fold divides the screen. The column's width cannot change whether it does,
+    /// so the width that follows it feeds nothing back.
+    let divided: Bool
+    let content: Content
+
+    var body: some View {
         let shape = ConcentricRectangle(corners: .concentric(minimum: 28), isUniform: true)
-        return panel()
+        content
             // The arrangement gives its views no margins, so a list's rows would touch the
             // column's edges; these are the margins the sheet's lists have on an iPhone.
             .contentMargins(.horizontal, 16, for: .scrollContent)
@@ -64,13 +92,6 @@ struct MapColumn<Map: View, Panel: View>: View {
             // identifier on the column would replace.
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier(identifier)
-            .onGeometryChange(for: CGFloat.self) {
-                $0.frame(in: .global).minX
-            } action: {
-                columnMinX = $0
-            }
-            .padding(8)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
     }
 }
 
