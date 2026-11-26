@@ -33,7 +33,8 @@ extension EnvironmentValues {
 
 /// Text and symbols in a line's colour on a button that the same colour tints: darker in the
 /// light look and lighter in the dark look where the colour alone is too faint to read, by
-/// BegiaiKit's `LineLabel`. With Increase Contrast it reads at 7:1 instead of 4.5:1.
+/// BegiaiKit's `LineLabel`, at 4.5:1. With Increase Contrast it aims for 7:1; where no colour
+/// reaches that on the button, as on the brightest lines in the dark look, it is white or black.
 struct LineLabelStyle: ShapeStyle {
     let line: Color
 

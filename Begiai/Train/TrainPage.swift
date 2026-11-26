@@ -89,8 +89,7 @@ private struct FollowButton: View {
             Label {
                 Text(title)
             } icon: {
-                // As in Maps: filled while the map keeps the train in the middle, an outline when not.
-                Image(systemName: state == .following ? "location.fill" : "location")
+                Image(systemName: symbol)
             }
             // The capsule takes the colour; the words and the arrow take a colour that reads on it.
             .foregroundStyle(state.isFollowed ? AnyShapeStyle(LineLabelStyle(line: color)) : AnyShapeStyle(.primary))
@@ -107,6 +106,17 @@ private struct FollowButton: View {
             }
         }
         .accessibilityValue(state.isFollowed && onLockScreen ? Text(.trainOnLockScreen) : Text(verbatim: ""))
+    }
+
+    /// As in Maps: filled while the map keeps the train in the middle, an outline when not.
+    /// Show train has the arrow in a viewfinder, so its shape tells it from Follow also at the
+    /// largest text sizes, where the button shows only its symbol.
+    private var symbol: String {
+        switch state {
+        case .off: "location"
+        case .following: "location.fill"
+        case .released: "location.viewfinder"
+        }
     }
 
     private var title: LocalizedStringResource {

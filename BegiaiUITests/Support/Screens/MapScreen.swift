@@ -180,10 +180,13 @@ struct MapScreen {
         let centred = {
             trains.allElementsBoundByIndex.contains { hypot(marker($0.frame).x - middle.x, marker($0.frame).y - middle.y) < 40 }
         }
-        let expected = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in centred() == inTheMiddle }, object: nil)
+        // Let go, the train is still on the map, only away from the middle.
+        let expected = XCTNSPredicateExpectation(
+            predicate: NSPredicate { _, _ in inTheMiddle ? centred() : trains.count > 0 && !centred() }, object: nil)
         XCTAssertEqual(
             XCTWaiter.wait(for: [expected], timeout: 10), .completed,
-            "Map: \(inTheMiddle ? "no" : "a") train to \(destination) stands near \(middle), the middle of the map in sight: "
+            "Map: \(inTheMiddle ? "no train to \(destination) stands" : "no train to \(destination) shows, or one stands") near "
+                + "\(middle), the middle of the map in sight: "
                 + trains.allElementsBoundByIndex.map { "\($0.frame)" }.joined(separator: ", "), file: file, line: line)
     }
 
