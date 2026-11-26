@@ -7,6 +7,9 @@ struct MapTab: View {
     let store: TimetableStore
     /// The train or station open in the panel; RootView holds it, so it knows when a page is open.
     @Binding var selection: PanelSelection?
+    /// The train the map keeps in its middle; RootView holds it, so a tap on the Live Activity
+    /// can open its train with the map on it.
+    @Binding var following: TrainState.ID?
     @Environment(\.timeSource) private var time
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -19,7 +22,6 @@ struct MapTab: View {
     @State private var panelTotal: CGFloat = 700
     @State private var filter: LineFilter = .all
     @State private var position: MapCameraPosition = .region(.lithuania)
-    @State private var following = false
     @State private var query = ""
     @FocusState private var searchFocused: Bool
     @State private var locationNote: LocationNote?
@@ -139,9 +141,9 @@ struct MapTab: View {
         let trip = timetable.trips[train.trip]
         let followed = { follower.isFollowing(trip: trip.id, day: train.day) }
         return Binding {
-            FollowState(followed: followed(), mapFollows: following)
+            FollowState(followed: followed(), mapFollows: following == train.id)
         } set: { state in
-            following = state == .following
+            following = state == .following ? train.id : nil
             switch state {
             case .off:
                 follower.unfollow()
@@ -175,7 +177,7 @@ extension MKCoordinateRegion {
 
 #Preview {
     @Previewable @State var store = TimetableStore()
-    MapTab(store: store, selection: .constant(nil))
+    MapTab(store: store, selection: .constant(nil), following: .constant(nil))
         .environment(TrainFollower())
         .task { await store.load(from: Bundle.main.bundleURL.appending(path: "timetable.json")) }
 }

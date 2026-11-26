@@ -10,7 +10,9 @@ struct TrainsMap: View {
     let trains: TrainsModel
     @Binding var position: MapCameraPosition
     @Binding var selection: PanelSelection?
-    @Binding var following: Bool
+    /// The train the map keeps in its middle, nil while the map is free. Only the chosen train
+    /// can be followed: choosing another, or none, lets it go.
+    @Binding var following: TrainState.ID?
     @Binding var panelHeight: PanelHeight
     @Binding var locationNote: LocationNote?
     /// What the map keeps clear for the panel, from the screen's edges: the bottom for the
@@ -32,6 +34,7 @@ struct TrainsMap: View {
         let cityZoom = trains.cityZoom
         let moving = trains.moving(for: store.revision)
         let chosen = moving.first { selection == .train($0.id) }
+        let followed = chosen.flatMap { $0.id == following ? $0 : nil }
         // At country zoom a station's 44-point tap area reaches past its ring, so while a train
         // stands there the station keeps only its ring and the train gets the taps around it.
         let underTrains = cityZoom ? [] : Set(moving.compactMap(standingStation(of:)))
@@ -106,17 +109,18 @@ struct TrainsMap: View {
         }
         .onChange(of: metresPerPoint) { buildStripes() }
         .onChange(of: store.revision, initial: true) { buildStripes() }
-        .onChange(of: FollowTarget(following: following, coordinate: chosen?.coordinate), initial: true) {
-            _, target in
-            guard target.following, let coordinate = target.coordinate else { return }
+        .onChange(of: followed?.coordinate, initial: true) { _, coordinate in
+            guard let coordinate else { return }
             position = .camera(
                 MapCamera(
                     centerCoordinate: coordinate.location, distance: min(cameraDistance, 25_000),
                     heading: cameraHeading))
         }
-        .onChange(of: selection) { following = false }
+        .onChange(of: selection) { _, selection in
+            if let following, selection != .train(following) { self.following = nil }
+        }
         .onChange(of: position.positionedByUser) { _, byUser in
-            if byUser { following = false }
+            if byUser { following = nil }
         }
         .safeAreaPadding(insets)
         .ignoresSafeArea()
@@ -127,7 +131,7 @@ struct TrainsMap: View {
                     // The note is at the top of the panel's list, which a Small panel hides.
                     if panelHeight == .peek { panelHeight = .half }
                 } willLocate: {
-                    following = false
+                    following = nil
                 }
                 AboutButton(timetable: store.timetable)
                 MapCompass(scope: mapScope)
@@ -264,11 +268,6 @@ private struct TrackStripe: Identifiable {
 
     var id: String { "\(track)-\(line)" }
     var style: StrokeStyle { StrokeStyle(lineWidth: width, lineCap: .butt, lineJoin: .round) }
-}
-
-private struct FollowTarget: Equatable {
-    let following: Bool
-    let coordinate: Coordinate?
 }
 
 /// A tap on the map itself, not on a marker. SwiftUI's `onTapGesture` on a `Map` waits about a

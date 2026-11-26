@@ -3,14 +3,14 @@ import XCTest
 /// Follow on a train's page puts the train on the Lock Screen and in the Dynamic Island.
 /// Each test ends with no Live Activity running.
 final class LiveActivityJourney: JourneyCase {
-    /// Follow starts the Live Activity of that train, a tap on it opens the train's page, and
-    /// Follow off ends it.
+    /// Follow starts the Live Activity of that train, a tap on it opens the train's page with
+    /// the map following the train, and Follow off ends it.
     @MainActor
     func testFollowPutsTheTrainOnTheLockScreenUntilFollowOff() {
         let journey = JourneyApp()
         journey.launch(.map)
         let map = MapScreen(journey: journey)
-        _ = map.openFirstTrain()
+        let destination = map.openFirstTrain()
         let train = TrainScreen(journey: journey)
         let route = train.route()
         let place = train.place()
@@ -23,9 +23,9 @@ final class LiveActivityJourney: JourneyCase {
         lockScreen.expectActivity(route: route, place: place)
         lockScreen.openActivity()
         XCTAssertEqual(train.route(), route, "Train: a tap on the Live Activity opened another train")
+        train.expectButton(.following)
+        map.expectTrainFollowed(to: destination)
 
-        // The page opens with the map where it was, so the button offers to bring the train back.
-        train.showTrain()
         train.unfollow()
         lockScreen.open()
         lockScreen.expectNoActivity()
