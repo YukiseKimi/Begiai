@@ -28,6 +28,10 @@ with each failure and a `rerun:` line.
 | `all` | check, then journey | — |
 
 Areas and their unit targets and journeys: `TestPlans/areas.json`.
+Device matrix (its `matrix`): the journeys run on iOS 26.3, 26.4 and 26.5 on the iPhone 17 Pro,
+iOS 27.0 on the iPhone 17 Pro and Pro Max, and iOS 27.3 on the iPhone Duo, open. Older iOS 26
+runtimes are not tested; the deployment target stays iOS 26.0. CI runs no journeys. Where
+storekitd turns down the test session (26.3–26.5 with Xcode 27.2), the tip test skips and says why.
 The sealed launch (`--sealed --reset --now <ISO time>`) works only when the Info.plist key
 `BegiaiSealedLaunch` is `YES` (Debug). It pins the clock and keeps the stars in a temporary folder; `--reset` empties that folder.
 
