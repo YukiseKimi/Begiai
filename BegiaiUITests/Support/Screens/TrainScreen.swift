@@ -65,26 +65,55 @@ struct TrainScreen {
         let button = journey.wait(for: journey.element(A11yID.Train.follow), "the Follow button", on: "Train", file: file, line: line)
         XCTAssertEqual(button.label, "Follow", "Train: the train is already followed", file: file, line: line)
         button.tap()
-        expectFollowing(true, file: file, line: line)
-        let onLockScreen = NSPredicate(format: "value == %@", "On the Lock Screen")
-        XCTAssertEqual(
-            XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: onLockScreen, object: button)], timeout: 5), .completed,
-            "Train: Following does not say On the Lock Screen: \(button.value ?? "")", file: file, line: line)
+        expectButton(.following, file: file, line: line)
     }
 
-    /// Taps Following, and checks that the button says Follow again.
-    func unfollow(file: StaticString = #filePath, line: UInt = #line) {
-        expectFollowing(true, file: file, line: line)
+    /// Taps Show train, which the button offers once the map was moved away from the followed
+    /// train: the map follows the train again, and the train stays on the Lock Screen.
+    func showTrain(file: StaticString = #filePath, line: UInt = #line) {
+        expectButton(.released, file: file, line: line)
         journey.element(A11yID.Train.follow).tap()
-        expectFollowing(false, file: file, line: line)
+        expectButton(.following, file: file, line: line)
     }
 
-    func expectFollowing(_ following: Bool, file: StaticString = #filePath, line: UInt = #line) {
+    /// Taps Following, and checks that the button says Follow again, and no more that the
+    /// train is on the Lock Screen.
+    func unfollow(file: StaticString = #filePath, line: UInt = #line) {
+        expectButton(.following, file: file, line: line)
+        journey.element(A11yID.Train.follow).tap()
+        expectButton(.off, file: file, line: line)
+    }
+
+    /// What the Follow button says, and what VoiceOver reads as its value.
+    enum Follow {
+        /// “Follow”: the train is not followed.
+        case off
+        /// “Following”, on the Lock Screen: the map keeps the train in the middle.
+        case following
+        /// “Show train”, still on the Lock Screen: the map was moved away from the train.
+        case released
+
+        var label: String {
+            switch self {
+            case .off: "Follow"
+            case .following: "Following"
+            case .released: "Show train"
+            }
+        }
+
+        var onLockScreen: Bool { self != .off }
+    }
+
+    /// The button reads `state` within a few seconds: the Live Activity starts a moment after the tap.
+    func expectButton(_ state: Follow, file: StaticString = #filePath, line: UInt = #line) {
         let button = journey.wait(for: journey.element(A11yID.Train.follow), "the Follow button", on: "Train", file: file, line: line)
-        let label = NSPredicate(format: "label == %@", following ? "Following" : "Follow")
+        let lockScreen = "On the Lock Screen"
+        let said = NSPredicate(
+            format: state.onLockScreen ? "label == %@ AND value == %@" : "label == %@ AND NOT (value == %@)", state.label, lockScreen)
         XCTAssertEqual(
-            XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: label, object: button)], timeout: 3), .completed,
-            "Train: the Follow button reads \(button.label)", file: file, line: line)
+            XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: said, object: button)], timeout: 5), .completed,
+            "Train: the Follow button reads \(button.label), \(button.value ?? "no value"), not \(state.label)"
+                + (state.onLockScreen ? ", \(lockScreen)" : ""), file: file, line: line)
     }
 
     /// Lines in the panel; Close in a sheet.

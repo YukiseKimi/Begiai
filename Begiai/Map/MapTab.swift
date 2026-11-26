@@ -132,19 +132,27 @@ struct MapTab: View {
 
     /// Follow on the train's page: the map keeps the train in the middle, and its Live Activity
     /// starts, or takes the place of the one before. Follow off ends both. A drag on the map
-    /// stops only the map, so the Lock Screen keeps the train.
-    private func follow(_ train: TrainState, timeline: TrainTimeline) -> Binding<Bool>? {
+    /// stops only the map, so the Lock Screen keeps the train, and the button then brings the
+    /// map back to it.
+    private func follow(_ train: TrainState, timeline: TrainTimeline) -> Binding<FollowState>? {
         guard let timetable = store.timetable, timetable.trips.indices.contains(train.trip) else { return nil }
         let trip = timetable.trips[train.trip]
+        let followed = { follower.isFollowing(trip: trip.id, day: train.day) }
         return Binding {
-            follower.isFollowing(trip: trip.id, day: train.day)
-        } set: { on in
-            following = on
-            guard on else { return follower.unfollow() }
-            follower.follow(
-                FollowedTrain(
-                    timeline: timeline, trip: trip.id, day: train.day, line: timetable.lines[trip.line].name,
-                    colour: palette.slot(of: trip.line), shift: Date().timeIntervalSince(time.now)))
+            FollowState(followed: followed(), mapFollows: following)
+        } set: { state in
+            following = state == .following
+            switch state {
+            case .off:
+                follower.unfollow()
+            case .following where !followed():
+                follower.follow(
+                    FollowedTrain(
+                        timeline: timeline, trip: trip.id, day: train.day, line: timetable.lines[trip.line].name,
+                        colour: palette.slot(of: trip.line), shift: Date().timeIntervalSince(time.now)))
+            case .following, .released:
+                break
+            }
         }
     }
 

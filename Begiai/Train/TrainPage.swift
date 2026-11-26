@@ -14,7 +14,7 @@ struct TrainPage: View {
     let color: Color
     let now: Date
     /// Nil where nothing can follow the train: the page then shows no Follow button.
-    var following: Binding<Bool>?
+    var following: Binding<FollowState>?
     /// True while the followed train's Live Activity shows: Follow then says so to VoiceOver.
     var onLockScreen = false
     var exit = PageExit.back
@@ -31,20 +31,8 @@ struct TrainPage: View {
                     .accessibilityIdentifier(A11yID.Train.back)
                 Spacer()
                 if timeline != nil, let following {
-                    Button {
-                        following.wrappedValue.toggle()
-                    } label: {
-                        Label {
-                            Text(following.wrappedValue ? .trainFollowing : .trainFollow)
-                        } icon: {
-                            Image(systemName: following.wrappedValue ? "location.fill" : "location")
-                        }
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(following.wrappedValue ? color : .secondary)
-                    .sensoryFeedback(following.wrappedValue ? .start : .stop, trigger: following.wrappedValue)
-                    .accessibilityValue(following.wrappedValue && onLockScreen ? Text(.trainOnLockScreen) : Text(verbatim: ""))
-                    .accessibilityIdentifier(A11yID.Train.follow)
+                    FollowButton(state: following, color: color, onLockScreen: onLockScreen)
+                        .accessibilityIdentifier(A11yID.Train.follow)
                 }
             }
             // The page's controls stop growing at the first accessibility size, so at the largest
@@ -83,6 +71,48 @@ struct TrainPage: View {
             }
         }
         .padding(.horizontal)
+    }
+}
+
+/// Follow; Following while the map keeps the train in the middle; Show train once the map was
+/// moved away from the followed train, which the Lock Screen still shows.
+private struct FollowButton: View {
+    @Binding var state: FollowState
+    let color: Color
+    /// True while the followed train's Live Activity shows.
+    let onLockScreen: Bool
+
+    var body: some View {
+        Button {
+            state = state.tapped
+        } label: {
+            Label {
+                Text(title)
+            } icon: {
+                // As in Maps: filled while the map keeps the train in the middle, an outline when not.
+                Image(systemName: state == .following ? "location.fill" : "location")
+            }
+        }
+        .buttonStyle(.bordered)
+        // The line's colour while the train is followed, also once the map was moved away.
+        .tint(state.isFollowed ? color : .secondary)
+        .sensoryFeedback(trigger: state) { _, state in
+            switch state {
+            case .following: .start
+            case .off: .stop
+            // A drag on the map lets the train go, and the drag is feedback enough.
+            case .released: nil
+            }
+        }
+        .accessibilityValue(state.isFollowed && onLockScreen ? Text(.trainOnLockScreen) : Text(verbatim: ""))
+    }
+
+    private var title: LocalizedStringResource {
+        switch state {
+        case .off: .trainFollow
+        case .following: .trainFollowing
+        case .released: .trainShowTrain
+        }
     }
 }
 
@@ -333,5 +363,5 @@ private struct StopMark: View {
 }
 
 #Preview {
-    TrainPage(timeline: nil, color: .blue, now: .now, following: .constant(false)) {}
+    TrainPage(timeline: nil, color: .blue, now: .now, following: .constant(.off)) {}
 }

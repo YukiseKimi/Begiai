@@ -24,6 +24,42 @@ final class LiveActivityJourney: JourneyCase {
         lockScreen.openActivity()
         XCTAssertEqual(train.route(), route, "Train: a tap on the Live Activity opened another train")
 
+        // The page opens with the map where it was, so the button offers to bring the train back.
+        train.showTrain()
+        train.unfollow()
+        lockScreen.open()
+        lockScreen.expectNoActivity()
+        lockScreen.close()
+    }
+
+    /// A drag on the map lets the train go but keeps it on the Lock Screen. Show train brings
+    /// the map back to it and ends nothing; Follow off then ends both.
+    @MainActor
+    func testADragLetsTheMapGoAndShowTrainBringsItBack() {
+        let journey = JourneyApp()
+        journey.launch(.map)
+        let map = MapScreen(journey: journey)
+        let destination = map.openFirstTrain()
+        let train = TrainScreen(journey: journey)
+        let route = train.route()
+        let place = train.place()
+        train.follow()
+        map.expectTrainFollowed(to: destination)
+
+        map.dragOutsideThePanel(far: true)
+        map.expectTrainLetGo(to: destination)
+        train.expectButton(.released)
+        let lockScreen = LockScreen(journey: journey)
+        lockScreen.open()
+        lockScreen.expectActivity(route: route, place: place)
+        lockScreen.close()
+
+        train.showTrain()
+        map.expectTrainFollowed(to: destination)
+        lockScreen.open()
+        lockScreen.expectActivity(route: route, place: place)
+        lockScreen.close()
+
         train.unfollow()
         lockScreen.open()
         lockScreen.expectNoActivity()

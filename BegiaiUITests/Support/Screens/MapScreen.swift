@@ -158,23 +158,43 @@ struct MapScreen {
     }
 
     /// Once the map follows a train to `destination`, such a train stands near the middle of
-    /// the map in sight, not under the column.
+    /// the map in sight: beside the column, or above the panel and under the status bar.
     func expectTrainFollowed(to destination: String, file: StaticString = #filePath, line: UInt = #line) {
-        let sight = mapInSight
+        expectTrain(to: destination, inTheMiddle: true, file: file, line: line)
+    }
+
+    /// Once the map was moved away from a followed train to `destination`, no such train
+    /// stands near the middle of the map in sight.
+    func expectTrainLetGo(to destination: String, file: StaticString = #filePath, line: UInt = #line) {
+        expectTrain(to: destination, inTheMiddle: false, file: file, line: line)
+    }
+
+    private func expectTrain(to destination: String, inTheMiddle: Bool, file: StaticString, line: UInt) {
+        let sight = followSight(file: file, line: line)
         let middle = CGPoint(x: sight.midX, y: sight.midY)
         let trains = journey.app.descendants(matching: .any).matching(NSPredicate(format: "identifier == %@", A11yID.Map.train))
             .matching(NSPredicate(format: "label BEGINSWITH %@", "Train to \(destination),"))
         // At city zoom a train's frame takes in its label, which hangs to the right of the
         // marker; the marker is the square at the frame's left.
         let marker = { (frame: CGRect) in CGPoint(x: frame.minX + frame.height / 2, y: frame.midY) }
-        let centred = XCTNSPredicateExpectation(
-            predicate: NSPredicate { _, _ in
-                trains.allElementsBoundByIndex.contains { hypot(marker($0.frame).x - middle.x, marker($0.frame).y - middle.y) < 40 }
-            }, object: nil)
+        let centred = {
+            trains.allElementsBoundByIndex.contains { hypot(marker($0.frame).x - middle.x, marker($0.frame).y - middle.y) < 40 }
+        }
+        let expected = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in centred() == inTheMiddle }, object: nil)
         XCTAssertEqual(
-            XCTWaiter.wait(for: [centred], timeout: 10), .completed,
-            "Map: no train to \(destination) stands near \(middle), the middle of the map beside the column: "
+            XCTWaiter.wait(for: [expected], timeout: 10), .completed,
+            "Map: \(inTheMiddle ? "no" : "a") train to \(destination) stands near \(middle), the middle of the map in sight: "
                 + trains.allElementsBoundByIndex.map { "\($0.frame)" }.joined(separator: ", "), file: file, line: line)
+    }
+
+    /// The map that the camera keeps a followed train in the middle of. Above the sheet it starts
+    /// under the status bar, where the Locate button stands at the top of the map's safe area.
+    private func followSight(file: StaticString, line: UInt) -> CGRect {
+        guard !column.exists else { return mapInSight }
+        let top = journey.wait(for: journey.element(A11yID.Map.locate), "the Locate button", on: "Map", file: file, line: line)
+            .frame.minY
+        let panel = journey.wait(for: journey.element(A11yID.Map.panel), "the panel's handle", on: "Map", file: file, line: line)
+        return CGRect(x: 0, y: top, width: journey.window.frame.width, height: panel.frame.minY - top)
     }
 
     /// The map where the panel does not cover it: above a half-height sheet, or before the column.
@@ -239,10 +259,11 @@ struct MapScreen {
         spot.press(forDuration: 0.05, thenDragTo: spot.withOffset(CGVector(dx: 3, dy: 4)))
     }
 
-    /// Drags the map from a spot above the panel where no train or station is, as a rider moves the map.
-    func dragOutsideThePanel(file: StaticString = #filePath, line: UInt = #line) {
+    /// Drags the map from a spot above the panel where no train or station is, as a rider moves
+    /// the map: a little, or `far`, enough to move a followed train well away from the middle.
+    func dragOutsideThePanel(far: Bool = false, file: StaticString = #filePath, line: UInt = #line) {
         guard let spot = emptySpot(file: file, line: line) else { return }
-        spot.press(forDuration: 0.05, thenDragTo: spot.withOffset(CGVector(dx: 20, dy: 15)))
+        spot.press(forDuration: 0.05, thenDragTo: spot.withOffset(far ? CGVector(dx: 60, dy: -60) : CGVector(dx: 20, dy: 15)))
     }
 
     /// A spot of the map above the panel, clear of the trains, the stations, the status bar, the
