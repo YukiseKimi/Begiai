@@ -13,10 +13,10 @@ struct RootView: View {
     /// True after a link to a train that no longer runs: the map says so.
     @State private var linkedTrainGone = false
     /// The page open on each tab, held here so a newer timetable waits until none is open.
-    @State private var mapSelection: PanelSelection?
+    @State private var mapSelection: PageSelection?
     /// The train the map keeps in its middle, while Follow is on and the map was not moved.
     @State private var mapFollowing: TrainState.ID?
-    @State private var diagramSelection: DiagramSelection?
+    @State private var diagramSelection: PageSelection?
 
     /// Open on the first launch; closing it marks the welcome as seen.
     private var showsWelcome: Binding<Bool> {

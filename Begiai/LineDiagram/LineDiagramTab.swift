@@ -5,7 +5,7 @@ import SwiftUI
 struct LineDiagramTab: View {
     let store: TimetableStore
     /// The train or station open in the sheet; RootView holds it, so it knows when a page is open.
-    @Binding var selection: DiagramSelection?
+    @Binding var selection: PageSelection?
     @Environment(\.timeSource) private var time
     /// The name of the last line the user looked at; a name stays the same in a new timetable.
     @AppStorage("lineDiagram.line") private var chosenName = ""
@@ -68,7 +68,7 @@ struct LineDiagramTab: View {
     }
 
     /// The selection, while a sheet shows it.
-    private var inSheet: Binding<DiagramSelection?> {
+    private var inSheet: Binding<PageSelection?> {
         Binding {
             inColumn ? nil : selection
         } set: { chosen in

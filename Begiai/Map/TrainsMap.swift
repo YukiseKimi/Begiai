@@ -9,7 +9,7 @@ struct TrainsMap: View {
     let store: TimetableStore
     let trains: TrainsModel
     @Binding var position: MapCameraPosition
-    @Binding var selection: PanelSelection?
+    @Binding var selection: PageSelection?
     /// The train the map keeps in its middle, nil while the map is free. Only the chosen train
     /// can be followed: choosing another, or none, lets it go.
     @Binding var following: TrainState.ID?

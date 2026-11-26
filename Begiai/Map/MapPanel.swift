@@ -21,7 +21,7 @@ struct MapPanel: View {
     /// The chosen train's stops, and its line's colour.
     let timeline: TrainTimeline?
     let color: Color
-    @Binding var selection: PanelSelection?
+    @Binding var selection: PageSelection?
     /// Follow on the train's page: it keeps the train in the middle of the map and on the Lock
     /// Screen; nil hides the button.
     let following: Binding<FollowState>?

@@ -8,7 +8,7 @@ struct LineSpine: View {
     let timetable: Timetable
     let color: Color
     let trains: [(train: TrainState, place: LineDiagram.Place)]
-    let open: (DiagramSelection) -> Void
+    let open: (PageSelection) -> Void
 
     @ScaledMetric(relativeTo: .footnote) private var rowHeight: CGFloat = 64
     @ScaledMetric(relativeTo: .caption) private var tagHeight: CGFloat = 30

@@ -6,7 +6,7 @@ import SwiftUI
 struct MapTab: View {
     let store: TimetableStore
     /// The train or station open in the panel; RootView holds it, so it knows when a page is open.
-    @Binding var selection: PanelSelection?
+    @Binding var selection: PageSelection?
     /// The train the map keeps in its middle; RootView holds it, so a tap on the Live Activity
     /// can open its train with the map on it.
     @Binding var following: TrainState.ID?
@@ -181,9 +181,4 @@ private struct TrainsRun: Equatable {
     /// The store's timetable revision: a new timetable restarts the trains on its own engine.
     let revision: Int
     let pace: TrainsModel.Pace
-}
-
-enum PanelSelection: Equatable {
-    case train(TrainState.ID)
-    case station(Int)
 }

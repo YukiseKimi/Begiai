@@ -2,23 +2,16 @@ import BegiaiKit
 import SwiftData
 import SwiftUI
 
-enum DiagramSelection: Hashable, Identifiable {
-    case train(TrainState.ID)
-    case station(Int)
-
-    var id: Self { self }
-}
-
 /// The train page or the station board, in a sheet over the Line Diagram.
 struct DiagramSheet: View {
     let engine: MotionEngine
-    let selection: DiagramSelection
+    let selection: PageSelection
     let close: () -> Void
     @Environment(\.timeSource) private var time
     @Query private var stars: [Star]
     @Environment(\.linePalette) private var palette
     /// A station opened from the train's page: shown in place, so the sheet stays up.
-    @State private var opened: DiagramSelection?
+    @State private var opened: PageSelection?
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { _ in
