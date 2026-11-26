@@ -19,7 +19,7 @@ final class TrainJourney: JourneyCase {
     func testWhereTheTrainIsOpensThatStationsBoard() {
         let journey = JourneyApp()
         journey.launch(.map)
-        _ = MapScreen(journey: journey).openFirstTrain()
+        MapScreen(journey: journey).openFirstTrain()
         let station = TrainScreen(journey: journey).openPlace()
         BoardScreen(journey: journey).expectBoard(of: station)
     }

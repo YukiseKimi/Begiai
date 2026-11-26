@@ -26,7 +26,7 @@ final class FreshDataJourney: JourneyCase {
         let diagram = LineDiagramScreen(journey: journey)
         diagram.open()
         diagram.expectNoticesLink()
-        _ = diagram.openATrain()
+        diagram.openATrain()
         diagram.expectNoticesLinkOnTheTrainPage()
     }
 }

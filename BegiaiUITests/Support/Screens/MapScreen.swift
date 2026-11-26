@@ -38,6 +38,7 @@ struct MapScreen {
             names.allElementsBoundByIndex.map(\.label), [name], "Map (Starred): the list is not just \(name)", file: file, line: line)
     }
 
+    @discardableResult
     func openFirstTrain(file: StaticString = #filePath, line: UInt = #line) -> String {
         guard let train = movingTrainsAboveThePanel(file: file, line: line).first else {
             XCTFail("Map: no train shows above the panel", file: file, line: line)
@@ -98,7 +99,7 @@ struct MapScreen {
     func openFirstTrain(otherThan route: String, file: StaticString = #filePath, line: UInt = #line) -> String {
         let page = TrainScreen(journey: journey)
         for train in movingTrainsAboveThePanel(file: file, line: line) {
-            _ = open(train, file: file, line: line)
+            open(train, file: file, line: line)
             let opened = page.route(file: file, line: line)
             if opened != route { return opened }
             page.back(file: file, line: line)
@@ -123,6 +124,7 @@ struct MapScreen {
     }
 
     /// Taps a train and returns its destination, from its VoiceOver label.
+    @discardableResult
     private func open(_ train: XCUIElement, file: StaticString, line: UInt) -> String {
         let label = train.label
         train.tap()
@@ -390,7 +392,7 @@ struct MapScreen {
         journey.wait(for: journey.element(A11yID.Map.train), "a train", on: "Map", timeout: 15, file: file, line: line)
         let sight = clearOfThePanel(by: 0, file: file, line: line)
         return journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
-            .filter { sight.contains(CGPoint(x: $0.frame.midX, y: $0.frame.midY)) }.count
+            .count { sight.contains(CGPoint(x: $0.frame.midX, y: $0.frame.midY)) }
     }
 
     /// The width of a train marker on the map, in points.

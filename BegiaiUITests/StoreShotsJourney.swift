@@ -33,10 +33,11 @@ final class StoreShotsJourney: JourneyCase {
         let pick =
             tapSpot(of: { $0.label.hasPrefix("Train to Kaunas") }, journey)
             ?? tapSpot(of: { $0.label.hasPrefix("Train to Vilnius") }, journey)
-        guard let (train, spot) = pick else {
+        guard let pick else {
             XCTFail("Store shots: no train to Kaunas or Vilnius to tap above the panel")
             return
         }
+        let (train, spot) = pick
         let destination = train.label.hasPrefix("Train to Kaunas") ? "Kaunas" : "Vilnius"
         journey.app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: spot.x, dy: spot.y)).tap()
         TrainScreen(journey: journey).expectTrain(to: destination)
