@@ -1,4 +1,5 @@
 {
+  "xcode": "27.2",
   "matrix": [
     { "os": "iOS 26.3", "devices": ["iPhone 17 Pro"] },
     { "os": "iOS 26.4", "devices": ["iPhone 17 Pro"] },

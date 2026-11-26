@@ -47,12 +47,12 @@ final class AboutJourney: JourneyCase {
         XCTAssertEqual(about.largerMarkers().value as? String, "1", "About: Larger markers is off after a relaunch")
     }
 
-    /// Some simulator runtimes (iOS 26.3, 26.4 and 26.5 with Xcode 27.2) turn down every
-    /// test-session call from the UI-test runner: storekitd logs "…UITests.xctrunner is not
-    /// installed for development", yet the calls do not throw. The app then asks the real Sandbox
-    /// store, and the tip rows stay empty. That is a simulator fault, not an app fault, so the
-    /// tip test skips and names it. The probe: a simulated error that storekitd keeps reads back,
-    /// and one it turned down does not. It is cleared again before the test goes on.
+    /// The probe: it sets a simulated StoreKit error and reads it back, then clears it. When
+    /// storekitd did not keep the error, the SKTestSession is not in force: the app would ask the
+    /// real Sandbox store, and the tip rows would stay empty. The tip test then skips and says so.
+    /// The known cause: on iOS 26.3–26.5 with Xcode 27.2, storekitd turns down every test-session
+    /// call from the UI-test runner and logs "UITests.xctrunner is not installed for development",
+    /// yet the calls do not throw. A simulator fault, not an app fault.
     private func skipUnlessStoreKitTakesTheSession(_ store: SKTestSession) async throws {
         let probe = SKTestFailures.LoadProducts.generic(.unknown)
         try await store.setSimulatedError(probe, forAPI: .loadProducts)
@@ -61,9 +61,9 @@ final class AboutJourney: JourneyCase {
         if kept != probe {
             throw XCTSkip(
                 """
-                StoreKit testing is off on this simulator: storekitd turned down the SKTestSession \
-                ("UITests.xctrunner is not installed for development"), so the app would ask the real \
-                Sandbox store. A simulator fault, not an app fault.
+                storekitd did not keep a simulated StoreKit error, so the SKTestSession is not in force \
+                and the app would ask the real Sandbox store. Known cause: on iOS 26.3–26.5 with Xcode \
+                27.2, storekitd logs "UITests.xctrunner is not installed for development".
                 """)
         }
     }

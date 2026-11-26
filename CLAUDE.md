@@ -20,7 +20,7 @@ with each failure and a `rerun:` line.
 | Lane | What | Limit |
 | --- | --- | --- |
 | `unit [--area <id>]` | `swift test` in BegiaiKit, headless | 90 s (tests take ~1 s) |
-| `journey [<Journey>/<test>] [--no-build]` | UI journeys on `$BEGIAI_SIM` (a simulator UDID) | 900 s (one journey ~20–30 s; all 44 ~10–13 min, which can pass the limit: run them in two groups of named journeys) |
+| `journey [<Journey>[/<test>] ...] [--no-build]` | UI journeys on `$BEGIAI_SIM` (a simulator UDID) | 900 s (one journey ~20–30 s; all 44 took up to 760 s, in two groups) |
 | `build` | Release, unsigned; fails if the Release app allows a sealed launch | 15 min |
 | `a11y [--check]` | writes or checks `A11yID.md` | — |
 | `format` | `swift-format lint --strict` on the Swift folders | — |
@@ -28,10 +28,11 @@ with each failure and a `rerun:` line.
 | `all` | check, then journey | — |
 
 Areas and their unit targets and journeys: `TestPlans/areas.json`.
-Device matrix (its `matrix`): the journeys run on iOS 26.3, 26.4 and 26.5 on the iPhone 17 Pro,
-iOS 27.0 on the iPhone 17 Pro and Pro Max, and iOS 27.3 on the iPhone Duo, open. Older iOS 26
-runtimes are not tested; the deployment target stays iOS 26.0. CI runs no journeys. Where
-storekitd turns down the test session (26.3–26.5 with Xcode 27.2), the tip test skips and says why.
+The runtimes and devices the journeys run on: its `matrix`, with the Xcode in `xcode`. Run the
+Duo open. Older iOS 26 runtimes are not tested; the deployment target stays iOS 26.0. CI runs
+no journeys. Where storekitd does not keep the test session (26.3–26.5 with Xcode 27.2), the tip
+test skips and says why, so check a tip on iOS 26 by hand before a release (on a device, or a
+runtime where StoreKit testing works).
 The sealed launch (`--sealed --reset --now <ISO time>`) works only when the Info.plist key
 `BegiaiSealedLaunch` is `YES` (Debug). It pins the clock and keeps the stars in a temporary folder; `--reset` empties that folder.
 
