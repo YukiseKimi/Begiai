@@ -32,11 +32,18 @@ public struct MotionEngine: Sendable {
     public static let minimumRun = 30.0
 
     public let timetable: Timetable
+    /// The name of each station, by station index.
+    public let stationNames: [String]
+    /// How many trips call at each station, by station index: the search puts busier stations
+    /// first. Counted once here, not at each keystroke.
+    public let callsPerStation: [Int]
     private let schedules: [(arrivals: [Double], departures: [Double])]
     private let days = DayCache()
 
     public init(timetable: Timetable) {
         self.timetable = timetable
+        stationNames = timetable.stations.map(\.name)
+        callsPerStation = timetable.callsPerStation
         schedules = timetable.trips.map(Self.times)
     }
 

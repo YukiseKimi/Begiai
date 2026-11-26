@@ -99,8 +99,7 @@ struct MapPanel: View {
             case nil:
                 if searching {
                     StationResults(
-                        names: engine.timetable.stations.map(\.name), calls: engine.timetable.callsPerStation,
-                        query: query
+                        names: engine.stationNames, calls: engine.callsPerStation, query: query
                     ) {
                         selection = .station($0)
                         // The search raised the panel; at half height the map shows again beside the board.
