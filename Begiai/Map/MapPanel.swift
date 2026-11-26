@@ -33,11 +33,11 @@ struct MapPanelHeader: View {
         case .train:
             TrainPage(
                 timeline: timeline, color: color, now: now, following: following, onLockScreen: onLockScreen,
-                selection: $selection, stationPage: $selection)
+                close: .selection($selection), stationPage: $selection)
         case .station(let index):
             if engine.timetable.stations.indices.contains(index) {
                 let name = engine.stationNames[index]
-                StationHeader(name: name, starred: stars.names(.station).contains(name), selection: $selection)
+                StationHeader(name: name, starred: stars.names(.station).contains(name), close: .selection($selection))
             }
         case nil:
             LinesHeader(running: running, height: height, filter: $filter, query: query, searchFocused: searchFocused)
@@ -97,8 +97,8 @@ struct MapPanelContent: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if let locationNote {
-                LocationNoteView(note: locationNote, shown: $locationNote)
+            if let note = locationNote {
+                LocationNoteView(note: note, shown: $locationNote)
             }
             switch selection {
             case .train(let train):

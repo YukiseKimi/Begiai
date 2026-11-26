@@ -7,6 +7,14 @@ enum PageExit {
     case close
 }
 
+/// What a page's Back or Close button does: clear the open page, or dismiss the sheet that
+/// shows it, with the sheet's own dismiss action. A sheet's content closes with dismiss and
+/// leaves the state that presents it alone.
+enum PageClose {
+    case selection(Binding<PageSelection?>)
+    case dismiss(DismissAction)
+}
+
 /// The fixed top of a train's page: where the train goes and where it is now. The facts
 /// that stay the same (estimated, notices) scroll with the stops, in `StopList`.
 struct TrainPage: View {
@@ -18,8 +26,7 @@ struct TrainPage: View {
     /// True while the followed train's Live Activity shows: Follow then says so to VoiceOver.
     var onLockScreen = false
     var exit = PageExit.back
-    /// The open page: Back or Close clears it.
-    @Binding var selection: PageSelection?
+    let close: PageClose
     /// Where the place line opens its station's board, so the station of a train is one tap
     /// away, also where trains cover its marker on the map: the panel's own page, or a page in
     /// place in the Line Diagram's sheet, so the sheet stays up.
@@ -28,7 +35,7 @@ struct TrainPage: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                PageExitButton(exit: exit, selection: $selection)
+                PageExitButton(exit: exit, close: close)
                     .accessibilityIdentifier(A11yID.Train.back)
                 Spacer()
                 if timeline != nil, let following {
@@ -44,7 +51,19 @@ struct TrainPage: View {
             // their names.
             .labelStyle(IconOnlyAtLargeSizes())
             if let timeline {
-                TrainHeading(timeline: timeline, color: color, now: now, stationPage: $stationPage)
+                HStack(alignment: .top, spacing: 10) {
+                    // The line's colour beside the title ties the page to the train on the map.
+                    Capsule()
+                        .fill(color)
+                        .frame(width: 5)
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 4) {
+                        TrainTitle(timeline: timeline)
+                        TrainWhere(timeline: timeline, now: now, stationPage: $stationPage)
+                        ScheduledBadge()
+                    }
+                }
+                .fixedSize(horizontal: false, vertical: true)
             } else {
                 Text(.trainGone)
                     .foregroundStyle(.secondary)
@@ -54,37 +73,19 @@ struct TrainPage: View {
     }
 }
 
-/// The train's title beside its line's colour, where it is now, and that it is scheduled.
-private struct TrainHeading: View {
+/// “17:26 Vilnius → Kaunas”, the page's heading.
+private struct TrainTitle: View {
     let timeline: TrainTimeline
-    let color: Color
-    let now: Date
-    @Binding var stationPage: PageSelection?
     @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            // The line's colour beside the title ties the page to the train on the map.
-            Capsule()
-                .fill(color)
-                .frame(width: 5)
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(
-                    .trainTitle(
-                        time: timeline.firstDeparture.vilniusTime, origin: timeline.origin, destination: timeline.destination)
-                )
-                .font(.headline)
-                // Three lines hold a title up to the largest sizes, where it may need more.
-                .lineLimit(typeSize.isAccessibilitySize ? nil : 3)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityAddTraits(.isHeader)
-                .accessibilityIdentifier(A11yID.Train.title)
-                TrainWhere(timeline: timeline, now: now, stationPage: $stationPage)
-                ScheduledBadge()
-            }
-        }
-        .fixedSize(horizontal: false, vertical: true)
+        Text(.trainTitle(time: timeline.firstDeparture.vilniusTime, origin: timeline.origin, destination: timeline.destination))
+            .font(.headline)
+            // Three lines hold a title up to the largest sizes, where it may need more.
+            .lineLimit(typeSize.isAccessibilitySize ? nil : 3)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityAddTraits(.isHeader)
+            .accessibilityIdentifier(A11yID.Train.title)
     }
 }
 
@@ -266,21 +267,23 @@ struct IconOnlyAtLargeSizes: LabelStyle {
 /// “< Lines” in the panel; the system Close button in a sheet, where Back would mean a step back.
 struct PageExitButton: View {
     let exit: PageExit
-    /// The open page, which the button clears.
-    @Binding var selection: PageSelection?
+    let close: PageClose
 
     var body: some View {
         switch exit {
         case .back:
-            Button(.trainBack, systemImage: "chevron.left") {
-                selection = nil
-            }
+            Button(.trainBack, systemImage: "chevron.left", action: perform)
         case .close:
-            Button(role: .close) {
-                selection = nil
-            }
-            .buttonStyle(.glass)
-            .labelStyle(.iconOnly)
+            Button(role: .close, action: perform)
+                .buttonStyle(.glass)
+                .labelStyle(.iconOnly)
+        }
+    }
+
+    private func perform() {
+        switch close {
+        case .selection(let selection): selection.wrappedValue = nil
+        case .dismiss(let dismiss): dismiss()
         }
     }
 }
@@ -406,5 +409,6 @@ private struct StopMark: View {
 }
 
 #Preview {
-    TrainPage(timeline: nil, color: .blue, now: .now, following: .constant(.off), selection: .constant(nil), stationPage: .constant(nil))
+    TrainPage(
+        timeline: nil, color: .blue, now: .now, following: .constant(.off), close: .selection(.constant(nil)), stationPage: .constant(nil))
 }

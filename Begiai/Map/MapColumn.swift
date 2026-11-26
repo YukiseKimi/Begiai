@@ -10,8 +10,9 @@ struct MapColumn<Map: View, Panel: View>: View {
     var identifier = A11yID.Map.column
     /// False while the column has nothing to show: the map then has the whole screen.
     var shows = true
-    /// What the map keeps clear for the column, from the screen's edges.
-    let map: (EdgeInsets) -> Map
+    /// The map, given what it keeps clear for the column, from the screen's edges. Only the
+    /// column knows that, so the map is view-builder content called with it once per body.
+    @ViewBuilder let map: (EdgeInsets) -> Map
     let panel: Panel
     /// True while a fold divides the screen, so the panel has a side of its own.
     @State private var divided = false

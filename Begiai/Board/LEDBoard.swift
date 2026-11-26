@@ -5,13 +5,12 @@ struct StationHeader: View {
     let name: String
     let starred: Bool
     var exit = PageExit.back
-    /// The open page: Back or Close clears it.
-    @Binding var selection: PageSelection?
+    let close: PageClose
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                PageExitButton(exit: exit, selection: $selection)
+                PageExitButton(exit: exit, close: close)
                     .accessibilityIdentifier(A11yID.Board.back)
                 Spacer()
                 StarButton(kind: .station, name: name, starred: starred)
@@ -97,65 +96,54 @@ private struct BoardEntry: View {
                     .foregroundStyle(.secondary)
                     .padding(.top, 4)
             }
-            BoardRow(line: line)
+            BoardRow(
+                time: line.departure.time, destination: line.departure.destination, minutes: line.minutes,
+                showsStartsHere: line.showsStartsHere)
         }
     }
 }
 
 private struct BoardRow: View {
-    let line: BoardLine
+    let time: Date
+    let destination: String
+    let minutes: Int
+    let showsStartsHere: Bool
     @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         // Two arrangements, not one container swapped for another, and nothing in a row keeps
-        // state that the switch at the accessibility sizes could lose.
+        // state that the switch at the accessibility sizes could lose. The parts take their
+        // values straight from the row, so the arrangement stays here in one body.
         Group {
             if typeSize.isAccessibilitySize {
-                LargeBoardRow(line: line)
+                // At the largest sizes the time and the minutes take a line, the destination the
+                // next. In a narrow panel the minutes go under the time rather than break mid-word.
+                VStack(alignment: .leading, spacing: 2) {
+                    ViewThatFits(in: .horizontal) {
+                        HStack {
+                            BoardTime(time: time)
+                            Spacer()
+                            BoardCountdown(minutes: minutes)
+                                .fixedSize()
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            BoardTime(time: time)
+                            BoardCountdown(minutes: minutes)
+                        }
+                    }
+                    BoardDestination(name: destination, showsStartsHere: showsStartsHere)
+                }
             } else {
                 HStack(alignment: .firstTextBaseline, spacing: 10) {
-                    BoardTime(time: line.departure.time)
-                    BoardDestination(line: line)
+                    BoardTime(time: time)
+                    BoardDestination(name: destination, showsStartsHere: showsStartsHere)
                     Spacer(minLength: 4)
-                    BoardCountdown(minutes: line.minutes)
+                    BoardCountdown(minutes: minutes)
                 }
             }
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(A11yID.Board.row)
-    }
-}
-
-/// At the largest sizes the time and the minutes take a line, the destination the next.
-private struct LargeBoardRow: View {
-    let line: BoardLine
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            BoardTimeLine(line: line)
-            BoardDestination(line: line)
-        }
-    }
-}
-
-/// The time and the minutes on one line; in a narrow panel the minutes go under the time
-/// rather than break mid-word.
-private struct BoardTimeLine: View {
-    let line: BoardLine
-
-    var body: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack {
-                BoardTime(time: line.departure.time)
-                Spacer()
-                BoardCountdown(minutes: line.minutes)
-                    .fixedSize()
-            }
-            VStack(alignment: .leading, spacing: 2) {
-                BoardTime(time: line.departure.time)
-                BoardCountdown(minutes: line.minutes)
-            }
-        }
     }
 }
 
@@ -165,21 +153,22 @@ private struct BoardTime: View {
     var body: some View {
         Text(verbatim: time.vilniusTime)
             .monospacedDigit()
-            // A clock time never breaks across lines; the minutes beside it wrap instead.
+            // A clock time never breaks across lines, on purpose; the minutes beside it wrap instead.
             .fixedSize()
     }
 }
 
 private struct BoardDestination: View {
-    let line: BoardLine
+    let name: String
+    let showsStartsHere: Bool
     @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(verbatim: line.departure.destination)
+            Text(verbatim: name)
                 // Two lines hold a name up to the largest sizes, where it may need more.
                 .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
-            if line.showsStartsHere {
+            if showsStartsHere {
                 StartsHereLabel(text: .boardStartsHere)
             }
         }

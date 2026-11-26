@@ -3,8 +3,8 @@ import SwiftUI
 /// Three cards on the first launch: the trains are estimates, how to read one, and what a
 /// tap does. About keeps the same facts for later.
 struct WelcomeSheet: View {
-    /// True once the rider has seen the cards: Start sets it, which closes the sheet.
-    @Binding var seen: Bool
+    /// Start closes the sheet, which marks the welcome as seen.
+    @Environment(\.dismiss) private var dismiss
     @State private var card = 0
 
     private static let cards = [
@@ -28,7 +28,7 @@ struct WelcomeSheet: View {
                 if card < Self.cards.count - 1 {
                     withAnimation { card += 1 }
                 } else {
-                    seen = true
+                    dismiss()
                 }
             } label: {
                 Text(card < Self.cards.count - 1 ? .welcomeNext : .welcomeStart)
@@ -108,5 +108,5 @@ private struct WelcomeCard: View {
 }
 
 #Preview {
-    WelcomeSheet(seen: .constant(false))
+    WelcomeSheet()
 }

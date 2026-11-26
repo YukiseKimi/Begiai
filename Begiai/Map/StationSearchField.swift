@@ -74,10 +74,12 @@ struct StationResults: View {
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .scrollDismissesKeyboard(.immediately)
+        // The note stays in place as the rider types, and shows only while nothing is found.
         .overlay {
-            if found.isEmpty {
-                ContentUnavailableView(.mapSearchNone, systemImage: "magnifyingglass")
-            }
+            ContentUnavailableView(.mapSearchNone, systemImage: "magnifyingglass")
+                .opacity(found.isEmpty ? 1 : 0)
+                .allowsHitTesting(found.isEmpty)
+                .accessibilityHidden(!found.isEmpty)
         }
     }
 }

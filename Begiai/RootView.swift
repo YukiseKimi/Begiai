@@ -36,7 +36,7 @@ struct RootView: View {
         .markerStyleFromSettings()
         // Open on the first launch; closing it marks the welcome as seen.
         .sheet(isPresented: $welcomeSeen[toShowIf: mayWelcome]) {
-            WelcomeSheet(seen: $welcomeSeen)
+            WelcomeSheet()
                 .interactiveDismissDisabled()
         }
         // On a return to the app, a newer saved timetable takes over, but only when no train

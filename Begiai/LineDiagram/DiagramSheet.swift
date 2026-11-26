@@ -8,8 +8,8 @@ struct DiagramSheet: View {
     let engine: MotionEngine
     /// The train or station the sheet opened on.
     let page: PageSelection
-    /// The Line Diagram's open page: Close clears it.
-    @Binding var selection: PageSelection?
+    /// What Close does: clear the page open in the column, or dismiss the sheet.
+    let close: PageClose
     @Environment(\.timeSource) private var time
     @Query private var stars: [Star]
     @Environment(\.linePalette) private var palette
@@ -26,13 +26,13 @@ struct DiagramSheet: View {
                     let timeline = train.map(engine.timeline(of:))
                     let color = palette.color(forLine: engine.timetable.trips[id.trip].line)
                     TrainPage(
-                        timeline: timeline, color: color, now: now, exit: .close, selection: $selection, stationPage: $opened)
+                        timeline: timeline, color: color, now: now, exit: .close, close: close, stationPage: $opened)
                     if let timeline {
                         StopList(train: id, timeline: timeline, color: color)
                     }
                 case .station(let station):
                     let name = engine.stationNames[station]
-                    StationHeader(name: name, starred: stars.names(.station).contains(name), exit: .close, selection: $selection)
+                    StationHeader(name: name, starred: stars.names(.station).contains(name), exit: .close, close: close)
                     StationBoard(engine: engine, station: station, now: now)
                 }
             }

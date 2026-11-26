@@ -20,7 +20,7 @@ struct LineDiagramTab: View {
                     MapColumn(identifier: A11yID.LineDiagram.column, shows: selection != nil) { insets in
                         // The inset is from the screen's edge. The diagram stops at its safe area,
                         // short of the tab strip on the right of the open Duo held wide, so it
-                        // pads only the rest.
+                        // pads only the rest. It changes when the Duo turns or folds.
                         LineDiagramPage(
                             engine: engine, diagrams: store.diagrams, selection: $selection, tapCloses: selection != nil
                         )
@@ -32,7 +32,7 @@ struct LineDiagramTab: View {
                         }
                     } panel: {
                         if let selection {
-                            DiagramSheet(engine: engine, page: selection, selection: $selection)
+                            DiagramSheet(engine: engine, page: selection, close: .selection($selection))
                                 // A new train or station starts its page afresh, as a new sheet does.
                                 .id(selection)
                         }
@@ -44,7 +44,7 @@ struct LineDiagramTab: View {
             // The sheet holds the page only on a narrow screen: a fold or an unfold moves the page
             // between the sheet and the column, and the dismissed sheet does not close it.
             .sheet(item: $selection[shownIf: !inColumn]) { chosen in
-                DiagramSheet(engine: engine, page: chosen, selection: $selection)
+                DiagramSheetContent(engine: engine, page: chosen)
                     .presentationDetents([.medium, .large])
             }
         } else {
@@ -65,6 +65,18 @@ extension Optional {
     subscript(shownIf shown: Bool) -> Wrapped? {
         get { shown ? self : nil }
         set { if shown { self = newValue } }
+    }
+}
+
+/// The page in the sheet on a narrow screen: Close dismisses the sheet, which clears the open
+/// page, and the content leaves the state that presents it alone.
+private struct DiagramSheetContent: View {
+    let engine: MotionEngine
+    let page: PageSelection
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        DiagramSheet(engine: engine, page: page, close: .dismiss(dismiss))
     }
 }
 
