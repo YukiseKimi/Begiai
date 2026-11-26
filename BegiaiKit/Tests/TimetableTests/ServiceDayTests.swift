@@ -12,7 +12,11 @@ struct ServiceDayTests {
         let twentyPastMidnight = tuesday.adding(days: 1).midnight.addingTimeInterval(20 * 60)
         let running = MotionEngine(timetable: timetable).trains(at: twentyPastMidnight)
         #expect(running.map { "\($0.trip)@\($0.day)" } == ["0@\(tuesday)"])
-        #expect(running.first?.phase == .running)
+        // 30 minutes into its 50-minute run: a wrong zero time puts it elsewhere on the track.
+        let train = try #require(running.first)
+        let expected = SpeedProfile.distance(length: 100_000, duration: 50 * 60, elapsed: 30 * 60).metres
+        #expect(train.phase == .running && train.lastStop == 0 && train.nextStop == 1)
+        #expect(abs(train.metres - expected) < 1)
     }
 
     @Test func onTheNightTheClocksGoBackATrainStillLeavesAtItsTimetableTime() throws {
