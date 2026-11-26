@@ -172,10 +172,28 @@ private struct ScheduledLabel: View {
 }
 
 /// “▶ 08:48”: the time the train is due at its next stop, or leaves the one it stands at.
+/// Where the island is narrow, as on the open iPhone Duo or an iPhone in landscape, the
+/// journey ring alone: the HIG asks for a graphic that fits a 28-point circle there, and no
+/// time does.
 private struct CompactNext: View {
     let facts: TrainFacts
 
     var body: some View {
+        if #available(iOS 27.0, *) {
+            NarrowIsland { narrow in
+                if narrow {
+                    MinimalJourney(facts: facts)
+                        .frame(maxWidth: 26, maxHeight: 26)
+                } else {
+                    wide
+                }
+            }
+        } else {
+            wide
+        }
+    }
+
+    private var wide: some View {
         HStack(spacing: 3) {
             Image(systemName: facts.next == nil ? "checkmark" : "play.fill")
                 .font(.caption2)
@@ -200,7 +218,7 @@ private struct CompactNext: View {
 }
 
 /// “Kaunas 34:10”: the last stop and the time left to it, which counts down by itself.
-/// Where the island is narrow, only the time left.
+/// Where the island is narrow, nothing, so the system hides this side, as the HIG says.
 private struct CompactEnd: View {
     let facts: TrainFacts
 
@@ -212,18 +230,19 @@ private struct CompactEnd: View {
         }
     }
 
+    @ViewBuilder
     private func content(narrow: Bool) -> some View {
-        HStack(spacing: 4) {
-            if !narrow {
+        if !narrow {
+            HStack(spacing: 4) {
                 Text(verbatim: facts.train.destination.shortened(to: 12))
                     .lineLimit(1)
+                Countdown(facts: facts)
             }
-            Countdown(facts: facts)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(facts.colour)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier(A11yID.LiveActivity.compactEnd)
         }
-        .font(.subheadline.weight(.semibold))
-        .foregroundStyle(facts.colour)
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier(A11yID.LiveActivity.compactEnd)
     }
 }
 
