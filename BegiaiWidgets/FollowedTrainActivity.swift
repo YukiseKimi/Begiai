@@ -83,12 +83,6 @@ struct TrainFacts {
     var colour: Color { Color(lineSlot: train.colour) }
 
     var title: LocalizedStringResource { .activityTitle(origin: train.origin, destination: train.destination) }
-
-    /// From now to the last arrival, on the device clock, for the countdowns.
-    var toArrival: Range<Date> {
-        let end = train.deviceDate(train.arrival)
-        return min(Date.now, end)..<end
-    }
 }
 
 private struct LockScreenView: View {
@@ -217,8 +211,11 @@ private struct CompactNext: View {
     }
 }
 
-/// “Kaunas 34:10”: the last stop and the time left to it, which counts down by itself.
-/// Where the island is narrow, nothing, so the system hides this side, as the HIG says.
+/// “Kaunas 34m” or “Kaunas 1h 5m”: the last stop and the minutes left to it, which count
+/// down by themselves. Where both do not fit, as in Lithuanian on a 6.3-inch iPhone, the
+/// minutes alone; the expanded island and the Lock Screen name the stop. Once the train is
+/// in, its arrival time. Where the island is narrow, nothing, so the system hides this side,
+/// as the HIG says.
 private struct CompactEnd: View {
     let facts: TrainFacts
 
@@ -233,16 +230,42 @@ private struct CompactEnd: View {
     @ViewBuilder
     private func content(narrow: Bool) -> some View {
         if !narrow {
-            HStack(spacing: 4) {
-                Text(verbatim: facts.train.destination.shortened(to: 12))
-                    .lineLimit(1)
-                Countdown(facts: facts)
+            let destination = Text(verbatim: facts.train.destination)
+            Group {
+                if facts.next == nil {
+                    HStack(spacing: 4) {
+                        destination
+                        Text(verbatim: facts.train.arrival.vilniusTime)
+                    }
+                } else {
+                    // The name and the minutes where both fit, else the minutes alone.
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 4) {
+                            destination
+                            Countdown(train: facts.train)
+                        }
+                        Countdown(train: facts.train)
+                    }
+                }
             }
+            .lineLimit(1)
+            .monospacedDigit()
             .font(.subheadline.weight(.semibold))
             .foregroundStyle(facts.colour)
-            .accessibilityElement(children: .combine)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(accessibilityLabel)
             .accessibilityIdentifier(A11yID.LiveActivity.compactEnd)
+            // The system draws a live text in English unless the view sets a locale outright,
+            // whatever the format's own locale.
+            .environment(\.locale, Countdown.locale)
         }
+    }
+
+    /// The stop, and the time left in words, “Kaunas, 34 minutes”, as “m” reads as metres.
+    private var accessibilityLabel: Text {
+        let destination = Text(verbatim: "\(facts.train.destination), ")
+        guard facts.next != nil else { return destination + Text(verbatim: facts.train.arrival.vilniusTime) }
+        return destination + Text(.dateRange(endingAt: facts.train.countdownEnd), format: Countdown.style(.wide))
     }
 }
 
@@ -257,21 +280,27 @@ private struct NarrowIsland<Content: View>: View {
     }
 }
 
-/// The time left to the last arrival, counting down by itself. A timer text takes all the
-/// width it is offered, which would stretch the island across the screen, so it sits over a
-/// still text of its widest form, which sets its width.
+/// The minutes left to the last arrival, “34m” or “1h 5m”, counting down by themselves once
+/// a minute. A live text takes all the width it is offered, which would stretch the island
+/// across the screen, so it sits over a still text of its widest reading, which sets its width.
 private struct Countdown: View {
-    let facts: TrainFacts
+    let train: FollowedTrain
 
     var body: some View {
-        let hours = facts.train.arrival.timeIntervalSince(facts.train.departure) >= 3600
-        Text(verbatim: hours ? "0:00:00" : "00:00")
+        let now = Date.now
+        Text(verbatim: (now..<now.addingTimeInterval(train.countdownWidest(at: now))).formatted(Self.style(.narrow)))
             .hidden()
             .overlay(alignment: .trailing) {
-                Text(timerInterval: facts.toArrival.lowerBound...facts.toArrival.upperBound, countsDown: true)
-                    .multilineTextAlignment(.trailing)
+                Text(.dateRange(endingAt: train.countdownEnd), format: Self.style(.narrow))
             }
-            .monospacedDigit()
+    }
+
+    /// The extension's language and region as a fixed locale. The system draws a live text
+    /// with its own current locale, which is English, so `Locale.current` itself does not do.
+    static var locale: Locale { Locale(identifier: Locale.current.identifier) }
+
+    static func style(_ style: Date.ComponentsFormatStyle.Style) -> Date.ComponentsFormatStyle {
+        Date.ComponentsFormatStyle(style: style, locale: locale, fields: [.hour, .minute])
     }
 }
 
@@ -343,13 +372,5 @@ private struct MinimalJourney: View {
         .tint(facts.colour)
         .foregroundStyle(facts.colour)
         .accessibilityLabel(Text(facts.title))
-    }
-}
-
-extension String {
-    /// The first characters and “…”, for a name in the compact island, where a text cannot
-    /// truncate by itself beside a timer, which takes all the width it gets.
-    func shortened(to length: Int) -> String {
-        count <= length ? self : String(prefix(length - 1)).trimmingCharacters(in: .whitespaces) + "…"
     }
 }
