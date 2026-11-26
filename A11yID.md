@@ -24,6 +24,7 @@ Generated from `Begiai/A11yID.swift` by `script/test.sh a11y`. Do not edit.
 | `map.stationChip` | the station button over a chosen train that stands at a station | Map |
 | `map.search` | the field that finds a station, above the line filter | Map |
 | `map.searchResult` | each station found by the search field | Map |
+| `map.column` | the glass column that holds the panel beside the map on a wide screen | Map |
 | `board.title` | the station name on its board | Board |
 | `board.back` | the Lines button on a station board, or its Close button in a sheet | Board |
 | `board.row` | each departure on a station board | Board |
@@ -33,6 +34,7 @@ Generated from `Begiai/A11yID.swift` by `script/test.sh a11y`. Do not edit.
 | `lineDiagram.frequency` | how often the trains of the chosen line leave | Line Diagram |
 | `lineDiagram.station` | each station on the line diagram | Line Diagram |
 | `lineDiagram.train` | each train on the line diagram | Line Diagram |
+| `lineDiagram.column` | the glass column that holds a train or station on a wide screen | Line Diagram |
 | `welcome.title` | the title of the welcome card that shows | Welcome |
 | `welcome.next` | the Next or Start button of the welcome sheet | Welcome |
 | `about.open` | the ⓘ button on the map | Map |

@@ -50,6 +50,16 @@ struct TrainScreen {
         return name
     }
 
+    /// Taps Follow, which then reads Following.
+    func follow(file: StaticString = #filePath, line: UInt = #line) {
+        let button = journey.wait(for: journey.element(A11yID.Train.follow), "the Follow button", on: "Train", file: file, line: line)
+        button.tap()
+        let following = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "Following"), object: button)
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [following], timeout: 3), .completed, "Train: Follow reads \(button.label) after a tap",
+            file: file, line: line)
+    }
+
     /// Lines in the panel; Close in a sheet.
     func back(file: StaticString = #filePath, line: UInt = #line) {
         journey.wait(for: journey.element(A11yID.Train.back), "the way back", on: "Train", file: file, line: line).tap()

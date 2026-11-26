@@ -13,7 +13,10 @@ struct TrainsMap: View {
     @Binding var following: Bool
     @Binding var panelHeight: PanelHeight
     @Binding var locationNote: LocationNote?
-    let bottomInset: CGFloat
+    /// What the map keeps clear for the panel, from the screen's edges: the bottom for the
+    /// panel on an iPhone, the trailing side for the column on a wide screen. The camera, Follow
+    /// and Locate keep the chosen train in the rest.
+    let insets: EdgeInsets
     @State private var cameraHeading = 0.0
     @State private var cameraDistance = 400_000.0
     /// The ground distance one point of the screen covers at its centre, in steps of a quarter
@@ -115,7 +118,7 @@ struct TrainsMap: View {
         .onChange(of: position.positionedByUser) { _, byUser in
             if byUser { following = false }
         }
-        .safeAreaPadding(.bottom, bottomInset)
+        .safeAreaPadding(insets)
         .ignoresSafeArea()
         .overlay(alignment: .topTrailing) {
             VStack(spacing: 10) {
@@ -130,6 +133,8 @@ struct TrainsMap: View {
                 MapCompass(scope: mapScope)
             }
             .padding()
+            // Beside the column, never under it.
+            .padding(.trailing, insets.trailing)
         }
         .mapScope(mapScope)
     }

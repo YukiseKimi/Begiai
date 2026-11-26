@@ -110,6 +110,29 @@ struct LineDiagramScreen {
         journey.app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2)).tap()
     }
 
+    /// Taps the diagram left of `limit` where no train, station, chip or text is, as a rider
+    /// taps outside the column on a wide screen.
+    func tapTheDiagramBeside(_ limit: CGFloat, file: StaticString = #filePath, line: UInt = #line) {
+        let window = journey.window.frame
+        let ids = [
+            A11yID.LineDiagram.train, A11yID.LineDiagram.station, A11yID.LineDiagram.chip, A11yID.LineDiagram.page,
+            A11yID.LineDiagram.frequency, A11yID.Notices.link, A11yID.Timetable.stale,
+        ]
+        let taken = ids.flatMap { id in
+            journey.app.descendants(matching: .any).matching(identifier: id).allElementsBoundByIndex.map {
+                $0.frame.insetBy(dx: -20, dy: -20)
+            }
+        }
+        let spots = stride(from: 0.1, through: 0.9, by: 0.1).flatMap { x in
+            stride(from: 0.4, through: 0.9, by: 0.05).map { y in CGPoint(x: limit * x, y: window.height * y) }
+        }
+        guard let spot = spots.first(where: { spot in taken.allSatisfy { !$0.contains(spot) } }) else {
+            XCTFail("Line Diagram: no empty spot of the diagram beside the column", file: file, line: line)
+            return
+        }
+        journey.spot(spot).tap()
+    }
+
     func expectTheSheetClosed(file: StaticString = #filePath, line: UInt = #line) {
         let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: journey.element(A11yID.Train.title))
         XCTAssertEqual(

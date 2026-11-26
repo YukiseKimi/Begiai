@@ -40,14 +40,14 @@ struct MapScreen {
 
     func openFirstTrain(file: StaticString = #filePath, line: UInt = #line) -> String {
         journey.wait(for: journey.element(A11yID.Map.train), "a train", on: "Map", file: file, line: line)
-        let aboveThePanel = journey.app.frame.height * 0.45
+        let sight = mapInSight
         let trains = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
         let stations = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.station).allElementsBoundByIndex
             .map(\.frame)
         let clear = { (train: XCUIElement) in stations.allSatisfy { !$0.intersects(train.frame) } }
         // A tap on the centre of a standing train opens its station, so pick a moving train.
         let moving = { (train: XCUIElement) in (train.value as? String) != Self.standing }
-        guard let train = trains.first(where: { $0.isHittable && $0.frame.midY < aboveThePanel && clear($0) && moving($0) }) else {
+        guard let train = trains.first(where: { $0.isHittable && sight.contains(centre(of: $0.frame)) && clear($0) && moving($0) }) else {
             XCTFail("Map: no train shows above the panel", file: file, line: line)
             return ""
         }
@@ -68,20 +68,19 @@ struct MapScreen {
     /// Returns the station's name, or nil when no train stands at a station.
     func openTrainStandingAtAStation(file: StaticString = #filePath, line: UInt = #line) -> String? {
         journey.wait(for: journey.element(A11yID.Map.train), "a train", on: "Map", file: file, line: line)
-        let aboveThePanel = journey.app.frame.height * 0.45
+        let sight = mapInSight
         let stations = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.station).allElementsBoundByIndex
             .map(\.frame)
         let trains = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
             .filter { ($0.value as? String) == Self.standing }
             .map(\.frame).filter { train in
-                train.midY < aboveThePanel && stations.contains { $0.contains(CGPoint(x: train.midX, y: train.midY)) }
+                sight.contains(centre(of: train)) && stations.contains { $0.contains(CGPoint(x: train.midX, y: train.midY)) }
             }
         let page = TrainScreen(journey: journey)
         for train in trains {
             // On the train beyond its station ring: past the ring radius (8 points at city zoom, 6 at
             // country zoom), inside the train.
-            let spot = CGVector(dx: train.midX, dy: train.midY + train.height * 0.38)
-            journey.app.coordinate(withNormalizedOffset: .zero).withOffset(spot).tap()
+            journey.spot(CGPoint(x: train.midX, y: train.midY + train.height * 0.38)).tap()
             let now = journey.element(A11yID.Train.now)
             guard now.waitForExistence(timeout: 3) else { continue }
             if now.label.hasPrefix("At ") { return page.place(file: file, line: line) }
@@ -122,8 +121,62 @@ struct MapScreen {
         results.firstMatch.tap()
     }
 
-    /// The panel's handle says how tall the panel is: Small, Half or Full.
+    /// The glass column that holds the panel beside the map on a wide screen, such as the open
+    /// iPhone Duo. An iPhone has none: its panel is a sheet over the bottom of the map.
+    var column: XCUIElement { journey.element(A11yID.Map.column) }
+
+    /// True on a wide screen, where the panel is a column with no heights to drag or step.
+    func hasColumn(file: StaticString = #filePath, line: UInt = #line) -> Bool {
+        expectLines(file: file, line: line)
+        return column.exists
+    }
+
+    /// Once the map follows a train to `destination`, such a train stands near the middle of
+    /// the map in sight, not under the column.
+    func expectTrainFollowed(to destination: String, file: StaticString = #filePath, line: UInt = #line) {
+        let sight = mapInSight
+        let middle = CGPoint(x: sight.midX, y: sight.midY)
+        let trains = journey.app.descendants(matching: .any).matching(NSPredicate(format: "identifier == %@", A11yID.Map.train))
+            .matching(NSPredicate(format: "label BEGINSWITH %@", "Train to \(destination),"))
+        // At city zoom a train's frame takes in its label, which hangs to the right of the
+        // marker; the marker is the square at the frame's left.
+        let marker = { (frame: CGRect) in CGPoint(x: frame.minX + frame.height / 2, y: frame.midY) }
+        let centred = XCTNSPredicateExpectation(
+            predicate: NSPredicate { _, _ in
+                trains.allElementsBoundByIndex.contains { hypot(marker($0.frame).x - middle.x, marker($0.frame).y - middle.y) < 40 }
+            }, object: nil)
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [centred], timeout: 10), .completed,
+            "Map: no train to \(destination) stands near \(middle), the middle of the map beside the column: "
+                + trains.allElementsBoundByIndex.map { "\($0.frame)" }.joined(separator: ", "), file: file, line: line)
+    }
+
+    /// The map where the panel does not cover it: above a half-height sheet, or before the column.
+    private var mapInSight: CGRect {
+        let size = journey.window.frame.size
+        guard column.exists else { return CGRect(x: 0, y: 0, width: size.width, height: size.height * 0.45) }
+        return CGRect(x: 0, y: 0, width: column.frame.minX, height: size.height)
+    }
+
+    /// The map where the panel does not cover it, `margin` points from the panel's edge.
+    private func clearOfThePanel(by margin: CGFloat, file: StaticString, line: UInt) -> CGRect {
+        let size = journey.window.frame.size
+        if column.exists { return CGRect(x: 0, y: 0, width: column.frame.minX - margin, height: size.height) }
+        let panel = journey.wait(for: journey.element(A11yID.Map.panel), "the panel's handle", on: "Map", file: file, line: line)
+        return CGRect(x: 0, y: 0, width: size.width, height: panel.frame.minY - margin)
+    }
+
+    private func centre(of frame: CGRect) -> CGPoint {
+        CGPoint(x: frame.midX, y: frame.midY)
+    }
+
+    /// The panel's handle says how tall the panel is: Small, Half or Full. A column has no
+    /// heights: it stays beside the map at the screen's full height.
     func expectPanel(_ height: String, file: StaticString = #filePath, line: UInt = #line) {
+        if column.exists {
+            XCTAssertTrue(column.isHittable, "Map: the column does not show", file: file, line: line)
+            return
+        }
         let handle = journey.wait(for: journey.element(A11yID.Map.panel), "the panel's handle", on: "Map", file: file, line: line)
         let said = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", height), object: handle)
         XCTAssertEqual(
@@ -169,21 +222,23 @@ struct MapScreen {
     /// A spot of the map above the panel, clear of the trains, the stations, the status bar, the
     /// buttons at the top right and the panel's top edge.
     private func emptySpot(file: StaticString, line: UInt) -> XCUICoordinate? {
-        let panel = journey.wait(for: journey.element(A11yID.Map.panel), "the panel's handle", on: "Map", file: file, line: line)
+        let sight = clearOfThePanel(by: 40, file: file, line: line)
+        // Beside a column the buttons at the top right stand where the spots are.
         let markers =
             (journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
-            + journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.station).allElementsBoundByIndex)
+            + journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.station).allElementsBoundByIndex
+            + [journey.element(A11yID.Map.locate), journey.element(A11yID.About.open)])
             .map { $0.frame.insetBy(dx: -30, dy: -30) }
-        let size = journey.app.frame.size
+        let size = journey.window.frame.size
         let spots = stride(from: 0.15, through: 0.6, by: 0.05).flatMap { x in
             stride(from: 0.15, to: 0.45, by: 0.03).map { y in CGPoint(x: size.width * x, y: size.height * y) }
         }
-        guard let spot = spots.first(where: { spot in spot.y < panel.frame.minY - 40 && markers.allSatisfy { !$0.contains(spot) } })
+        guard let spot = spots.first(where: { spot in sight.contains(spot) && markers.allSatisfy { !$0.contains(spot) } })
         else {
             XCTFail("Map: no empty spot of the map shows above the panel", file: file, line: line)
             return nil
         }
-        return journey.app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: spot.x, dy: spot.y))
+        return journey.spot(spot)
     }
 
     func expectNoPage(file: StaticString = #filePath, line: UInt = #line) {
@@ -198,11 +253,11 @@ struct MapScreen {
 
     func openStationAboveThePanel(file: StaticString = #filePath, line: UInt = #line) -> String {
         journey.wait(for: journey.element(A11yID.Map.station), "a station", on: "Map", file: file, line: line)
-        let aboveThePanel = journey.app.frame.height * 0.45
+        let sight = mapInSight
         let stations = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.station).allElementsBoundByIndex
         let trains = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex.map(\.frame)
         let clear = { (station: XCUIElement) in trains.allSatisfy { !$0.intersects(station.frame) } }
-        guard let station = stations.first(where: { $0.isHittable && $0.frame.midY < aboveThePanel && clear($0) }) else {
+        guard let station = stations.first(where: { $0.isHittable && sight.contains(centre(of: $0.frame)) && clear($0) }) else {
             XCTFail("Map: no station shows above the panel", file: file, line: line)
             return ""
         }
@@ -215,7 +270,7 @@ struct MapScreen {
     /// or nil when no train covers a station above the panel.
     func openStationUnderATrain(file: StaticString = #filePath, line: UInt = #line) -> String? {
         journey.wait(for: journey.element(A11yID.Map.station), "a station", on: "Map", file: file, line: line)
-        let aboveThePanel = journey.app.frame.height * 0.45
+        let sight = mapInSight
         let trains = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
             .map { (frame: $0.frame, standing: ($0.value as? String) == Self.standing) }
         let stations = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.station).allElementsBoundByIndex
@@ -225,15 +280,14 @@ struct MapScreen {
             let station = stations.first(where: { station in
                 let centre = CGPoint(x: station.frame.midX, y: station.frame.midY)
                 let over = trains.filter { $0.frame.contains(centre) }
-                return centre.y < aboveThePanel && !over.isEmpty
+                return sight.contains(centre) && !over.isEmpty
                     && over.allSatisfy { train in
                         train.standing && hypot(train.frame.midX - centre.x, train.frame.midY - centre.y) < 4
                     }
             })
         else { return nil }
         let name = station.label
-        journey.app.coordinate(withNormalizedOffset: .zero)
-            .withOffset(CGVector(dx: station.frame.midX, dy: station.frame.midY)).tap()
+        journey.spot(CGPoint(x: station.frame.midX, y: station.frame.midY)).tap()
         return name
     }
 
@@ -258,11 +312,10 @@ struct MapScreen {
         XCTAssertFalse(journey.element(A11yID.Timetable.stale).exists, "Map: a fresh timetable says it is old", file: file, line: line)
     }
 
-    /// The trains on the screen above the panel. Fewer show once the map zooms in.
+    /// The trains on the screen above the panel, or before the column. Fewer show once the map zooms in.
     func trainsInSight(file: StaticString = #filePath, line: UInt = #line) -> Int {
         journey.wait(for: journey.element(A11yID.Map.train), "a train", on: "Map", timeout: 15, file: file, line: line)
-        let panel = journey.element(A11yID.Map.panel).frame
-        let sight = CGRect(x: 0, y: 0, width: journey.app.frame.width, height: panel.minY)
+        let sight = clearOfThePanel(by: 0, file: file, line: line)
         return journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
             .filter { sight.contains(CGPoint(x: $0.frame.midX, y: $0.frame.midY)) }.count
     }

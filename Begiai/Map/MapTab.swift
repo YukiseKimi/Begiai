@@ -10,6 +10,8 @@ struct MapTab: View {
     @Environment(\.timeSource) private var time
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
+    /// Regular on a wide screen such as the open iPhone Duo, where the panel is a column beside the map.
+    @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var trains = TrainsModel()
     @State private var lowPower = ProcessInfo.processInfo.isLowPowerModeEnabled
     @State private var panelHeight: PanelHeight = .half
@@ -28,86 +30,35 @@ struct MapTab: View {
         let chosen = chosenTrain
         let timeline = chosen.flatMap { train in store.engine.map { $0.timeline(of: train) } }
         let settled = trains.settled(for: store.revision)
-        ZStack(alignment: .bottom) {
-            TrainsMap(
-                store: store, trains: trains, position: $position, selection: $selection, following: $following,
-                panelHeight: $panelHeight, locationNote: $locationNote,
-                bottomInset: store.state == .ready ? panelHeight.points(in: panelTotal) : 0
-            )
-            if store.state == .ready, let engine = store.engine, let now = trains.now {
-                GeometryReader { proxy in
-                    let station = stationPanel(engine: engine, now: now)
-                    LinePanel(height: $panelHeight, total: proxy.size.height) {
-                        switch selection {
-                        case .train:
-                            TrainPage(
-                                timeline: timeline, color: color(of: chosen), now: now, following: $following,
-                                openStation: { selection = .station($0) }
-                            ) {
-                                selection = nil
+        Group {
+            if #available(iOS 27.1, *), sizeClass == .regular {
+                MapColumn { insets in
+                    trainsMap(insets: insets)
+                } panel: {
+                    if store.state == .ready, let engine = store.engine, let now = trains.now {
+                        panel(.whole, engine: engine, now: now, settled: settled, timeline: timeline, color: color(of: chosen))
+                    }
+                }
+            } else {
+                ZStack(alignment: .bottom) {
+                    trainsMap(
+                        insets: EdgeInsets(
+                            top: 0, leading: 0, bottom: store.state == .ready ? panelHeight.points(in: panelTotal) : 0, trailing: 0))
+                    if store.state == .ready, let engine = store.engine, let now = trains.now {
+                        GeometryReader { proxy in
+                            LinePanel(height: $panelHeight, total: proxy.size.height) {
+                                panel(.header, engine: engine, now: now, settled: settled, timeline: timeline, color: color(of: chosen))
+                            } content: {
+                                panel(.content, engine: engine, now: now, settled: settled, timeline: timeline, color: color(of: chosen))
                             }
-                        case .station:
-                            if let station {
-                                station.header
-                            }
-                        case nil:
-                            VStack(spacing: 10) {
-                                if !settled.isEmpty {
-                                    RunningHeader(count: settled.count)
-                                }
-                                // At night, with no trains, the field still finds a station's first trains.
-                                StationSearchField(query: $query, focused: $searchFocused)
-                                    .padding(.horizontal)
-                                // A Small panel keeps the count and the field; the filter needs room for the lines,
-                                // and goes while the field searches, as it filters lines, not stations.
-                                if !settled.isEmpty, panelHeight != .peek, !searching {
-                                    LineFilterPicker(filter: $filter)
-                                        .padding(.horizontal)
-                                }
-                            }
+                            .frame(maxHeight: .infinity, alignment: .bottom)
                         }
-                    } content: {
-                        VStack(spacing: 0) {
-                            if let locationNote {
-                                LocationNoteView(note: locationNote) { self.locationNote = nil }
-                            }
-                            switch selection {
-                            case .train:
-                                if let timeline {
-                                    StopList(timeline: timeline, color: color(of: chosen))
-                                }
-                            case .station:
-                                if let station {
-                                    station.board
-                                }
-                            case nil:
-                                if searching {
-                                    StationResults(
-                                        names: engine.timetable.stations.map(\.name), calls: engine.timetable.callsPerStation,
-                                        query: query
-                                    ) {
-                                        selection = .station($0)
-                                        // The search raised the panel; at half height the map shows again beside the board.
-                                        panelHeight = .half
-                                    }
-                                } else if settled.isEmpty, let first = engine.firstTrain(after: now) {
-                                    VStack(spacing: 12) {
-                                        StaleNote(since: engine.timetable.staleSince(on: ServiceDate(now)))
-                                            .padding(.horizontal)
-                                        FirstTrainCard(time: first.time, origin: first.origin, destination: first.destination)
-                                    }
-                                } else {
-                                    lineList(engine: engine, running: settled, now: now)
-                                }
-                            }
+                        .onGeometryChange(for: CGFloat.self) {
+                            $0.size.height
+                        } action: {
+                            panelTotal = $0
                         }
                     }
-                    .frame(maxHeight: .infinity, alignment: .bottom)
-                }
-                .onGeometryChange(for: CGFloat.self) {
-                    $0.size.height
-                } action: {
-                    panelTotal = $0
                 }
             }
         }
@@ -138,24 +89,6 @@ struct MapTab: View {
         }
     }
 
-    /// The station open in the panel, which gives the panel both its header and its board.
-    private func stationPanel(engine: MotionEngine, now: Date) -> StationPanel? {
-        guard case .station(let index) = selection, engine.timetable.stations.indices.contains(index) else { return nil }
-        let name = engine.timetable.stations[index].name
-        return StationPanel(
-            index: index, name: name, starred: stars.names(.station).contains(name), engine: engine, now: now
-        ) {
-            selection = nil
-        } toggleStar: {
-            toggleStar(.station, name: name)
-        }
-    }
-
-    /// True while the search field holds more than spaces: its results take the lines' place.
-    private var searching: Bool {
-        !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-
     /// The chosen train at the panel's time, worked out from its ID, so that a train that
     /// started less than a second ago has its page at once.
     private var chosenTrain: TrainState? {
@@ -169,60 +102,20 @@ struct MapTab: View {
         return .every(trains.frame)
     }
 
-    private func lineList(engine: MotionEngine, running: [TrainState], now: Date) -> some View {
-        let starred = stars.names(.line)
-        let lines = engine.lineSummaries(at: now, trains: running, starred: starred).filter {
-            filter.includes($0, starred: starred)
-        }
-        // The note scrolls with the lines, so at large text sizes it never pushes them off the panel.
-        let staleSince = engine.timetable.staleSince(on: ServiceDate(now))
-        let stations = filter == .international ? [] : starredStations(in: engine.timetable)
-        return List {
-            if staleSince != nil {
-                StaleNote(since: staleSince)
-                    .listRowBackground(Color.clear)
-            }
-            if !stations.isEmpty {
-                Section {
-                    ForEach(stations, id: \.index) { station in
-                        StarredStationRow(
-                            name: station.name, next: engine.departures(from: station.index, at: now, limit: 1).first, now: now
-                        ) {
-                            selection = .station(station.index)
-                        }
-                        .listRowBackground(Color.clear)
-                    }
-                } header: {
-                    Text(.mapYourStations)
-                }
-            }
-            Section {
-                ForEach(lines) { line in
-                    LineRow(line: line, starred: starred.contains(line.name)) {
-                        toggleStar(.line, name: line.name)
-                    }
-                    .listRowBackground(Color.clear)
-                }
-            } header: {
-                if !stations.isEmpty {
-                    Text(.mapLines)
-                }
-            }
-        }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-        .overlay {
-            if lines.isEmpty, stations.isEmpty, filter == .starred {
-                ContentUnavailableView(.lineNoneStarred, systemImage: "star", description: Text(.lineNoneStarredDetail))
-            }
-        }
+    /// The map, keeping `insets` from the screen's edges clear for the panel.
+    private func trainsMap(insets: EdgeInsets) -> TrainsMap {
+        TrainsMap(
+            store: store, trains: trains, position: $position, selection: $selection, following: $following,
+            panelHeight: $panelHeight, locationNote: $locationNote, insets: insets)
     }
 
-    /// The starred stations that the timetable has, by name.
-    private func starredStations(in timetable: Timetable) -> [(index: Int, name: String)] {
-        stars.names(.station).sorted().compactMap { name in
-            timetable.stations.firstIndex { $0.name == name }.map { ($0, name) }
-        }
+    private func panel(
+        _ part: MapPanel.Part, engine: MotionEngine, now: Date, settled: [TrainState], timeline: TrainTimeline?, color: Color
+    ) -> MapPanel {
+        MapPanel(
+            part: part, engine: engine, now: now, settled: settled, timeline: timeline, color: color,
+            selection: $selection, following: $following, height: $panelHeight, filter: $filter, query: $query,
+            searchFocused: $searchFocused, locationNote: $locationNote, stars: stars, toggleStar: toggleStar)
     }
 
     private func toggleStar(_ kind: StarKind, name: String) {

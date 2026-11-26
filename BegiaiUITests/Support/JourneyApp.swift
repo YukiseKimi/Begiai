@@ -59,15 +59,37 @@ struct JourneyApp {
         wait(for: element(opening.page), "the opening's page", on: "Launch", timeout: 15, file: file, line: line)
     }
 
-    /// The tabs by their place in the tab bar. A `Tab` has no identifier to find it by: iOS 27
-    /// drops one set with `accessibilityIdentifier` now and then.
+    /// The tabs. A `Tab` has no identifier to find it by: iOS 27 drops one set with
+    /// `accessibilityIdentifier` now and then.
     enum TabPlace: Int {
         case map
         case lineDiagram
+
+        /// The tab's title, in English, as the journeys run the app.
+        var title: String {
+            switch self {
+            case .map: "Map"
+            case .lineDiagram: "Line Diagram"
+            }
+        }
     }
 
+    /// The tab's button, by its place in the tab bar on an iPhone. Where the tabs are not in a
+    /// tab bar, such as on the side of an iPhone Duo's screen, by its title among the buttons.
     func tab(_ place: TabPlace) -> XCUIElement {
-        app.tabBars.buttons.element(boundBy: place.rawValue)
+        let bar = app.tabBars.buttons
+        guard !bar.firstMatch.waitForExistence(timeout: 3) else { return bar.element(boundBy: place.rawValue) }
+        return app.buttons.matching(NSPredicate(format: "label == %@", place.title)).firstMatch
+    }
+
+    /// The app's window. Its frame is the screen as the app lays it out, in the same space as
+    /// the elements' frames. The app's own frame is not: on the open iPhone Duo, held wide, it
+    /// stays 669 × 951 points, as if upright, while the window and the elements are 951 × 669.
+    var window: XCUIElement { app.windows.firstMatch }
+
+    /// The spot `point` points from the window's top left corner, in the elements' space.
+    func spot(_ point: CGPoint) -> XCUICoordinate {
+        window.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: point.x, dy: point.y))
     }
 
     func element(_ identifier: String) -> XCUIElement {

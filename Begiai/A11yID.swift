@@ -14,6 +14,7 @@ enum A11yID {
         static let stationChip = "map.stationChip"
         static let search = "map.search"
         static let searchResult = "map.searchResult"
+        static let column = "map.column"
     }
 
     enum Train {
@@ -38,6 +39,7 @@ enum A11yID {
         static let frequency = "lineDiagram.frequency"
         static let station = "lineDiagram.station"
         static let train = "lineDiagram.train"
+        static let column = "lineDiagram.column"
     }
 
     enum Timetable {
@@ -91,6 +93,7 @@ enum A11yID {
         Entry(id: Map.stationChip, element: "the station button over a chosen train that stands at a station", screen: "Map"),
         Entry(id: Map.search, element: "the field that finds a station, above the line filter", screen: "Map"),
         Entry(id: Map.searchResult, element: "each station found by the search field", screen: "Map"),
+        Entry(id: Map.column, element: "the glass column that holds the panel beside the map on a wide screen", screen: "Map"),
         Entry(id: Board.title, element: "the station name on its board", screen: "Board"),
         Entry(id: Board.back, element: "the Lines button on a station board, or its Close button in a sheet", screen: "Board"),
         Entry(id: Board.row, element: "each departure on a station board", screen: "Board"),
@@ -100,6 +103,7 @@ enum A11yID {
         Entry(id: LineDiagram.frequency, element: "how often the trains of the chosen line leave", screen: "Line Diagram"),
         Entry(id: LineDiagram.station, element: "each station on the line diagram", screen: "Line Diagram"),
         Entry(id: LineDiagram.train, element: "each train on the line diagram", screen: "Line Diagram"),
+        Entry(id: LineDiagram.column, element: "the glass column that holds a train or station on a wide screen", screen: "Line Diagram"),
         Entry(id: Welcome.title, element: "the title of the welcome card that shows", screen: "Welcome"),
         Entry(id: Welcome.next, element: "the Next or Start button of the welcome sheet", screen: "Welcome"),
         Entry(id: About.open, element: "the ⓘ button on the map", screen: "Map"),

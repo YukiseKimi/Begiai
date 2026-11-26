@@ -26,15 +26,17 @@ tests = results("tests")
 device = (summary.get("devicesAndConfigurations") or [{}])[0].get("device", {})
 where = f"{device.get('modelName', '?')} · {device.get('platform', '')} {device.get('osVersion', '')}".strip()
 
-failures, passed = [], 0
+failures, passed, skipped = [], 0, 0
 
 
 def walk(node, trail):
-    global passed
+    global passed, skipped
     kind = node.get("nodeType")
     if kind == "Test Case":
         if node.get("result") == "Passed":
             passed += 1
+        elif node.get("result") == "Skipped":
+            skipped += 1
         elif node.get("result") == "Failed":
             notes = [c.get("name", "") for c in node.get("children", []) if c.get("nodeType") == "Failure Message"]
             failures.append((trail + [node.get("name", "")], notes))
@@ -46,13 +48,15 @@ def walk(node, trail):
 for node in tests.get("testNodes", []):
     walk(node, [])
 
+# A journey that does not apply to the device skips, such as the Duo's column on an iPhone.
+skips = f" · {skipped} skipped" if skipped else ""
 if not failures and passed == 0:
-    print(f"NO TESTS ran · {lane}")
-    sys.exit(3)
+    print(f"SKIPPED all {skipped} tests · {lane} · {where}" if skipped else f"NO TESTS ran · {lane}")
+    sys.exit(0 if skipped else 3)
 if not failures:
-    print(f"GREEN {passed} tests · {lane} · {where} · {seconds} s")
+    print(f"GREEN {passed} tests{skips} · {lane} · {where} · {seconds} s")
     sys.exit(0)
-print(f"RED {len(failures)} failures · {passed} passed · {lane} · {where}")
+print(f"RED {len(failures)} failures · {passed} passed{skips} · {lane} · {where}")
 for trail, notes in failures:
     suite, name = trail[-2] if len(trail) > 1 else "", trail[-1].removesuffix("()")
     print(f"✗ {suite}/{name}")

@@ -11,18 +11,68 @@ struct LineDiagramTab: View {
     @AppStorage("lineDiagram.line") private var chosenName = ""
     @Query private var stars: [Star]
     @Environment(\.linePalette) private var palette
+    /// Regular on a wide screen such as the open iPhone Duo, where a page opens in a column.
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    /// The diagram's own safe area on its trailing side, such as the Duo's tab strip.
+    @State private var diagramSafeTrailing: CGFloat = 0
 
     var body: some View {
         if let engine = store.engine {
-            TimelineView(.periodic(from: .now, by: 1)) { _ in
-                content(engine: engine, now: time.now)
+            Group {
+                if #available(iOS 27.1, *), sizeClass == .regular {
+                    // On a wide screen the train or station opens in a column over the diagram's
+                    // trailing side, as the map's panel does.
+                    MapColumn(identifier: A11yID.LineDiagram.column, shows: selection != nil) { insets in
+                        // The inset is from the screen's edge. The diagram stops at its safe area,
+                        // short of the tab strip on the right of the open Duo held wide, so it
+                        // pads only the rest.
+                        diagram(engine: engine)
+                            .safeAreaPadding(.trailing, max(0, insets.trailing - diagramSafeTrailing))
+                            .onGeometryChange(for: CGFloat.self) {
+                                $0.safeAreaInsets.trailing
+                            } action: {
+                                diagramSafeTrailing = $0
+                            }
+                    } panel: {
+                        if let selection {
+                            DiagramSheet(engine: engine, selection: selection) { self.selection = nil }
+                                // A new train or station starts its page afresh, as a new sheet does.
+                                .id(selection)
+                        }
+                    }
+                } else {
+                    diagram(engine: engine)
+                }
             }
-            .sheet(item: $selection) { chosen in
+            // The sheet holds the page only on a narrow screen: a fold or an unfold moves the page
+            // between the sheet and the column, and the dismissed sheet does not close it.
+            .sheet(item: inSheet) { chosen in
                 DiagramSheet(engine: engine, selection: chosen) { selection = nil }
                     .presentationDetents([.medium, .large])
             }
         } else {
             TimetableUnavailable(state: store.state)
+        }
+    }
+
+    private func diagram(engine: MotionEngine) -> some View {
+        TimelineView(.periodic(from: .now, by: 1)) { _ in
+            content(engine: engine, now: time.now)
+        }
+    }
+
+    /// True where the page opens in a column rather than a sheet.
+    private var inColumn: Bool {
+        guard #available(iOS 27.1, *) else { return false }
+        return sizeClass == .regular
+    }
+
+    /// The selection, while a sheet shows it.
+    private var inSheet: Binding<DiagramSelection?> {
+        Binding {
+            inColumn ? nil : selection
+        } set: { chosen in
+            if !inColumn { selection = chosen }
         }
     }
 
@@ -33,6 +83,10 @@ struct LineDiagramTab: View {
         let chosen = lines.first { $0.name == chosenName } ?? lines.first
         return VStack(spacing: 0) {
             LineChips(lines: lines, chosen: chosen?.id) { chosenName = $0.name }
+                // A scroll view draws its content into the safe area along its axis; the chips
+                // stay in the row's own frame, clear of the status bar and the tab strip that the
+                // open Duo shows on the right.
+                .clipped()
             if let chosen {
                 let diagram = store.diagrams[chosen.id]
                 ScrollView {
@@ -55,6 +109,10 @@ struct LineDiagramTab: View {
                         trains: trains.compactMap { train in diagram.place(of: train).map { (train, $0) } }
                     ) { selection = $0 }
                 }
+                // A tap on the diagram away from its trains and stations closes the column, as a
+                // tap on the map closes the map's page. A sheet closes on such a tap by itself.
+                .contentShape(.rect)
+                .gesture(TapGesture().onEnded { selection = nil }, isEnabled: inColumn && selection != nil)
             } else {
                 ContentUnavailableView(.diagramNoLines, systemImage: "tram")
             }

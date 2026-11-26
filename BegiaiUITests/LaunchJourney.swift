@@ -11,10 +11,11 @@ final class LaunchJourney: JourneyCase {
     }
 
     @MainActor
-    func testThePanelHandleSaysAndStepsItsHeight() {
+    func testThePanelHandleSaysAndStepsItsHeight() throws {
         let journey = JourneyApp()
         journey.launch(.map)
         let map = MapScreen(journey: journey)
+        try XCTSkipIf(map.hasColumn(), "Duo: the column has no heights to step or drag; it stays at the screen's full height")
 
         map.expectPanel("Half")
         map.tapPanelHandle()
@@ -24,10 +25,11 @@ final class LaunchJourney: JourneyCase {
     }
 
     @MainActor
-    func testThePanelFollowsAFingerThatDragsItsHandle() {
+    func testThePanelFollowsAFingerThatDragsItsHandle() throws {
         let journey = JourneyApp()
         journey.launch(.map)
         let map = MapScreen(journey: journey)
+        try XCTSkipIf(map.hasColumn(), "Duo: the column has no heights to step or drag; it stays at the screen's full height")
 
         map.expectPanel("Half")
         map.dragPanelHandle(toHeight: 0.1)

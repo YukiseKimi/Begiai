@@ -20,10 +20,12 @@
         "LineDiagramJourney",
         "FreshDataJourney",
         "WelcomeJourney",
-        "AboutJourney"
+        "AboutJourney",
+        "DuoJourney"
       ],
       "devices": [
-        "iPhone 17 Pro"
+        "iPhone 17 Pro",
+        "iPhone Duo"
       ],
       "wayIn": "the first screen"
     },
