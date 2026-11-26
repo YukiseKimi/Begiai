@@ -76,10 +76,7 @@ lane_unit() {
     echo "GREEN ${count:-0} tests · unit · $((SECONDS - start)) s"
   else
     echo "RED unit · log: $log"
-    # Swift Testing starts each line with a symbol that differs by platform (an SF Symbol on
-    # macOS, ✘ elsewhere), so the pattern skips it. A test with arguments names the failing case.
-    grep -E '^[^ ]+ +Test [^ ]+ recorded an issue (with .+ )?at [^:]+:[0-9]+:[0-9]+: ' "$log" |
-      sed -E "s/^[^ ]+ +Test ([^ (]+)(\\([^)]*\\)) recorded an issue (with (.+) )?at ([^:]+:[0-9]+:[0-9]+): (.*)/✗ \\1\\2 \\3\\n  \\6 · \\5\\n  rerun: script\\/test.sh unit --filter '\\/\\1\\\\('/; s/ \\n/\\n/"
+    python3 -I script/test/unit_failures.py "$log" BegiaiKit/Tests
     exit 65
   fi
 }
