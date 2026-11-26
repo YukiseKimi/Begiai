@@ -37,29 +37,28 @@ struct TrainsMap: View {
         let followed = chosen.flatMap { $0.id == following ? $0 : nil }
         // At country zoom a station's 44-point tap area reaches past its ring, so while a train
         // stands there the station keeps only its ring and the train gets the taps around it.
+        // Each frame reads the trains, and only this view does: O(trains) here is the map's work.
         let underTrains = cityZoom ? [] : Set(moving.compactMap(standingStation(of:)))
+        let markers = moving.map(marker(of:))
+        let open = MapOpener(selection: $selection, panelHeight: $panelHeight)
         MapReader { proxy in
             Map(position: $position, scope: mapScope) {
                 UserAnnotation()
                 ForEach(stripes) { stripe in
                     MapPolyline(coordinates: stripe.coordinates)
-                        .stroke(palette.color(forLine: stripe.line), style: stripe.style)
+                        .stroke(stripe.color, style: stripe.style)
                 }
                 ForEach(stations, id: \.index) { station, info in
                     Annotation("", coordinate: info.coordinate.location, anchor: .center) {
                         StationMarker(
-                            name: info.name, chosen: selection == .station(station), compact: !cityZoom,
-                            underTrain: underTrains.contains(station)
-                        ) {
-                            selection = .station(station)
-                            if panelHeight == .peek { panelHeight = .half }
-                        }
+                            name: info.name, station: station, chosen: selection == .station(station), compact: !cityZoom,
+                            underTrain: underTrains.contains(station), open: open)
                     }
                     .annotationTitles(.hidden)
                 }
-                ForEach(moving) { train in
-                    Annotation("", coordinate: train.coordinate.location, anchor: .center) {
-                        capsule(for: train, cityZoom: cityZoom)
+                ForEach(markers) { marker in
+                    Annotation("", coordinate: marker.coordinate.location, anchor: .center) {
+                        MapTrain(look: marker.look, compact: !cityZoom, open: open)
                     }
                     .annotationTitles(.hidden)
                 }
@@ -70,10 +69,8 @@ struct TrainsMap: View {
                     let info = store.timetable?.stations[standing]
                 {
                     Annotation("", coordinate: info.coordinate.location, anchor: .bottom) {
-                        StationChip(name: info.name) {
-                            selection = .station(standing)
-                        }
-                        .padding(.bottom, 22 * markerStyle.scale)
+                        StationChip(name: info.name, station: standing, selection: $selection)
+                            .padding(.bottom, 22 * markerStyle.scale)
                     }
                     .annotationTitles(.hidden)
                 }
@@ -126,13 +123,8 @@ struct TrainsMap: View {
         .ignoresSafeArea()
         .overlay(alignment: .topTrailing) {
             VStack(spacing: 10) {
-                LocateButton(position: $position) { note in
-                    locationNote = note
-                    // The note is at the top of the panel's list, which a Small panel hides.
-                    if panelHeight == .peek { panelHeight = .half }
-                } willLocate: {
-                    following = nil
-                }
+                LocateButton(
+                    position: $position, locationNote: $locationNote, panelHeight: $panelHeight, following: $following)
                 AboutButton(timetable: store.timetable)
                 MapCompass(scope: mapScope)
             }
@@ -162,14 +154,21 @@ struct TrainsMap: View {
     /// line on the rail; on a shared track each line is a stripe of its own beside the others.
     private func buildStripes() {
         let scale = metresPerPoint
+        // The store gives a new timetable its line colours, and the palette with them, so the
+        // stripes take their colours here, each time the revision moves.
         stripes = store.tracks.flatMap { track in
             guard track.lines.count > 1 else {
-                return [TrackStripe(track: track.id, line: track.lines.first ?? 0, coordinates: track.coordinates, width: 3)]
+                let line = track.lines.first ?? 0
+                return [
+                    TrackStripe(
+                        id: .init(track: track.id, line: line), color: palette.color(forLine: line), coordinates: track.coordinates,
+                        width: 3)
+                ]
             }
             let path = track.coordinates.map { Coordinate(latitude: $0.latitude, longitude: $0.longitude) }
             return zip(track.lines, TrackStripes.offsets(count: track.lines.count, along: path)).map { line, offset in
                 TrackStripe(
-                    track: track.id, line: line,
+                    id: .init(track: track.id, line: line), color: palette.color(forLine: line),
                     coordinates: path.offset(by: offset * scale).map(\.location),
                     // A little wider than the spacing, so no map shows through between stripes.
                     width: TrackStripes.width + 0.4)
@@ -194,50 +193,101 @@ struct TrainsMap: View {
         store.engine?.standingStation(of: train)
     }
 
-    private func capsule(for train: TrainState, cityZoom: Bool) -> some View {
+    /// A train's marker, worked out from the train: its colour, its heading on the screen, where
+    /// it goes and where it stands.
+    private func marker(of train: TrainState) -> TrainMarker {
         let trip = store.timetable?.trips[train.trip]
         let destination = trip?.stops.last.flatMap { stop in
             store.timetable?.stations.indices.contains(stop.station) == true
                 ? store.timetable?.stations[stop.station].name : nil
         }
-        // One rule, the engine's, for the ring drawn and the ring tapped: a train boarding at
-        // its first station stands there as much as one halfway along its trip.
-        let standingAt = standingStation(of: train)
-        let open = {
-            selection = .train(train.id)
-            if panelHeight == .peek { panelHeight = .half }
-        }
-        // MapKit gives a touch on a train to the train, whatever its shape, so the train
-        // decides: a tap on the station ring at its centre opens the station, the rest the train.
-        return TrainCapsule(
-            color: palette.color(forLine: trip?.line ?? 0), heading: train.heading - cameraHeading,
-            destination: destination, atStation: standingAt != nil, showsLabel: cityZoom,
-            chosen: selection == .train(train.id), compact: !cityZoom
+        return TrainMarker(
+            coordinate: train.coordinate,
+            look: TrainLook(
+                id: train.id, color: palette.color(forLine: trip?.line ?? 0), heading: train.heading - cameraHeading,
+                destination: destination,
+                // One rule, the engine's, for the ring drawn and the ring tapped: a train boarding at
+                // its first station stands there as much as one halfway along its trip.
+                standingAt: standingStation(of: train), chosen: selection == .train(train.id)))
+    }
+}
+
+/// Opens a train's or a station's page from the map, and raises a Small panel to half height
+/// so the page shows. A value and not a closure, so a marker that takes it compares as unchanged
+/// from frame to frame.
+struct MapOpener {
+    @Binding var selection: PageSelection?
+    @Binding var panelHeight: PanelHeight
+
+    func callAsFunction(_ page: PageSelection) {
+        selection = page
+        if panelHeight == .peek { panelHeight = .half }
+    }
+}
+
+/// A train on the map: where it is, and how its marker looks.
+private struct TrainMarker: Identifiable {
+    let coordinate: Coordinate
+    let look: TrainLook
+
+    var id: TrainState.ID { look.id }
+}
+
+/// How a train's marker looks, apart from where it is, so the marker's body runs again only
+/// when it changes, not each frame as the train moves on.
+private struct TrainLook: Equatable {
+    let id: TrainState.ID
+    let color: Color
+    /// The way the train runs, on the screen: its heading less the map's.
+    let heading: Double
+    let destination: String?
+    /// The station the train stands at, if it stands at one.
+    let standingAt: Int?
+    let chosen: Bool
+}
+
+/// A train's marker. MapKit gives a touch on a train to the train, whatever its shape, so the
+/// train decides: a tap on the station ring at its centre opens the station, the rest the train.
+private struct MapTrain: View {
+    let look: TrainLook
+    /// At country zoom: a smaller marker, with no label.
+    let compact: Bool
+    let open: MapOpener
+    @Environment(\.markerStyle) private var markerStyle
+
+    var body: some View {
+        TrainCapsule(
+            color: look.color, heading: look.heading, destination: look.destination, atStation: look.standingAt != nil,
+            showsLabel: !compact, chosen: look.chosen, compact: compact
         )
         .onTapGesture(coordinateSpace: .local) { point in
             // The same scale as the marker is drawn at, smaller at country zoom.
-            let scale = TrainCapsule.scale(markerStyle, compact: !cityZoom)
+            let scale = TrainCapsule.scale(markerStyle, compact: compact)
             let size = TrainCapsule.size * scale
             let away = hypot(point.x - size / 2, point.y - size / 2)
-            if let station = standingAt, away <= TrainCapsule.ringTapRadius * scale {
-                selection = .station(station)
-                if panelHeight == .peek { panelHeight = .half }
+            if let station = look.standingAt, away <= TrainCapsule.ringTapRadius * scale {
+                open(.station(station))
             } else {
-                open()
+                open(.train(look.id))
             }
         }
         .accessibilityAddTraits(.isButton)
-        .accessibilityAction { open() }
+        .accessibilityAction { open(.train(look.id)) }
     }
 }
 
 /// “Vievis ›” over a chosen train that stands at a station: one tap opens the station's board.
 private struct StationChip: View {
     let name: String
-    let open: () -> Void
+    let station: Int
+    @Binding var selection: PageSelection?
 
     var body: some View {
-        Button(action: open) {
+        Button {
+            selection = .station(station)
+        } label: {
+            // The chevron says the chip opens something; it does not stand for the station,
+            // so the name and the chevron stay two views, not a label.
             HStack(spacing: 2) {
                 Text(verbatim: name)
                 Image(systemName: "chevron.forward")
@@ -261,12 +311,16 @@ private struct StationChip: View {
 
 /// One line's colour on one piece of rail, already moved to its place in the band.
 private struct TrackStripe: Identifiable {
-    let track: Int
-    let line: Int
+    struct ID: Hashable {
+        let track: Int
+        let line: Int
+    }
+
+    let id: ID
+    let color: Color
     let coordinates: [CLLocationCoordinate2D]
     let width: CGFloat
 
-    var id: String { "\(track)-\(line)" }
     var style: StrokeStyle { StrokeStyle(lineWidth: width, lineCap: .butt, lineJoin: .round) }
 }
 

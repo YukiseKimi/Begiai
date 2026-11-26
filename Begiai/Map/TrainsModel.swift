@@ -41,11 +41,10 @@ final class TrainsModel {
     private(set) var frame = Duration.seconds(1)
 
     func look(at region: MKCoordinateRegion, distance: Double) {
-        let city = distance < 80_000
-        if city != cityZoom { cityZoom = city }
+        // An Observable property does not tell its views of an equal assignment.
+        cityZoom = distance < 80_000
         self.region = region
-        let frame = Self.frame(for: region)
-        if frame != self.frame { self.frame = frame }
+        frame = Self.frame(for: region)
         lookForTrains()
     }
 
@@ -93,8 +92,7 @@ final class TrainsModel {
     }
 
     private func lookForTrains() {
-        let seen = region.map { region in settled.contains { region.holds($0.coordinate) } } ?? false
-        if seen != trainInSight { trainInSight = seen }
+        trainInSight = region.map { region in settled.contains { region.holds($0.coordinate) } } ?? false
     }
 }
 
