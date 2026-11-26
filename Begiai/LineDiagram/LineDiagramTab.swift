@@ -35,7 +35,7 @@ struct LineDiagramTab: View {
                             }
                     } panel: {
                         if let selection {
-                            DiagramSheet(engine: engine, selection: selection) { self.selection = nil }
+                            DiagramSheet(engine: engine, page: selection, selection: $selection)
                                 // A new train or station starts its page afresh, as a new sheet does.
                                 .id(selection)
                         }
@@ -47,7 +47,7 @@ struct LineDiagramTab: View {
             // The sheet holds the page only on a narrow screen: a fold or an unfold moves the page
             // between the sheet and the column, and the dismissed sheet does not close it.
             .sheet(item: inSheet) { chosen in
-                DiagramSheet(engine: engine, selection: chosen) { selection = nil }
+                DiagramSheet(engine: engine, page: chosen, selection: $selection)
                     .presentationDetents([.medium, .large])
             }
         } else {

@@ -52,10 +52,11 @@ struct MapPanel: View {
         case .train:
             TrainPage(
                 timeline: timeline, color: color, now: now, following: following, onLockScreen: onLockScreen,
-                openStation: { selection = .station($0) }, close: { selection = nil })
-        case .station:
-            if let station {
-                station.header
+                selection: $selection, stationPage: $selection)
+        case .station(let index):
+            if engine.timetable.stations.indices.contains(index) {
+                let name = engine.stationNames[index]
+                StationHeader(name: name, starred: stars.names(.station).contains(name), selection: $selection)
             }
         case nil:
             VStack(spacing: 10) {
@@ -87,13 +88,13 @@ struct MapPanel: View {
                 LocationNoteView(note: locationNote) { self.locationNote = nil }
             }
             switch selection {
-            case .train:
+            case .train(let train):
                 if let timeline {
-                    StopList(timeline: timeline, color: color)
+                    StopList(train: train, timeline: timeline, color: color)
                 }
-            case .station:
-                if let station {
-                    station.board
+            case .station(let index):
+                if engine.timetable.stations.indices.contains(index) {
+                    StationBoard(engine: engine, station: index, now: now)
                 }
             case nil:
                 if searching {
@@ -114,17 +115,6 @@ struct MapPanel: View {
                     lineList
                 }
             }
-        }
-    }
-
-    /// The station open in the panel, which gives the panel both its header and its board.
-    private var station: StationPanel? {
-        guard case .station(let index) = selection, engine.timetable.stations.indices.contains(index) else { return nil }
-        let name = engine.timetable.stations[index].name
-        return StationPanel(
-            index: index, name: name, starred: stars.names(.station).contains(name), engine: engine, now: now
-        ) {
-            selection = nil
         }
     }
 

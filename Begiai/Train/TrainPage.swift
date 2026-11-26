@@ -18,16 +18,17 @@ struct TrainPage: View {
     /// True while the followed train's Live Activity shows: Follow then says so to VoiceOver.
     var onLockScreen = false
     var exit = PageExit.back
-    /// Opens a station's board: the place line then becomes a link, so the station of a train
-    /// is one tap away, also where trains cover its marker on the map.
-    var openStation: ((Int) -> Void)?
-    let close: () -> Void
-    @Environment(\.dynamicTypeSize) private var typeSize
+    /// The open page: Back or Close clears it.
+    @Binding var selection: PageSelection?
+    /// Where the place line opens its station's board, so the station of a train is one tap
+    /// away, also where trains cover its marker on the map: the panel's own page, or a page in
+    /// place in the Line Diagram's sheet, so the sheet stays up.
+    @Binding var stationPage: PageSelection?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                PageExitButton(exit: exit, close: close)
+                PageExitButton(exit: exit, selection: $selection)
                     .accessibilityIdentifier(A11yID.Train.back)
                 Spacer()
                 if timeline != nil, let following {
@@ -43,34 +44,47 @@ struct TrainPage: View {
             // their names.
             .labelStyle(IconOnlyAtLargeSizes())
             if let timeline {
-                HStack(alignment: .top, spacing: 10) {
-                    // The line's colour beside the title ties the page to the train on the map.
-                    Capsule()
-                        .fill(color)
-                        .frame(width: 5)
-                        .accessibilityHidden(true)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(
-                            .trainTitle(
-                                time: timeline.firstDeparture.vilniusTime, origin: timeline.origin, destination: timeline.destination)
-                        )
-                        .font(.headline)
-                        // Three lines hold a title up to the largest sizes, where it may need more.
-                        .lineLimit(typeSize.isAccessibilitySize ? nil : 3)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityAddTraits(.isHeader)
-                        .accessibilityIdentifier(A11yID.Train.title)
-                        TrainWhere(timeline: timeline, now: now, openStation: openStation)
-                        ScheduledBadge()
-                    }
-                }
-                .fixedSize(horizontal: false, vertical: true)
+                TrainHeading(timeline: timeline, color: color, now: now, stationPage: $stationPage)
             } else {
                 Text(.trainGone)
                     .foregroundStyle(.secondary)
             }
         }
         .padding(.horizontal)
+    }
+}
+
+/// The train's title beside its line's colour, where it is now, and that it is scheduled.
+private struct TrainHeading: View {
+    let timeline: TrainTimeline
+    let color: Color
+    let now: Date
+    @Binding var stationPage: PageSelection?
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            // The line's colour beside the title ties the page to the train on the map.
+            Capsule()
+                .fill(color)
+                .frame(width: 5)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(
+                    .trainTitle(
+                        time: timeline.firstDeparture.vilniusTime, origin: timeline.origin, destination: timeline.destination)
+                )
+                .font(.headline)
+                // Three lines hold a title up to the largest sizes, where it may need more.
+                .lineLimit(typeSize.isAccessibilitySize ? nil : 3)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier(A11yID.Train.title)
+                TrainWhere(timeline: timeline, now: now, stationPage: $stationPage)
+                ScheduledBadge()
+            }
+        }
+        .fixedSize(horizontal: false, vertical: true)
     }
 }
 
@@ -133,60 +147,69 @@ private struct FollowButton: View {
 private struct TrainWhere: View {
     let timeline: TrainTimeline
     let now: Date
-    let openStation: ((Int) -> Void)?
+    @Binding var stationPage: PageSelection?
 
     var body: some View {
         if let standing = timeline.standingAt {
             let stop = timeline.stops[standing]
-            line(
-                symbol: "smallcircle.filled.circle", Text(.trainAt(station: stop.station, time: stop.departure.vilniusTime)),
-                in: stop.departure, station: stop.stationIndex)
+            PlaceLink(
+                symbol: "smallcircle.filled.circle", text: Text(.trainAt(station: stop.station, time: stop.departure.vilniusTime)),
+                minutes: stop.departure.minutes(after: now), station: stop.stationIndex, stationPage: $stationPage)
         } else if let nextStop = timeline.nextStop {
             let next = timeline.stops[nextStop]
-            line(
-                symbol: "arrow.right.circle", Text(.trainNext(station: next.station, time: next.arrival.vilniusTime)),
-                in: next.arrival, station: next.stationIndex)
+            PlaceLink(
+                symbol: "arrow.right.circle", text: Text(.trainNext(station: next.station, time: next.arrival.vilniusTime)),
+                minutes: next.arrival.minutes(after: now), station: next.stationIndex, stationPage: $stationPage)
         }
     }
+}
 
-    @ViewBuilder
-    private func line(symbol: String, _ text: Text, in time: Date, station: Int) -> some View {
-        if let openStation {
-            Button {
-                openStation(station)
-            } label: {
-                HStack(spacing: 4) {
-                    place(symbol: symbol, text, in: time)
-                    Image(systemName: "chevron.forward")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.tertiary)
-                        .accessibilityHidden(true)
-                }
-                .contentShape(.rect)
+/// The place line, a link to the board of its station.
+private struct PlaceLink: View {
+    let symbol: String
+    let text: Text
+    /// The minutes from now to the clock time in `text`.
+    let minutes: Int
+    let station: Int
+    @Binding var stationPage: PageSelection?
+
+    var body: some View {
+        Button {
+            stationPage = .station(station)
+        } label: {
+            HStack(spacing: 4) {
+                Place(symbol: symbol, text: text, minutes: minutes)
+                Image(systemName: "chevron.forward")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
             }
-            .buttonStyle(.plain)
-            .accessibilityElement(children: .combine)
-            .accessibilityHint(Text(.boardStationHint))
-            .accessibilityIdentifier(A11yID.Train.now)
-        } else {
-            place(symbol: symbol, text, in: time)
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier(A11yID.Train.now)
+            .contentShape(.rect)
         }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityHint(Text(.boardStationHint))
+        .accessibilityIdentifier(A11yID.Train.now)
     }
+}
 
-    private func place(symbol: String, _ text: Text, in time: Date) -> some View {
+private struct Place: View {
+    let symbol: String
+    let text: Text
+    let minutes: Int
+
+    var body: some View {
         Label {
-            let minutes = Text(.trainIn(minutes: time.minutes(after: now))).foregroundStyle(.secondary)
+            let wait = Text(.trainIn(minutes: minutes)).foregroundStyle(.secondary)
             // One line when it fits; at large text sizes the time from now goes under the place.
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: 6) {
                     text
-                    minutes
+                    wait
                 }
                 VStack(alignment: .leading, spacing: 2) {
                     text
-                    minutes
+                    wait
                 }
             }
         } icon: {
@@ -229,6 +252,8 @@ struct IconOnlyAtLargeSizes: LabelStyle {
         @Environment(\.dynamicTypeSize) private var typeSize
 
         var body: some View {
+            // Two label styles are two types, so no one modifier takes either: a branch it is.
+            // A label keeps no state that the switch at the accessibility sizes could lose.
             if typeSize.isAccessibilitySize {
                 Label(configuration).labelStyle(.iconOnly)
             } else {
@@ -241,27 +266,30 @@ struct IconOnlyAtLargeSizes: LabelStyle {
 /// “< Lines” in the panel; the system Close button in a sheet, where Back would mean a step back.
 struct PageExitButton: View {
     let exit: PageExit
-    let close: () -> Void
+    /// The open page, which the button clears.
+    @Binding var selection: PageSelection?
 
     var body: some View {
         switch exit {
         case .back:
-            Button(action: close) {
-                Label {
-                    Text(.trainBack)
-                } icon: {
-                    Image(systemName: "chevron.left")
-                }
+            Button(.trainBack, systemImage: "chevron.left") {
+                selection = nil
             }
         case .close:
-            Button(role: .close, action: close)
-                .buttonStyle(.glass)
-                .labelStyle(.iconOnly)
+            Button(role: .close) {
+                selection = nil
+            }
+            .buttonStyle(.glass)
+            .labelStyle(.iconOnly)
         }
     }
 }
 
+/// A train's stops, under the facts that stay the same; it opens on where the train is.
 struct StopList: View {
+    /// The train: the list scrolls to where it is once for each train, not each second as the
+    /// train moves on.
+    let train: TrainState.ID
     let timeline: TrainTimeline
     let color: Color
 
@@ -271,57 +299,61 @@ struct StopList: View {
     }
 
     var body: some View {
+        let lines = timeline.stops.map { stop in
+            StopLine(
+                stop: stop, color: color, here: stop.id == timeline.standingAt,
+                next: stop.id == timeline.nextStop && timeline.standingAt == nil,
+                progress: stop.id == timeline.nextStop ? timeline.progressToNext : nil)
+        }
         ScrollViewReader { proxy in
-            list
-                // Once for each train, not each second as the train moves on.
-                .task(id: TripKey(origin: timeline.origin, departure: timeline.firstDeparture)) {
-                    if let opening, opening > 0 { proxy.scrollTo(opening, anchor: .top) }
+            List {
+                // Above the first stop: it scrolls away with the stops, so that at large text sizes
+                // the stops have room.
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(.trainEstimated)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    NoticesLink()
                 }
-        }
-    }
-
-    private var list: some View {
-        List {
-            // Above the first stop: it scrolls away with the stops, so that at large text sizes
-            // the stops have room.
-            VStack(alignment: .leading, spacing: 6) {
-                Text(.trainEstimated)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                NoticesLink()
+                .listRowBackground(Color.clear)
+                ForEach(lines) { line in
+                    StopRow(line: line)
+                        .listRowBackground(Color.clear)
+                }
             }
-            .listRowBackground(Color.clear)
-            ForEach(timeline.stops) { stop in
-                StopRow(stop: stop, timeline: timeline, color: color)
-                    .listRowBackground(Color.clear)
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .task(id: train) {
+                if let opening, opening > 0 { proxy.scrollTo(opening, anchor: .top) }
             }
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
     }
 }
 
-private struct TripKey: Equatable {
-    let origin: String
-    let departure: Date
+/// One stop as its row shows it: the stop, its line's colour, and where the train is.
+private struct StopLine: Identifiable, Equatable {
+    let stop: TrainTimeline.Stop
+    let color: Color
+    /// The train stands at this stop.
+    let here: Bool
+    /// The train runs to this stop next.
+    let next: Bool
+    /// How far the train has come toward this stop, while it runs to it.
+    let progress: Double?
+
+    var id: Int { stop.id }
 }
 
 private struct StopRow: View {
-    let stop: TrainTimeline.Stop
-    let timeline: TrainTimeline
-    let color: Color
-
-    private var here: Bool { stop.id == timeline.standingAt }
-    private var next: Bool { stop.id == timeline.nextStop && timeline.standingAt == nil }
+    let line: StopLine
 
     var body: some View {
+        let stop = line.stop
         HStack(spacing: 12) {
-            StopMark(
-                color: color, passed: stop.passed, isNext: here || next,
-                progress: stop.id == timeline.nextStop ? timeline.progressToNext : nil)
+            StopMark(color: line.color, passed: stop.passed, progress: line.progress)
             Text(verbatim: stop.station)
                 .foregroundStyle(stop.passed ? .secondary : .primary)
-                .fontWeight(here || next ? .semibold : nil)
+                .fontWeight(line.here || line.next ? .semibold : nil)
             Spacer()
             Text(verbatim: (stop.id == 0 ? stop.departure : stop.arrival).vilniusTime)
                 .monospacedDigit()
@@ -336,9 +368,9 @@ private struct StopRow: View {
     }
 
     private var state: LocalizedStringResource? {
-        if here { return .trainStopHere }
-        if next { return .trainStopNext }
-        if stop.passed { return .trainStopPassed }
+        if line.here { return .trainStopHere }
+        if line.next { return .trainStopNext }
+        if line.stop.passed { return .trainStopPassed }
         return nil
     }
 }
@@ -346,7 +378,6 @@ private struct StopRow: View {
 private struct StopMark: View {
     let color: Color
     let passed: Bool
-    let isNext: Bool
     let progress: Double?
 
     var body: some View {
@@ -356,7 +387,7 @@ private struct StopMark: View {
                 .frame(width: 4)
             Circle()
                 .strokeBorder(color, lineWidth: 3)
-                .background(Circle().fill(passed ? color : Color(.systemBackground)))
+                .background(passed ? color : Color(.systemBackground), in: .circle)
                 .frame(width: 14, height: 14)
                 .padding(.top, 15)
             if let progress, progress > 0 {
@@ -375,5 +406,5 @@ private struct StopMark: View {
 }
 
 #Preview {
-    TrainPage(timeline: nil, color: .blue, now: .now, following: .constant(.off)) {}
+    TrainPage(timeline: nil, color: .blue, now: .now, following: .constant(.off), selection: .constant(nil), stationPage: .constant(nil))
 }
