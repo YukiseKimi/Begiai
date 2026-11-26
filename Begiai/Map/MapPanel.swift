@@ -63,11 +63,14 @@ struct MapPanel: View {
                 if !settled.isEmpty {
                     // The same margins as the field, so at large text sizes the count and
                     // “Scheduled” wrap inside the panel instead of running to its edges.
+                    // Capped, so at the largest sizes the header leaves the half panel room for lines.
                     RunningHeader(count: settled.count)
+                        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
                         .padding(.horizontal)
                 }
                 // At night, with no trains, the field still finds a station's first trains.
                 StationSearchField(query: $query, focused: searchFocused)
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility2)
                     .padding(.horizontal)
                 // A Small panel keeps the count and the field; the filter needs room for the lines,
                 // and goes while the field searches, as it filters lines, not stations.

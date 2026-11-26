@@ -9,6 +9,7 @@ struct MapTab: View {
     @Binding var selection: PanelSelection?
     @Environment(\.timeSource) private var time
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.scenePhase) private var scenePhase
     /// Regular on a wide screen such as the open iPhone Duo, where the panel is a column beside the map.
     @Environment(\.horizontalSizeClass) private var sizeClass
@@ -75,6 +76,10 @@ struct MapTab: View {
         // The keyboard shows only with the panel at full height. A half panel shows two results above
         // it, and over the map iOS 27.3 loses taps on the right of those rows. So the field raises
         // the panel, and a lower panel, from a drag or a tap on the map, puts the keyboard away.
+        .onChange(of: selection) { _, selection in
+            // At the accessibility text sizes a page's fixed top is taller than a half panel.
+            if selection != nil, typeSize.isAccessibilitySize { panelHeight = .full }
+        }
         .onChange(of: searchFocused) { _, focused in
             if focused { panelHeight = .full }
         }

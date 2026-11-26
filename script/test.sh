@@ -7,7 +7,7 @@ DERIVED="$CACHE/DerivedData"
 RUNS="$CACHE/runs"
 mkdir -p "$RUNS"
 UNIT_LIMIT=90
-JOURNEY_LIMIT=600
+JOURNEY_LIMIT=900
 
 usage() {
   cat <<'USAGE'

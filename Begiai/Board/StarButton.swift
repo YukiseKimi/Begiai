@@ -12,7 +12,10 @@ struct StarButton: View {
         Button(action: toggle) {
             Image(systemName: starred ? "star.fill" : "star")
                 .foregroundStyle(starred ? .yellow : .secondary)
-                .frame(width: 44, height: 44)
+                // At least 44 points, and as large as the symbol at large text sizes; the whole
+                // frame takes the tap, not only the symbol.
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(.rect)
         }
         .buttonStyle(.plain)
         .sensoryFeedback(.selection, trigger: starred)

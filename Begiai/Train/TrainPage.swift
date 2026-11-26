@@ -47,6 +47,9 @@ struct TrainPage: View {
                     .accessibilityIdentifier(A11yID.Train.follow)
                 }
             }
+            // The page's controls stop growing at the first accessibility size, so at the largest
+            // sizes they leave the panel to where the train goes and where it is.
+            .dynamicTypeSize(...DynamicTypeSize.accessibility1)
             // At the largest text sizes “Lines” and “Follow” do not fit side by side and were cut
             // to “Li…” and “F…”: there the buttons show their symbols, and VoiceOver still reads
             // their names.
