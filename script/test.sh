@@ -76,7 +76,10 @@ lane_unit() {
     echo "GREEN ${count:-0} tests · unit · $((SECONDS - start)) s"
   else
     echo "RED unit · log: $log"
-    grep -E '✘ Test .* recorded an issue at ' "$log" | sed -E "s/.*✘ Test (.+)\\(\\) recorded an issue at ([^:]+:[0-9]+:[0-9]+): (.*)/✗ \\1\\n  \\3 · \\2\\n  rerun: script\\/test.sh unit --filter '\\1'/"
+    # Swift Testing starts each line with a symbol that differs by platform (an SF Symbol on
+    # macOS, ✘ elsewhere), so the pattern skips it. A test with arguments names the failing case.
+    grep -E '^[^ ]+ +Test [^ ]+ recorded an issue (with .+ )?at [^:]+:[0-9]+:[0-9]+: ' "$log" |
+      sed -E "s/^[^ ]+ +Test ([^ (]+)(\\([^)]*\\)) recorded an issue (with (.+) )?at ([^:]+:[0-9]+:[0-9]+): (.*)/✗ \\1\\2 \\3\\n  \\6 · \\5\\n  rerun: script\\/test.sh unit --filter '\\/\\1\\\\('/; s/ \\n/\\n/"
     exit 65
   fi
 }
