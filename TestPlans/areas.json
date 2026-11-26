@@ -1,4 +1,12 @@
 {
+  "xcode": "27.2",
+  "matrix": [
+    { "os": "iOS 26.3", "devices": ["iPhone 17 Pro"] },
+    { "os": "iOS 26.4", "devices": ["iPhone 17 Pro"] },
+    { "os": "iOS 26.5", "devices": ["iPhone 17 Pro"] },
+    { "os": "iOS 27.0", "devices": ["iPhone 17 Pro", "iPhone 17 Pro Max"] },
+    { "os": "iOS 27.3", "devices": ["iPhone Duo"] }
+  ],
   "areas": [
     {
       "id": "timetable",
