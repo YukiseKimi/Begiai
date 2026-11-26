@@ -51,7 +51,6 @@ for node in tests.get("testNodes", []):
     walk(node, [])
 
 
-
 def why_skipped():
     for trail, notes in skips_why:
         suite, name = trail[-2] if len(trail) > 1 else "", trail[-1].removesuffix("()")
