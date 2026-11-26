@@ -113,7 +113,7 @@ private struct LockScreenView: View {
             }
             JourneyBar(runs: facts.train.deviceRuns, passed: facts.passed, standing: facts.standing, colour: facts.colour)
             HStack(alignment: .firstTextBaseline) {
-                NextLine(facts: facts)
+                NextLine(line: facts.nextLine)
                     .font(.subheadline.weight(.medium))
                 Spacer(minLength: 8)
                 ArrivalLine(destination: facts.train.destination, time: facts.train.arrival.vilniusTime)
@@ -147,10 +147,10 @@ private struct ArrivalLine: View {
 
 /// “Next: Kaišiadorys 08:48”, “At Kaišiadorys, leaves 08:50”, or “Arrived”.
 private struct NextLine: View {
-    let facts: TrainFacts
+    let line: LocalizedStringResource
 
     var body: some View {
-        Text(facts.nextLine)
+        Text(line)
             .monospacedDigit()
             .lineLimit(1)
             .minimumScaleFactor(0.8)

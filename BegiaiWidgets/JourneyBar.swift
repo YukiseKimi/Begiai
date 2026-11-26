@@ -20,8 +20,8 @@ struct JourneyBar: View {
             let marks = JourneyMarks(
                 runs: runs, passed: passed, standing: standing, width: proxy.size.width, height: Self.height)
             ZStack(alignment: .leading) {
-                ForEach(marks.runs) { RunBar(mark: $0) }
-                ForEach(marks.stops) { StopDot(mark: $0) }
+                ForEach(marks.runs) { RunBar(interval: $0.interval, x: $0.x, width: $0.width) }
+                ForEach(marks.stops) { StopDot(x: $0.x, size: $0.size, filled: $0.filled, ringed: $0.ringed) }
             }
             .frame(maxHeight: .infinity)
         }
@@ -73,32 +73,37 @@ struct JourneyMarks {
 
 /// The bar between two stops, which fills by itself over the run.
 private struct RunBar: View {
-    let mark: JourneyMarks.Run
+    let interval: ClosedRange<Date>
+    let x: Double
+    let width: Double
 
     var body: some View {
-        ProgressView(timerInterval: mark.interval, countsDown: false) {
+        ProgressView(timerInterval: interval, countsDown: false) {
             EmptyView()
         } currentValueLabel: {
             EmptyView()
         }
         .progressViewStyle(.linear)
         .labelsHidden()
-        .frame(width: mark.width)
-        .offset(x: mark.x)
+        .frame(width: width)
+        .offset(x: x)
     }
 }
 
 /// A stop's dot in the bar's tint: filled once the train has left the stop, with a ring
 /// while it stands there.
 private struct StopDot: View {
-    let mark: JourneyMarks.Stop
+    let x: Double
+    let size: Double
+    let filled: Bool
+    let ringed: Bool
 
     var body: some View {
         Circle()
             .strokeBorder(.tint, lineWidth: 2)
-            .background(mark.filled ? AnyShapeStyle(.tint) : AnyShapeStyle(.clear), in: .circle)
-            .padding(mark.ringed ? -2 : 0)
-            .frame(width: mark.size, height: mark.size)
-            .offset(x: mark.x)
+            .background(filled ? AnyShapeStyle(.tint) : AnyShapeStyle(.clear), in: .circle)
+            .padding(ringed ? -2 : 0)
+            .frame(width: size, height: size)
+            .offset(x: x)
     }
 }
