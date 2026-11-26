@@ -22,6 +22,7 @@ struct TrainPage: View {
     /// is one tap away, also where trains cover its marker on the map.
     var openStation: ((Int) -> Void)?
     let close: () -> Void
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -46,6 +47,10 @@ struct TrainPage: View {
                     .accessibilityIdentifier(A11yID.Train.follow)
                 }
             }
+            // At the largest text sizes “Lines” and “Follow” do not fit side by side and were cut
+            // to “Li…” and “F…”: there the buttons show their symbols, and VoiceOver still reads
+            // their names.
+            .labelStyle(IconOnlyAtLargeSizes())
             if let timeline {
                 HStack(alignment: .top, spacing: 10) {
                     // The line's colour beside the title ties the page to the train on the map.
@@ -59,7 +64,8 @@ struct TrainPage: View {
                                 time: timeline.firstDeparture.vilniusTime, origin: timeline.origin, destination: timeline.destination)
                         )
                         .font(.headline)
-                        .lineLimit(3)
+                        // Three lines hold a title up to the largest sizes, where it may need more.
+                        .lineLimit(typeSize.isAccessibilitySize ? nil : 3)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier(A11yID.Train.title)
@@ -164,6 +170,26 @@ private struct ScheduledBadge: View {
         .padding(.top, 2)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(A11yID.Train.source)
+    }
+}
+
+/// A label with its title and symbol, or only its symbol at the accessibility text sizes.
+struct IconOnlyAtLargeSizes: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        Styled(configuration: configuration)
+    }
+
+    private struct Styled: View {
+        let configuration: LabelStyleConfiguration
+        @Environment(\.dynamicTypeSize) private var typeSize
+
+        var body: some View {
+            if typeSize.isAccessibilitySize {
+                Label(configuration).labelStyle(.iconOnly)
+            } else {
+                Label(configuration).labelStyle(.titleAndIcon)
+            }
+        }
     }
 }
 

@@ -77,11 +77,19 @@ private struct BoardRow: View {
         Group {
             if typeSize.isAccessibilitySize {
                 // At the largest sizes the time and the minutes take a line, the destination the next.
+                // In a narrow panel the minutes go under the time rather than break mid-word.
                 VStack(alignment: .leading, spacing: 2) {
-                    HStack {
-                        time
-                        Spacer()
-                        countdown
+                    ViewThatFits(in: .horizontal) {
+                        HStack {
+                            time
+                            Spacer()
+                            countdown
+                                .fixedSize()
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            time
+                            countdown
+                        }
                     }
                     destination
                 }
@@ -101,12 +109,15 @@ private struct BoardRow: View {
     private var time: some View {
         Text(verbatim: departure.time.vilniusTime)
             .monospacedDigit()
+            // A clock time never breaks across lines; the minutes beside it wrap instead.
+            .fixedSize()
     }
 
     private var destination: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(verbatim: departure.destination)
-                .lineLimit(2)
+                // Two lines hold a name up to the largest sizes, where it may need more.
+                .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
             if showsStartsHere, departure.startsHere {
                 StartsHereLabel(text: .boardStartsHere)
             }
