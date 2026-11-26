@@ -170,7 +170,8 @@ enum Trains {
     static func overMidnight() throws -> FollowedTrain {
         let engine = MotionEngine(timetable: nightTimetable)
         let day = ServiceDate(year: 2026, month: 11, day: 17)
-        let state = try #require(engine.state(of: RunningTrip(trip: 0, day: day, seconds: 23 * 3600 + 45 * 60)))
+        let at = day.timetableZero.addingTimeInterval(23 * 3600 + 45 * 60)
+        let state = try #require(engine.train(for: TrainLink(trip: "night", day: day), at: at))
         return FollowedTrain(timeline: engine.timeline(of: state), trip: "night", day: day, line: "S0 – S2", colour: 0)
     }
 }

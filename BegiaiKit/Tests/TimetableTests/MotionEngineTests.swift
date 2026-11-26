@@ -27,21 +27,21 @@ struct MotionEngineTests {
 
     @Test func aTrainNeverLeavesAStationBeforeItsDeparture() throws {
         let engine = MotionEngine(timetable: ThreeStops.timetable)
-        let state = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 10 * 60 - 1)))
+        let state = try #require(ThreeStops.train(engine, at: 8 * 3600 + 10 * 60 - 1))
         #expect(state.phase == .atStation)
         #expect(state.metres == 50_000)
     }
 
     @Test func aTrainStandsAtAStationEvenWhenTheTimetableGivesOneTime() throws {
         let engine = MotionEngine(timetable: ThreeStops.timetable)
-        let state = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 30 * 60 - 10)))
+        let state = try #require(ThreeStops.train(engine, at: 8 * 3600 + 30 * 60 - 10))
         #expect(state.phase == .atStation)
         #expect(state.lastStop == 2)
     }
 
     @Test func aRunningTrainIsBetweenItsTwoStations() throws {
         let engine = MotionEngine(timetable: ThreeStops.timetable)
-        let state = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 5 * 60)))
+        let state = try #require(ThreeStops.train(engine, at: 8 * 3600 + 5 * 60))
         #expect(state.phase == .running)
         #expect(state.metres > 0 && state.metres < 50_000)
         #expect((state.lastStop, state.nextStop) == (0, 1))
@@ -52,7 +52,7 @@ struct MotionEngineTests {
         timetable.trips[0].stops[2].arrival = 8 * 3600 + 13 * 60
         timetable.trips[0].stops[2].departure = 8 * 3600 + 13 * 60
         let engine = MotionEngine(timetable: timetable)
-        let state = try #require(engine.state(of: RunningTrip(trip: 0, day: ThreeStops.day, seconds: 8 * 3600 + 13 * 60 - 10)))
+        let state = try #require(ThreeStops.train(engine, at: 8 * 3600 + 13 * 60 - 10))
         #expect(state.phase == .running)
     }
 
@@ -67,6 +67,11 @@ struct MotionEngineTests {
 
 enum ThreeStops {
     static let day = ServiceDate(year: 2026, month: 11, day: 17)
+
+    /// The trip `seconds` into that day, found as the app finds a train: by its link.
+    static func train(_ engine: MotionEngine, at seconds: Double) -> TrainState? {
+        engine.train(for: TrainLink(trip: "t", day: day), at: day.timetableZero.addingTimeInterval(seconds))
+    }
 
     static var timetable: Timetable {
         let points = (0...4).map {
