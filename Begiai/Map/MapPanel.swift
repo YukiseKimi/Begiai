@@ -61,7 +61,10 @@ struct MapPanel: View {
         case nil:
             VStack(spacing: 10) {
                 if !settled.isEmpty {
+                    // The same margins as the field, so at large text sizes the count and
+                    // “Scheduled” wrap inside the panel instead of running to its edges.
                     RunningHeader(count: settled.count)
+                        .padding(.horizontal)
                 }
                 // At night, with no trains, the field still finds a station's first trains.
                 StationSearchField(query: $query, focused: searchFocused)

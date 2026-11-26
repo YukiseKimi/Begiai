@@ -12,15 +12,26 @@ struct StationSearchField: View {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
-            TextField(text: $query, prompt: Text(.mapSearch)) {
-                Text(.mapSearch)
-            }
-            .textInputAutocapitalization(.never)
-            .autocorrectionDisabled()
-            .submitLabel(.search)
-            .focused(focused)
-            .frame(minHeight: 44)
-            .accessibilityIdentifier(A11yID.Map.search)
+            // A field's own prompt keeps to one line and is cut at the field's edge, with no
+            // “…”. This prompt wraps at large text sizes, and the field grows to hold it.
+            Text(.mapSearch)
+                .foregroundStyle(Color(uiColor: .placeholderText))
+                .opacity(query.isEmpty ? 1 : 0)
+                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityHidden(true)
+                .overlay {
+                    // An empty prompt, so the field does not draw its label as a second prompt.
+                    TextField(text: $query, prompt: Text(verbatim: "")) {
+                        Text(.mapSearch)
+                    }
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .submitLabel(.search)
+                    .focused(focused)
+                    .frame(maxHeight: .infinity)
+                    .accessibilityIdentifier(A11yID.Map.search)
+                }
             if !query.isEmpty {
                 Button {
                     query = ""
@@ -35,7 +46,8 @@ struct StationSearchField: View {
             }
         }
         .padding(.leading, 12)
-        .background(.fill.tertiary, in: .capsule)
+        // A capsule while the field is one line high; taller, its corners keep that radius.
+        .background(.fill.tertiary, in: .rect(cornerRadius: 22))
     }
 }
 
