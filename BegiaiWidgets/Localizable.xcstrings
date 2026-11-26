@@ -1,0 +1,168 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Activity.Arrived" : {
+      "comment" : "Live Activity after the train reaches its last station.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrived"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Atvyko"
+          }
+        }
+      }
+    },
+    "Activity.Arrives" : {
+      "comment" : "Live Activity, expanded: above the last station and the time the train is due there.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrives"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Atvyksta"
+          }
+        }
+      }
+    },
+    "Activity.At" : {
+      "comment" : "Live Activity while the train stands at a station: the station and the time it leaves.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At %1$(station)@, leaves %2$(time)@"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Stotyje %1$(station)@, išvyksta %2$(time)@"
+          }
+        }
+      }
+    },
+    "Activity.Leaves" : {
+      "comment" : "Live Activity, expanded: above the station the train stands at and the time it leaves.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leaves"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Išvyksta"
+          }
+        }
+      }
+    },
+    "Activity.Next" : {
+      "comment" : "Live Activity: the next station and the time the train is due there.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next: %1$(station)@ %2$(time)@"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kita: %1$(station)@ %2$(time)@"
+          }
+        }
+      }
+    },
+    "Activity.NextCaption" : {
+      "comment" : "Live Activity, expanded: above the next station and the time the train is due there.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next stop"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Kita stotis"
+          }
+        }
+      }
+    },
+    "Activity.Scheduled" : {
+      "comment" : "Live Activity: every time comes from the timetable, with no live data.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scheduled"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Pagal tvarkaraštį"
+          }
+        }
+      }
+    },
+    "Activity.StopsPassed" : {
+      "comment" : "VoiceOver label of the Live Activity's journey bar: the stops the train has left, of all its stops.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$(passed)lld of %2$(total)lld stops passed"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Pravažiuota stočių: %1$(passed)lld iš %2$(total)lld"
+          }
+        }
+      }
+    },
+    "Activity.Title" : {
+      "comment" : "The Live Activity's title: the train's first and last station.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$(origin)@ → %2$(destination)@"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "%1$(origin)@ → %2$(destination)@"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

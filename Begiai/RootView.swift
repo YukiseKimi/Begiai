@@ -6,6 +6,12 @@ struct RootView: View {
     var mayWelcome = false
     @AppStorage("welcome.seen") private var welcomeSeen = false
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.timeSource) private var time
+    @State private var tab = RootTab.map
+    /// A train link to open, from a tap on the Live Activity, kept until the timetable is in.
+    @State private var link: TrainLink?
+    /// True after a link to a train that no longer runs: the map says so.
+    @State private var linkedTrainGone = false
     /// The page open on each tab, held here so a newer timetable waits until none is open.
     @State private var mapSelection: PanelSelection?
     @State private var diagramSelection: DiagramSelection?
@@ -16,12 +22,17 @@ struct RootView: View {
     }
 
     var body: some View {
-        TabView {
-            Tab(.tabMap, systemImage: "map") {
+        TabView(selection: $tab) {
+            Tab(.tabMap, systemImage: "map", value: .map) {
                 MapTab(store: store, selection: $mapSelection)
             }
-            Tab(.tabLineDiagram, systemImage: "point.topleft.down.to.point.bottomright.curvepath") {
+            Tab(.tabLineDiagram, systemImage: "point.topleft.down.to.point.bottomright.curvepath", value: .lineDiagram) {
                 LineDiagramTab(store: store, selection: $diagramSelection)
+            }
+        }
+        .overlay(alignment: .top) {
+            if linkedTrainGone {
+                TrainGoneNote { linkedTrainGone = false }
             }
         }
         .environment(\.linePalette, LinePalette(slots: store.lineColours))
@@ -37,6 +48,27 @@ struct RootView: View {
             guard phase == .active, idle else { return }
             Task { await store.adoptPending { idle } }
         }
+        .onOpenURL { url in
+            link = TrainLink(url: url)
+        }
+        .onChange(of: LinkOpening(link: link, revision: store.revision), initial: true) {
+            openLink()
+        }
+    }
+
+    /// Opens the linked train's page on the map, or, once the train has arrived, the map with
+    /// a note that says so.
+    private func openLink() {
+        guard let link, let engine = store.engine else { return }
+        self.link = nil
+        tab = .map
+        if let train = engine.train(for: link, at: time.now) {
+            linkedTrainGone = false
+            mapSelection = .train(train.id)
+        } else {
+            mapSelection = nil
+            linkedTrainGone = true
+        }
     }
 
     /// True when no train or station is open on either tab.
@@ -45,6 +77,17 @@ struct RootView: View {
     }
 }
 
+private enum RootTab: Hashable {
+    case map
+    case lineDiagram
+}
+
+private struct LinkOpening: Equatable {
+    let link: TrainLink?
+    let revision: Int
+}
+
 #Preview {
     RootView(store: TimetableStore())
+        .environment(TrainFollower())
 }

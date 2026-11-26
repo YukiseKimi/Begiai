@@ -8,6 +8,7 @@ struct BegiaiApp: App {
     private let launch = HermeticLaunch.read()
     private let stars: ModelContainer
     @State private var store: TimetableStore
+    @State private var follower = TrainFollower()
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
@@ -19,8 +20,15 @@ struct BegiaiApp: App {
         WindowGroup {
             RootView(store: store, mayWelcome: launch.mayWelcome)
                 .environment(\.timeSource, launch.time)
+                .environment(follower)
                 .defaultAppStorage(launch.settings)
                 .task { await TipJar.finishUnfinished() }
+                .task { follower.review(reset: launch.endsActivities) }
+                // While the app is on screen, the followed train's activity moves on stop by stop.
+                .task(id: FollowRun(active: scenePhase == .active, train: follower.followed)) {
+                    guard scenePhase == .active else { return }
+                    await follower.keepCurrent()
+                }
                 .task {
                     let bundled = launch.timetable ?? Bundle.main.bundleURL.appending(path: "timetable.json")
                     let candidates = await launch.feed?.candidates(bundled: bundled) ?? [bundled]
@@ -29,6 +37,7 @@ struct BegiaiApp: App {
                 }
                 .onChange(of: scenePhase) { _, phase in
                     guard phase == .active else { return }
+                    follower.review()
                     Task { await refreshFeed() }
                 }
         }
@@ -43,6 +52,11 @@ struct BegiaiApp: App {
         Logger.begiai("timetable")
             .info("The timetable feed: \(String(describing: outcome), privacy: .public)")
     }
+}
+
+private struct FollowRun: Equatable {
+    let active: Bool
+    let train: FollowedTrain?
 }
 
 extension EnvironmentValues {

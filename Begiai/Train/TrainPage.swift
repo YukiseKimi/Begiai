@@ -15,6 +15,8 @@ struct TrainPage: View {
     let now: Date
     /// Nil where nothing can follow the train: the page then shows no Follow button.
     var following: Binding<Bool>?
+    /// True while the followed train's Live Activity shows: Follow then says so to VoiceOver.
+    var onLockScreen = false
     var exit = PageExit.back
     /// Opens a station's board: the place line then becomes a link, so the station of a train
     /// is one tap away, also where trains cover its marker on the map.
@@ -40,6 +42,7 @@ struct TrainPage: View {
                     .buttonStyle(.bordered)
                     .tint(following.wrappedValue ? color : .secondary)
                     .sensoryFeedback(following.wrappedValue ? .start : .stop, trigger: following.wrappedValue)
+                    .accessibilityValue(following.wrappedValue && onLockScreen ? Text(.trainOnLockScreen) : Text(verbatim: ""))
                     .accessibilityIdentifier(A11yID.Train.follow)
                 }
             }

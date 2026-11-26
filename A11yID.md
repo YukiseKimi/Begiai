@@ -25,6 +25,7 @@ Generated from `Begiai/A11yID.swift` by `script/test.sh a11y`. Do not edit.
 | `map.search` | the field that finds a station, above the line filter | Map |
 | `map.searchResult` | each station found by the search field | Map |
 | `map.column` | the glass column that holds the panel beside the map on a wide screen | Map |
+| `map.trainGone` | the note that a linked train has finished its trip | Map |
 | `board.title` | the station name on its board | Board |
 | `board.back` | the Lines button on a station board, or its Close button in a sheet | Board |
 | `board.row` | each departure on a station board | Board |
@@ -47,3 +48,9 @@ Generated from `Begiai/A11yID.swift` by `script/test.sh a11y`. Do not edit.
 | `about.tipThanks` | the thank-you, or the waiting or failed note, after a tip | About |
 | `notices.link` | the link to LTG Link's notices | Line Diagram, Train |
 | `timetable.stale` | the note that the timetable is old | Map, Line Diagram |
+| `liveActivity.title` | the title of a followed train's Live Activity | Lock Screen |
+| `liveActivity.bar` | the journey bar of a followed train's Live Activity | Lock Screen, Dynamic Island |
+| `liveActivity.next` | the next stop of a followed train's Live Activity | Lock Screen |
+| `liveActivity.end` | the last stop and its time in a followed train's Live Activity | Lock Screen |
+| `liveActivity.compactNext` | the next stop's time in the Dynamic Island | Dynamic Island |
+| `liveActivity.compactEnd` | the time to the last stop in the Dynamic Island | Dynamic Island |

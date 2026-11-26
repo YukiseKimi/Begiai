@@ -22,7 +22,11 @@ struct MapPanel: View {
     let timeline: TrainTimeline?
     let color: Color
     @Binding var selection: PanelSelection?
-    @Binding var following: Bool
+    /// Follow on the train's page: on keeps the train in the middle of the map and on the Lock
+    /// Screen; nil hides the button.
+    let following: Binding<Bool>?
+    /// True while the followed train's Live Activity shows.
+    let onLockScreen: Bool
     /// The sheet's height; nil in the column, which has no heights.
     var height: Binding<PanelHeight>?
     @Binding var filter: LineFilter
@@ -48,7 +52,7 @@ struct MapPanel: View {
         switch selection {
         case .train:
             TrainPage(
-                timeline: timeline, color: color, now: now, following: $following,
+                timeline: timeline, color: color, now: now, following: following, onLockScreen: onLockScreen,
                 openStation: { selection = .station($0) }, close: { selection = nil })
         case .station:
             if let station {

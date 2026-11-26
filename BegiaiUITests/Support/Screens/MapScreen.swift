@@ -39,6 +39,31 @@ struct MapScreen {
     }
 
     func openFirstTrain(file: StaticString = #filePath, line: UInt = #line) -> String {
+        guard let train = movingTrainsAboveThePanel(file: file, line: line).first else {
+            XCTFail("Map: no train shows above the panel", file: file, line: line)
+            return ""
+        }
+        return open(train, file: file, line: line)
+    }
+
+    /// Opens the first train whose page has another route than `route` (“Vilnius → Kaunas”),
+    /// and returns its route. Each train with that route opens and closes again.
+    func openFirstTrain(otherThan route: String, file: StaticString = #filePath, line: UInt = #line) -> String {
+        let page = TrainScreen(journey: journey)
+        for train in movingTrainsAboveThePanel(file: file, line: line) {
+            _ = open(train, file: file, line: line)
+            let opened = page.route(file: file, line: line)
+            if opened != route { return opened }
+            page.back(file: file, line: line)
+            expectLines(file: file, line: line)
+        }
+        XCTFail("Map: no train above the panel goes other than \(route)", file: file, line: line)
+        return ""
+    }
+
+    /// The trains above the panel that a tap opens: moving, so the tap opens the train and
+    /// not its station, and clear of every station marker.
+    private func movingTrainsAboveThePanel(file: StaticString, line: UInt) -> LazyFilterSequence<[XCUIElement]> {
         journey.wait(for: journey.element(A11yID.Map.train), "a train", on: "Map", file: file, line: line)
         let sight = mapInSight
         let trains = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
@@ -47,10 +72,11 @@ struct MapScreen {
         let clear = { (train: XCUIElement) in stations.allSatisfy { !$0.intersects(train.frame) } }
         // A tap on the centre of a standing train opens its station, so pick a moving train.
         let moving = { (train: XCUIElement) in (train.value as? String) != Self.standing }
-        guard let train = trains.first(where: { $0.isHittable && sight.contains(centre(of: $0.frame)) && clear($0) && moving($0) }) else {
-            XCTFail("Map: no train shows above the panel", file: file, line: line)
-            return ""
-        }
+        return trains.lazy.filter { $0.isHittable && sight.contains(centre(of: $0.frame)) && clear($0) && moving($0) }
+    }
+
+    /// Taps a train and returns its destination, from its VoiceOver label.
+    private func open(_ train: XCUIElement, file: StaticString, line: UInt) -> String {
         let label = train.label
         train.tap()
         guard let range = label.range(of: "Train to "), let end = label.range(of: ", scheduled") else {

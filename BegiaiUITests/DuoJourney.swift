@@ -26,6 +26,8 @@ final class DuoJourney: JourneyCase {
         column.expectHolds(A11yID.Train.title, "the train's title")
         train.follow()
         map.expectTrainFollowed(to: destination)
+        // Follow off ends the Live Activity, which would otherwise outlive the test.
+        train.unfollow()
         train.back()
         map.expectNoPage()
         column.expectOnTheRight()
