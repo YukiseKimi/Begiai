@@ -25,7 +25,6 @@ struct MapTab: View {
     @State private var query = ""
     @FocusState private var searchFocused: Bool
     @State private var locationNote: LocationNote?
-    @Environment(\.modelContext) private var modelContext
     @Query private var stars: [Star]
     @Environment(\.linePalette) private var palette
     @Environment(TrainFollower.self) private var follower
@@ -125,11 +124,7 @@ struct MapTab: View {
             selection: $selection,
             following: chosenTrain.flatMap { train in timeline.flatMap { follow(train, timeline: $0) } },
             onLockScreen: follower.onLockScreen, height: $panelHeight, filter: $filter, query: $query,
-            searchFocused: $searchFocused, locationNote: $locationNote, stars: stars, toggleStar: toggleStar)
-    }
-
-    private func toggleStar(_ kind: StarKind, name: String) {
-        modelContext.toggleStarOrRollBack(kind, name: name, at: time.now)
+            searchFocused: $searchFocused, locationNote: $locationNote, stars: stars)
     }
 
     /// Follow on the train's page: the map keeps the train in the middle, and its Live Activity

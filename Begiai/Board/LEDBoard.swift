@@ -6,7 +6,6 @@ struct StationHeader: View {
     let starred: Bool
     var exit = PageExit.back
     let close: () -> Void
-    let toggleStar: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -14,7 +13,7 @@ struct StationHeader: View {
                 PageExitButton(exit: exit, close: close)
                     .accessibilityIdentifier(A11yID.Board.back)
                 Spacer()
-                StarButton(name: name, starred: starred, toggle: toggleStar)
+                StarButton(kind: .station, name: name, starred: starred)
                     .accessibilityIdentifier(A11yID.Board.star)
             }
             // The page's controls stop growing at the first accessibility size, so at the largest

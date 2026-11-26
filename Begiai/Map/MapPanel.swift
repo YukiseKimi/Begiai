@@ -34,7 +34,6 @@ struct MapPanel: View {
     var searchFocused: FocusState<Bool>.Binding
     @Binding var locationNote: LocationNote?
     let stars: [Star]
-    let toggleStar: (StarKind, String) -> Void
 
     var body: some View {
         switch part {
@@ -126,8 +125,6 @@ struct MapPanel: View {
             index: index, name: name, starred: stars.names(.station).contains(name), engine: engine, now: now
         ) {
             selection = nil
-        } toggleStar: {
-            toggleStar(.station, name)
         }
     }
 
@@ -165,10 +162,8 @@ struct MapPanel: View {
             }
             Section {
                 ForEach(lines) { line in
-                    LineRow(line: line, starred: starred.contains(line.name)) {
-                        toggleStar(.line, line.name)
-                    }
-                    .listRowBackground(Color.clear)
+                    LineRow(line: line, starred: starred.contains(line.name))
+                        .listRowBackground(Color.clear)
                 }
             } header: {
                 if !stations.isEmpty {

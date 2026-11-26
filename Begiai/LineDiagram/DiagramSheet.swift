@@ -15,7 +15,6 @@ struct DiagramSheet: View {
     let selection: DiagramSelection
     let close: () -> Void
     @Environment(\.timeSource) private var time
-    @Environment(\.modelContext) private var modelContext
     @Query private var stars: [Star]
     @Environment(\.linePalette) private var palette
     /// A station opened from the train's page: shown in place, so the sheet stays up.
@@ -40,10 +39,7 @@ struct DiagramSheet: View {
                     let name = engine.timetable.stations[station].name
                     let panel = StationPanel(
                         index: station, name: name, starred: starred.contains(name), engine: engine, now: now, exit: .close,
-                        close: close
-                    ) {
-                        modelContext.toggleStarOrRollBack(.station, name: name, at: now)
-                    }
+                        close: close)
                     panel.header
                     panel.board
                 }

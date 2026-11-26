@@ -4,7 +4,6 @@ import SwiftUI
 struct LineRow: View {
     let line: LineSummary
     let starred: Bool
-    let toggleStar: () -> Void
     @Environment(\.linePalette) private var palette
 
     var body: some View {
@@ -24,13 +23,13 @@ struct LineRow: View {
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier(A11yID.Map.lineName)
             Spacer()
-            StarButton(name: line.name, starred: starred, toggle: toggleStar)
+            StarButton(kind: .line, name: line.name, starred: starred)
                 .accessibilityIdentifier(A11yID.Map.lineStar)
         }
     }
 }
 
 #Preview {
-    LineRow(line: LineSummary(id: 0, name: "Vilnius – Kaunas", international: false, trainsNow: 4, tripsToday: 42), starred: true) {}
+    LineRow(line: LineSummary(id: 0, name: "Vilnius – Kaunas", international: false, trainsNow: 4, tripsToday: 42), starred: true)
         .padding()
 }

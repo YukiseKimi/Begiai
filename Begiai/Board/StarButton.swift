@@ -3,13 +3,19 @@ import SwiftData
 import SwiftUI
 import os
 
+/// Stars a line or a station, or takes its star away. It saves the change itself, so the rows
+/// that show it pass only what they show, and no action.
 struct StarButton: View {
+    let kind: StarKind
     let name: String
     let starred: Bool
-    let toggle: () -> Void
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.timeSource) private var time
 
     var body: some View {
-        Button(action: toggle) {
+        Button {
+            modelContext.toggleStarOrRollBack(kind, name: name, at: time.now)
+        } label: {
             Image(systemName: starred ? "star.fill" : "star")
                 .foregroundStyle(starred ? .yellow : .secondary)
                 // At least 44 points, and as large as the symbol at large text sizes; the whole

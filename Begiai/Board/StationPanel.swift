@@ -12,10 +12,9 @@ struct StationPanel {
     let now: Date
     var exit = PageExit.back
     let close: () -> Void
-    let toggleStar: () -> Void
 
     var header: some View {
-        StationHeader(name: name, starred: starred, exit: exit, close: close, toggleStar: toggleStar)
+        StationHeader(name: name, starred: starred, exit: exit, close: close)
     }
 
     var board: some View {
