@@ -46,6 +46,30 @@ struct MapScreen {
         return open(train, file: file, line: line)
     }
 
+    /// Taps the first train above the panel, or the first to `destination`, for the shots. A
+    /// station's name is the same in each language, so this works in any language. Few trains
+    /// to one station are clear of every station marker, so one to `destination` need not be.
+    func tapFirstTrain(to destination: String? = nil, file: StaticString = #filePath, line: UInt = #line) {
+        let train: XCUIElement?
+        if let destination {
+            journey.wait(for: journey.element(A11yID.Map.train), "a train", on: "Map", file: file, line: line)
+            let sight = mapInSight
+            train = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
+                .first {
+                    // “Train to Kaunas, scheduled”, “Traukinys į stotį Kaunas, pagal tvarkaraštį”.
+                    $0.label.contains("\(destination),") && $0.isHittable && sight.contains(centre(of: $0.frame))
+                        && ($0.value as? String) != Self.standing
+                }
+        } else {
+            train = movingTrainsAboveThePanel(file: file, line: line).first
+        }
+        guard let train else {
+            XCTFail("Map: no train to \(destination ?? "anywhere") shows above the panel", file: file, line: line)
+            return
+        }
+        train.tap()
+    }
+
     /// Opens the first train whose page has another route than `route` (“Vilnius → Kaunas”),
     /// and returns its route. Each train with that route opens and closes again.
     func openFirstTrain(otherThan route: String, file: StaticString = #filePath, line: UInt = #line) -> String {
