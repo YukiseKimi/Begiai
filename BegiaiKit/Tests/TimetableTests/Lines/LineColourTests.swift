@@ -6,7 +6,7 @@ import Testing
 @Suite("Line colours", .sealed, .timeLimit(.minutes(1)))
 struct LineColourTests {
     @Test func noTwoLinesThatShareTrackHaveOneColourInTheShippedTimetable() throws {
-        let url = URL(filePath: #filePath).deletingLastPathComponent()
+        let url = URL(filePath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
             .appending(path: "../../../Begiai/timetable.json").standardizedFileURL
         let timetable = try JSONDecoder().decode(Timetable.self, from: Data(contentsOf: url))
         let runs = timetable.trackRuns()

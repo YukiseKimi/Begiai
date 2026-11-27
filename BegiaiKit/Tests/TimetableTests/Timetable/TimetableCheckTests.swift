@@ -6,7 +6,7 @@ import Testing
 @Suite("Timetable check", .sealed, .timeLimit(.minutes(1)))
 struct TimetableCheckTests {
     @Test func theShippedTimetablePasses() throws {
-        let url = URL(filePath: #filePath).deletingLastPathComponent()
+        let url = URL(filePath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
             .appending(path: "../../../Begiai/timetable.json").standardizedFileURL
         try JSONDecoder().decode(Timetable.self, from: Data(contentsOf: url)).check()
     }

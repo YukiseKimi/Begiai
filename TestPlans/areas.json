@@ -40,10 +40,8 @@
     {
       "id": "liveActivity",
       "paths": [
-        "BegiaiKit/Sources/BegiaiKit/FollowedTrain.swift",
-        "BegiaiKit/Sources/BegiaiKit/FollowedTrain+ActivityKit.swift",
-        "BegiaiKit/Sources/BegiaiKit/FollowState.swift",
-        "Begiai/Follow/",
+        "BegiaiKit/Sources/BegiaiKit/Follow/",
+        "Begiai/Features/Follow/",
         "BegiaiWidgets/"
       ],
       "unit": [
