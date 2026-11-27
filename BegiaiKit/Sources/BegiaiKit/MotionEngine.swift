@@ -95,10 +95,11 @@ public struct MotionEngine: Sendable {
                 (phase, metres, speed, lastStop, nextStop) = (.running, stops[k].metres + motion.metres, motion.speed, k, k + 1)
             }
         }
-        guard let point = timetable.shapes[trip.shape].point(atMetres: metres) else { return nil }
-        return TrainState(
-            trip: running.trip, day: running.day, phase: phase, metres: metres, coordinate: point.coordinate,
-            heading: point.heading, speed: speed, lastStop: lastStop, nextStop: nextStop)
+        return timetable.shapes[trip.shape].point(atMetres: metres).map { point in
+            TrainState(
+                trip: running.trip, day: running.day, phase: phase, metres: metres, coordinate: point.coordinate,
+                heading: point.heading, speed: speed, lastStop: lastStop, nextStop: nextStop)
+        }
     }
 
     static func times(of trip: Trip) -> (arrivals: [Double], departures: [Double]) {

@@ -108,7 +108,6 @@ public struct TimetableFeed: Sendable {
 
     /// The feed date of a timetable file, or nil if there is no readable file.
     static func feedDate(of url: URL) -> Int? {
-        guard let data = try? Data(contentsOf: url) else { return nil }
-        return try? JSONDecoder().decode(Head.self, from: data).feedDate
+        (try? Data(contentsOf: url)).flatMap { data in try? JSONDecoder().decode(Head.self, from: data).feedDate }
     }
 }
