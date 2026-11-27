@@ -5,16 +5,14 @@ struct StationHeader: View {
     let name: String
     let starred: Bool
     var exit = PageExit.back
-    let close: () -> Void
-    let toggleStar: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                PageExitButton(exit: exit, close: close)
+                PageExitButton(exit: exit)
                     .accessibilityIdentifier(A11yID.Board.back)
                 Spacer()
-                StarButton(name: name, starred: starred, toggle: toggleStar)
+                StarButton(kind: .station, name: name, starred: starred)
                     .accessibilityIdentifier(A11yID.Board.star)
             }
             // The page's controls stop growing at the first accessibility size, so at the largest
@@ -40,6 +38,13 @@ struct LEDBoard: View {
     var body: some View {
         // When every train starts here, one line says so, not each row.
         let everyTrainStartsHere = !departures.isEmpty && departures.allSatisfy(\.startsHere)
+        let firstTomorrow = departures.first(where: \.tomorrow)?.id
+        let lines = departures.map { departure in
+            BoardLine(
+                departure: departure, minutes: departure.time.minutes(after: now), opensTomorrow: departure.id == firstTomorrow,
+                showsStartsHere: !everyTrainStartsHere && departure.startsHere)
+        }
+        // At most eight departures (the engine's limit), so a plain stack holds them.
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
                 if departures.isEmpty {
@@ -49,14 +54,8 @@ struct LEDBoard: View {
                 if everyTrainStartsHere {
                     StartsHereLabel(text: .boardEveryTrainStartsHere)
                 }
-                ForEach(departures) { departure in
-                    if departure.tomorrow, departure.id == departures.first(where: \.tomorrow)?.id {
-                        Text(.boardTomorrow)
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundStyle(.secondary)
-                            .padding(.top, 4)
-                    }
-                    BoardRow(departure: departure, now: now, showsStartsHere: !everyTrainStartsHere)
+                ForEach(lines) { line in
+                    BoardEntry(line: line)
                 }
             }
             .font(.system(.callout, design: .monospaced).weight(.medium))
@@ -70,66 +69,116 @@ struct LEDBoard: View {
     }
 }
 
-private struct BoardRow: View {
+/// One departure as its row shows it.
+private struct BoardLine: Identifiable {
     let departure: Departure
-    let now: Date
+    /// The minutes from now to the departure.
+    let minutes: Int
+    /// The first departure after midnight: “Tomorrow” goes above it.
+    let opensTomorrow: Bool
+    /// “Starts here” goes under the destination: the train starts here, and not every train does.
+    let showsStartsHere: Bool
+
+    var id: Departure.ID { departure.id }
+}
+
+/// A departure, with “Tomorrow” above the first one after midnight. The stack keeps the
+/// board's spacing, and adds no element of its own for VoiceOver.
+private struct BoardEntry: View {
+    let line: BoardLine
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if line.opensTomorrow {
+                Text(.boardTomorrow)
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 4)
+            }
+            BoardRow(
+                time: line.departure.time, destination: line.departure.destination, minutes: line.minutes,
+                showsStartsHere: line.showsStartsHere)
+        }
+    }
+}
+
+private struct BoardRow: View {
+    let time: Date
+    let destination: String
+    let minutes: Int
     let showsStartsHere: Bool
     @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
+        // Two arrangements, not one container swapped for another, and nothing in a row keeps
+        // state that the switch at the accessibility sizes could lose. The parts take their
+        // values straight from the row, so the arrangement stays here in one body.
         Group {
             if typeSize.isAccessibilitySize {
-                // At the largest sizes the time and the minutes take a line, the destination the next.
-                // In a narrow panel the minutes go under the time rather than break mid-word.
+                // At the largest sizes the time and the minutes take a line, the destination the
+                // next. In a narrow panel the minutes go under the time rather than break mid-word.
                 VStack(alignment: .leading, spacing: 2) {
                     ViewThatFits(in: .horizontal) {
                         HStack {
-                            time
+                            BoardTime(time: time)
                             Spacer()
-                            countdown
+                            BoardCountdown(minutes: minutes)
                                 .fixedSize()
                         }
                         VStack(alignment: .leading, spacing: 2) {
-                            time
-                            countdown
+                            BoardTime(time: time)
+                            BoardCountdown(minutes: minutes)
                         }
                     }
-                    destination
+                    BoardDestination(name: destination, showsStartsHere: showsStartsHere)
                 }
             } else {
                 HStack(alignment: .firstTextBaseline, spacing: 10) {
-                    time
-                    destination
+                    BoardTime(time: time)
+                    BoardDestination(name: destination, showsStartsHere: showsStartsHere)
                     Spacer(minLength: 4)
-                    countdown
+                    BoardCountdown(minutes: minutes)
                 }
             }
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(A11yID.Board.row)
     }
+}
 
-    private var time: some View {
-        Text(verbatim: departure.time.vilniusTime)
+private struct BoardTime: View {
+    let time: Date
+
+    var body: some View {
+        Text(verbatim: time.vilniusTime)
             .monospacedDigit()
-            // A clock time never breaks across lines; the minutes beside it wrap instead.
-            .fixedSize()
+            // A clock time never breaks across lines, on purpose; the minutes beside it wrap instead.
+            .fixedSize(horizontal: true, vertical: false)
     }
+}
 
-    private var destination: some View {
+private struct BoardDestination: View {
+    let name: String
+    let showsStartsHere: Bool
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(verbatim: departure.destination)
+            Text(verbatim: name)
                 // Two lines hold a name up to the largest sizes, where it may need more.
                 .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
-            if showsStartsHere, departure.startsHere {
+            if showsStartsHere {
                 StartsHereLabel(text: .boardStartsHere)
             }
         }
     }
+}
 
-    /// Within the hour only: past that, the clock time is the easier read.
-    @ViewBuilder private var countdown: some View {
-        let minutes = departure.time.minutes(after: now)
+/// Within the hour only: past that, the clock time is the easier read.
+private struct BoardCountdown: View {
+    let minutes: Int
+
+    var body: some View {
         if minutes <= 60 {
             Text(minutes == 0 ? .boardNow : .trainIn(minutes: minutes))
                 .monospacedDigit()

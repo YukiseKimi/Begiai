@@ -2,7 +2,7 @@ import XCTest
 
 /// The followed train's Live Activity, as the system shows it outside the app. XCUITest
 /// reads the Lock Screen presentation in the Notification Centre, which a swipe down from
-/// the top left opens; the Dynamic Island shows the activity's container but not its text.
+/// the top left opens, and the compact Dynamic Island's VoiceOver labels over the Home Screen.
 @MainActor
 struct LockScreen {
     let journey: JourneyApp
@@ -40,6 +40,29 @@ struct LockScreen {
         let bar = springboard.descendants(matching: .any).matching(identifier: A11yID.LiveActivity.bar).firstMatch
         XCTAssertTrue(
             bar.label.hasSuffix("stops passed"), "Lock Screen: the journey bar reads \(bar.label)", file: file, line: line)
+    }
+
+    /// The compact Dynamic Island's trailing side reads, for VoiceOver, the train's last stop and
+    /// the time left to it in words, “Kaunas, 34 minutes”. It leaves the app for the Home Screen.
+    /// A narrow island, as on the open Duo, shows only the journey ring: neither side's label is
+    /// there to read, so only the wide island, which always shows the next stop's side, is read.
+    /// The Notification Centre checks the same activity next.
+    func expectIsland(destination: String, file: StaticString = #filePath, line: UInt = #line) {
+        XCUIDevice.shared.press(.home)
+        let island = springboard.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier BEGINSWITH %@", "jindo-container-view")).firstMatch
+        journey.wait(for: island, "the Dynamic Island", on: "Home Screen", file: file, line: line)
+        let next = springboard.descendants(matching: .any).matching(identifier: A11yID.LiveActivity.compactNext).firstMatch
+        guard next.waitForExistence(timeout: 5) else { return }
+        let end = journey.wait(
+            for: springboard.descendants(matching: .any).matching(identifier: A11yID.LiveActivity.compactEnd).firstMatch,
+            "the last stop and the minutes left", on: "Dynamic Island", file: file, line: line)
+        XCTAssertTrue(
+            end.label.hasPrefix("\(destination), "), "Dynamic Island: it reads \(end.label), not \(destination) first",
+            file: file, line: line)
+        XCTAssertNotNil(
+            end.label.firstMatch(of: /\d+ (minute|hour)/), "Dynamic Island: \(end.label) says no minutes left",
+            file: file, line: line)
     }
 
     /// No Live Activity of the app shows, within a few seconds of the Notification Centre opening.

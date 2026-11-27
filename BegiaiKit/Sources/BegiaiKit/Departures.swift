@@ -57,7 +57,7 @@ extension MotionEngine {
     }
 
     public func bigStations(minimumTrips: Int = 10, spacingMetres: Double = 25_000) -> Set<Int> {
-        let count = timetable.callsPerStation
+        let count = callsPerStation
         var kept: [Int] = []
         for station in count.indices.sorted(by: { count[$0] > count[$1] }) where count[station] >= minimumTrips {
             let here = timetable.stations[station].coordinate

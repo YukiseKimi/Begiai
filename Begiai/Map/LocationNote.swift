@@ -20,7 +20,8 @@ enum LocationNote {
 
 struct LocationNoteView: View {
     let note: LocationNote
-    let dismiss: () -> Void
+    /// The note the panel shows, which the close button clears.
+    @Binding var shown: LocationNote?
     @Environment(\.openURL) private var openURL
 
     var body: some View {
@@ -48,7 +49,9 @@ struct LocationNoteView: View {
             }
             .padding(.bottom, note == .denied ? 0 : 12)
             Spacer(minLength: 0)
-            Button(action: dismiss) {
+            Button {
+                shown = nil
+            } label: {
                 Image(systemName: "xmark")
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(.secondary)
@@ -67,7 +70,7 @@ struct LocationNoteView: View {
 
 #Preview {
     VStack {
-        LocationNoteView(note: .denied) {}
-        LocationNoteView(note: .restricted) {}
+        LocationNoteView(note: .denied, shown: .constant(.denied))
+        LocationNoteView(note: .restricted, shown: .constant(.restricted))
     }
 }

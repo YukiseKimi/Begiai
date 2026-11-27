@@ -26,6 +26,11 @@ final class DuoJourney: JourneyCase {
         column.expectHolds(A11yID.Train.title, "the train's title")
         train.follow()
         map.expectTrainFollowed(to: destination)
+        // A drag lets the map go; Show train brings the train back beside the column.
+        map.dragOutsideThePanel(far: true)
+        map.expectTrainLetGo(to: destination)
+        train.showTrain()
+        map.expectTrainFollowed(to: destination)
         // Follow off ends the Live Activity, which would otherwise outlive the test.
         train.unfollow()
         train.back()

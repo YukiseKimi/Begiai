@@ -2,15 +2,18 @@ import SwiftUI
 
 struct StationMarker: View {
     let name: String
+    let station: Int
     let chosen: Bool
     var compact = false
     /// True while a train stands at the station at country zoom: the station's tap area is
     /// then its ring alone, so a tap on the train around it is the train's.
     var underTrain = false
-    let open: () -> Void
+    let open: MapOpener
 
     var body: some View {
-        Button(action: open) {
+        Button {
+            open(.station(station))
+        } label: {
             Circle()
                 .fill(.background)
                 .stroke(.primary, lineWidth: chosen ? 3 : 2)

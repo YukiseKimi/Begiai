@@ -13,6 +13,15 @@ struct JourneyApp {
 
     let app = XCUIApplication()
     private let clock = Clock()
+    private let language: [String]
+
+    /// `locale`, such as "lt_LT", runs the app in that language and region instead, for shots
+    /// that read no labels.
+    init(locale: String? = nil) {
+        language =
+            locale.map { ["-AppleLanguages", "(\(Locale(identifier: $0).language.languageCode?.identifier ?? $0))", "-AppleLocale", $0] }
+            ?? Self.english
+    }
 
     private final class Clock {
         var now = JourneyApp.sealedNow
@@ -54,7 +63,7 @@ struct JourneyApp {
 
     private func start(_ opening: Opening, now: String, arguments: [String], file: StaticString, line: UInt) {
         FailureScreens.watch()
-        app.launchArguments = ["--sealed", "--now", now, "--timetable", Self.frozenTimetable] + Self.english + arguments
+        app.launchArguments = ["--sealed", "--now", now, "--timetable", Self.frozenTimetable] + language + arguments
         app.launch()
         wait(for: element(opening.page), "the opening's page", on: "Launch", timeout: 15, file: file, line: line)
     }

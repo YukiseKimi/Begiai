@@ -22,6 +22,16 @@ struct LineColourTests {
         #expect(colours == [0, 0])
     }
 
+    @Test func whenThePaletteRunsOutALineTakesTheColourFewestNeighboursHave() {
+        var timetable = FourStations.timetable
+        timetable.lines += [
+            Line(name: "C", ends: [0, 3], international: false), Line(name: "D", ends: [0, 3], international: false),
+        ]
+        // Four lines on one run and two colours: the last line finds colour 0 twice and 1 once.
+        let colours = timetable.lineColours(count: 2, runs: [TrackRun(lines: [0, 1, 2, 3], coordinates: [])])
+        #expect(colours == [0, 1, 0, 1])
+    }
+
     @Test func eachColourCanBeSeenOnItsMap() {
         for colour in LinePaletteRGB.light {
             #expect(Vision.contrast(colour, (1, 1, 1)) >= 3, "\(colour) is too light for the light map")

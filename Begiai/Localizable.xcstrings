@@ -1748,7 +1748,7 @@
       }
     },
     "Train.Following" : {
-      "comment" : "The Follow button while the rider follows the train.",
+      "comment" : "The Follow button while the map keeps the followed train in the middle: a tap stops following it, also on the Lock Screen.",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -1869,6 +1869,24 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Užrakinimo ekrane"
+          }
+        }
+      }
+    },
+    "Train.ShowTrain" : {
+      "comment" : "The Follow button once the map was moved away from the followed train, which the Lock Screen still shows: a tap moves the map back to the train.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show train"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Rodyti traukinį"
           }
         }
       }

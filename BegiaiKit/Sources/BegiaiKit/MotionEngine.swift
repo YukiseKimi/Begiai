@@ -32,11 +32,18 @@ public struct MotionEngine: Sendable {
     public static let minimumRun = 30.0
 
     public let timetable: Timetable
+    /// The name of each station, by station index.
+    public let stationNames: [String]
+    /// How many trips call at each station, by station index: the search puts busier stations
+    /// first. Counted once here, not at each keystroke.
+    public let callsPerStation: [Int]
     private let schedules: [(arrivals: [Double], departures: [Double])]
     private let days = DayCache()
 
     public init(timetable: Timetable) {
         self.timetable = timetable
+        stationNames = timetable.stations.map(\.name)
+        callsPerStation = timetable.callsPerStation
         schedules = timetable.trips.map(Self.times)
     }
 
@@ -59,7 +66,7 @@ public struct MotionEngine: Sendable {
         return train?.phase == .arrived ? nil : train
     }
 
-    public func state(of running: RunningTrip) -> TrainState? {
+    func state(of running: RunningTrip) -> TrainState? {
         let trip = timetable.trips[running.trip]
         let stops = trip.stops
         guard stops.count >= 2 else { return nil }
@@ -88,10 +95,11 @@ public struct MotionEngine: Sendable {
                 (phase, metres, speed, lastStop, nextStop) = (.running, stops[k].metres + motion.metres, motion.speed, k, k + 1)
             }
         }
-        guard let point = timetable.shapes[trip.shape].point(atMetres: metres) else { return nil }
-        return TrainState(
-            trip: running.trip, day: running.day, phase: phase, metres: metres, coordinate: point.coordinate,
-            heading: point.heading, speed: speed, lastStop: lastStop, nextStop: nextStop)
+        return timetable.shapes[trip.shape].point(atMetres: metres).map { point in
+            TrainState(
+                trip: running.trip, day: running.day, phase: phase, metres: metres, coordinate: point.coordinate,
+                heading: point.heading, speed: speed, lastStop: lastStop, nextStop: nextStop)
+        }
     }
 
     static func times(of trip: Trip) -> (arrivals: [Double], departures: [Double]) {

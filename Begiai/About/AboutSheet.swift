@@ -92,6 +92,7 @@ struct AboutSheet: View {
             .navigationTitle(Text(.aboutTitle))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                // Close stays at the top trailing corner, where the approved About shot has it.
                 ToolbarItem(placement: .confirmationAction) {
                     Button(role: .close) { dismiss() }
                         .accessibilityIdentifier(A11yID.About.close)
@@ -110,13 +111,18 @@ struct AboutSheet: View {
 
 private struct LegendRow<Icon: View>: View {
     let text: LocalizedStringResource
-    @ViewBuilder let icon: () -> Icon
+    let icon: Icon
+
+    init(text: LocalizedStringResource, @ViewBuilder icon: () -> Icon) {
+        self.text = text
+        self.icon = icon()
+    }
 
     var body: some View {
         Label {
             Text(text)
         } icon: {
-            icon()
+            icon
                 .accessibilityHidden(true)
         }
     }

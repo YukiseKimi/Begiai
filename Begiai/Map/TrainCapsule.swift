@@ -11,15 +11,9 @@ struct TrainCapsule: View {
     /// At country zoom: a smaller marker with no glow.
     var compact = false
     @Environment(\.markerStyle) private var style
-    @Environment(\.colorScheme) private var colorScheme
-
-    /// White on a colour, or a dark ring around it with high contrast.
-    private var outline: Color { style.highContrast && colorScheme == .light ? .black : .white }
 
     /// The width of the marker at the normal scale.
     static let size: CGFloat = 28
-    /// The station ring a standing train shows, as wide as a station's ring on the map.
-    private static let ring: CGFloat = 10
     /// A tap this near the centre of a standing train is on its station ring.
     static let ringTapRadius: CGFloat = 8
     /// At country zoom the whole marker, its station ring too, is drawn at 0.75 of its size,
@@ -37,14 +31,17 @@ struct TrainCapsule: View {
         let size = Self.size * scale
         // The marker alone is the annotation's centre, so it sits on its track; the label
         // hangs to its right and moves nothing.
-        marker(size: size, scale: scale)
+        TrainSymbol(color: color, heading: heading, atStation: atStation, chosen: chosen, compact: compact, size: size, scale: scale)
             .overlay(alignment: .leading) {
                 if showsLabel, let destination {
                     Text(.mapTrainTo(station: destination))
                         .font(.caption2.weight(.medium))
                         .padding(.horizontal, 4)
                         .background(.regularMaterial, in: .rect(cornerRadius: 4))
-                        .fixedSize()
+                        // The overlay offers the label only the marker's width; the label is one
+                        // line that hangs beside the marker, so it keeps its own width. The marker
+                        // is taller than the line, so the height it offers holds it.
+                        .fixedSize(horizontal: true, vertical: false)
                         .offset(x: size * 1.15 + 4)
                 }
             }
@@ -53,10 +50,29 @@ struct TrainCapsule: View {
             .accessibilityValue(atStation ? Text(.mapTrainStanding) : Text(verbatim: ""))
             .accessibilityIdentifier(A11yID.Map.train)
     }
+}
 
-    /// The whole body points the way the train runs: a long nose with a windscreen at the
-    /// front and a square back, so the direction reads at a glance at any angle.
-    private func marker(size: CGFloat, scale: CGFloat) -> some View {
+/// The whole body points the way the train runs: a long nose with a windscreen at the
+/// front and a square back, so the direction reads at a glance at any angle.
+private struct TrainSymbol: View {
+    let color: Color
+    let heading: Double
+    let atStation: Bool
+    let chosen: Bool
+    let compact: Bool
+    /// The marker's width, at its scale.
+    let size: CGFloat
+    let scale: CGFloat
+    @Environment(\.markerStyle) private var style
+    @Environment(\.colorScheme) private var colorScheme
+
+    /// The station ring a standing train shows, as wide as a station's ring on the map.
+    private static let ring: CGFloat = 10
+
+    /// White on a colour, or a dark ring around it with high contrast.
+    private var outline: Color { style.highContrast && colorScheme == .light ? .black : .white }
+
+    var body: some View {
         TrainBullet()
             .fill(color)
             .overlay(TrainBullet().stroke(outline, lineWidth: chosen ? 3 : style.highContrast ? 2.5 : 1.5))

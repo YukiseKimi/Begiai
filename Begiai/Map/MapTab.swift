@@ -6,7 +6,10 @@ import SwiftUI
 struct MapTab: View {
     let store: TimetableStore
     /// The train or station open in the panel; RootView holds it, so it knows when a page is open.
-    @Binding var selection: PanelSelection?
+    @Binding var selection: PageSelection?
+    /// The train the map keeps in its middle; RootView holds it, so a tap on the Live Activity
+    /// can open its train with the map on it.
+    @Binding var following: TrainState.ID?
     @Environment(\.timeSource) private var time
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -19,11 +22,11 @@ struct MapTab: View {
     @State private var panelTotal: CGFloat = 700
     @State private var filter: LineFilter = .all
     @State private var position: MapCameraPosition = .region(.lithuania)
-    @State private var following = false
-    @State private var query = ""
+    @State private var query = StationQuery()
+    /// The search field's focus. The tab holds it and the field reads it, so the field has the
+    /// keyboard only while the panel is at full height.
     @FocusState private var searchFocused: Bool
     @State private var locationNote: LocationNote?
-    @Environment(\.modelContext) private var modelContext
     @Query private var stars: [Star]
     @Environment(\.linePalette) private var palette
     @Environment(TrainFollower.self) private var follower
@@ -32,26 +35,48 @@ struct MapTab: View {
         let chosen = chosenTrain
         let timeline = chosen.flatMap { train in store.engine.map { $0.timeline(of: train) } }
         let settled = trains.settled(for: store.revision)
+        let followState = chosen.flatMap { train in timeline.flatMap { follow(train, timeline: $0) } }
+        let color = color(of: chosen)
         Group {
             if #available(iOS 27.1, *), sizeClass == .regular {
                 MapColumn { insets in
-                    trainsMap(insets: insets)
+                    TrainsMap(
+                        store: store, trains: trains, position: $position, selection: $selection, following: $following,
+                        panelHeight: $panelHeight, locationNote: $locationNote, insets: insets)
                 } panel: {
                     if store.state == .ready, let engine = store.engine, let now = trains.now {
-                        panel(.whole, engine: engine, now: now, settled: settled, timeline: timeline, color: color(of: chosen))
+                        VStack(spacing: 0) {
+                            MapPanelHeader(
+                                stationNames: engine.stationNames, now: now, running: settled.count, timeline: timeline, color: color,
+                                selection: $selection, following: followState,
+                                height: panelHeight, filter: $filter, query: query, searchFocused: $searchFocused, stars: stars)
+                            MapPanelContent(
+                                engine: engine, now: now, settled: settled, timeline: timeline, color: color, selection: $selection,
+                                height: $panelHeight, filter: filter, query: query, locationNote: $locationNote, stars: stars)
+                        }
                     }
                 }
             } else {
                 ZStack(alignment: .bottom) {
-                    trainsMap(
+                    TrainsMap(
+                        store: store, trains: trains, position: $position, selection: $selection, following: $following,
+                        panelHeight: $panelHeight, locationNote: $locationNote,
                         insets: EdgeInsets(
                             top: 0, leading: 0, bottom: store.state == .ready ? panelHeight.points(in: panelTotal) : 0, trailing: 0))
                     if store.state == .ready, let engine = store.engine, let now = trains.now {
                         GeometryReader { proxy in
+                            // The panel's heights are shares of this height, which its drag needs
+                            // as a number, so a reader gives it rather than a layout.
                             LinePanel(height: $panelHeight, total: proxy.size.height) {
-                                panel(.header, engine: engine, now: now, settled: settled, timeline: timeline, color: color(of: chosen))
+                                MapPanelHeader(
+                                    stationNames: engine.stationNames, now: now, running: settled.count, timeline: timeline, color: color,
+                                    selection: $selection, following: followState,
+                                    height: panelHeight, filter: $filter, query: query, searchFocused: $searchFocused, stars: stars)
                             } content: {
-                                panel(.content, engine: engine, now: now, settled: settled, timeline: timeline, color: color(of: chosen))
+                                MapPanelContent(
+                                    engine: engine, now: now, settled: settled, timeline: timeline, color: color,
+                                    selection: $selection, height: $panelHeight, filter: filter, query: query,
+                                    locationNote: $locationNote, stars: stars)
                             }
                             .frame(maxHeight: .infinity, alignment: .bottom)
                         }
@@ -108,43 +133,29 @@ struct MapTab: View {
         return .every(trains.frame)
     }
 
-    /// The map, keeping `insets` from the screen's edges clear for the panel.
-    private func trainsMap(insets: EdgeInsets) -> TrainsMap {
-        TrainsMap(
-            store: store, trains: trains, position: $position, selection: $selection, following: $following,
-            panelHeight: $panelHeight, locationNote: $locationNote, insets: insets)
-    }
-
-    private func panel(
-        _ part: MapPanel.Part, engine: MotionEngine, now: Date, settled: [TrainState], timeline: TrainTimeline?, color: Color
-    ) -> MapPanel {
-        MapPanel(
-            part: part, engine: engine, now: now, settled: settled, timeline: timeline, color: color,
-            selection: $selection,
-            following: chosenTrain.flatMap { train in timeline.flatMap { follow(train, timeline: $0) } },
-            onLockScreen: follower.onLockScreen, height: $panelHeight, filter: $filter, query: $query,
-            searchFocused: $searchFocused, locationNote: $locationNote, stars: stars, toggleStar: toggleStar)
-    }
-
-    private func toggleStar(_ kind: StarKind, name: String) {
-        modelContext.toggleStarOrRollBack(kind, name: name, at: time.now)
-    }
-
     /// Follow on the train's page: the map keeps the train in the middle, and its Live Activity
     /// starts, or takes the place of the one before. Follow off ends both. A drag on the map
-    /// stops only the map, so the Lock Screen keeps the train.
-    private func follow(_ train: TrainState, timeline: TrainTimeline) -> Binding<Bool>? {
+    /// stops only the map, so the Lock Screen keeps the train, and the button then brings the
+    /// map back to it.
+    private func follow(_ train: TrainState, timeline: TrainTimeline) -> Binding<FollowState>? {
         guard let timetable = store.timetable, timetable.trips.indices.contains(train.trip) else { return nil }
         let trip = timetable.trips[train.trip]
+        let followed = { follower.isFollowing(trip: trip.id, day: train.day) }
         return Binding {
-            follower.isFollowing(trip: trip.id, day: train.day)
-        } set: { on in
-            following = on
-            guard on else { return follower.unfollow() }
-            follower.follow(
-                FollowedTrain(
-                    timeline: timeline, trip: trip.id, day: train.day, line: timetable.lines[trip.line].name,
-                    colour: palette.slot(of: trip.line), shift: Date().timeIntervalSince(time.now)))
+            FollowState(followed: followed(), mapFollows: following == train.id)
+        } set: { state in
+            following = state == .following ? train.id : nil
+            switch state {
+            case .off:
+                follower.unfollow()
+            case .following where !followed():
+                follower.follow(
+                    FollowedTrain(
+                        timeline: timeline, trip: trip.id, day: train.day, line: timetable.lines[trip.line].name,
+                        colour: palette.slot(of: trip.line), shift: Date().timeIntervalSince(time.now)))
+            case .following, .released:
+                break
+            }
         }
     }
 
@@ -167,7 +178,7 @@ extension MKCoordinateRegion {
 
 #Preview {
     @Previewable @State var store = TimetableStore()
-    MapTab(store: store, selection: .constant(nil))
+    MapTab(store: store, selection: .constant(nil), following: .constant(nil))
         .environment(TrainFollower())
         .task { await store.load(from: Bundle.main.bundleURL.appending(path: "timetable.json")) }
 }
@@ -176,9 +187,4 @@ private struct TrainsRun: Equatable {
     /// The store's timetable revision: a new timetable restarts the trains on its own engine.
     let revision: Int
     let pace: TrainsModel.Pace
-}
-
-enum PanelSelection: Equatable {
-    case train(TrainState.ID)
-    case station(Int)
 }

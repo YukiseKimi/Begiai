@@ -2,21 +2,23 @@ import BegiaiKit
 import SwiftUI
 
 struct LineRow: View {
-    let line: LineSummary
+    /// The line's index in the timetable, which picks its colour.
+    let line: Int
+    let name: String
+    let trainsNow: Int
     let starred: Bool
-    let toggleStar: () -> Void
     @Environment(\.linePalette) private var palette
 
     var body: some View {
         HStack(spacing: 12) {
             RoundedRectangle(cornerRadius: 2)
-                .fill(palette.color(forLine: line.id))
+                .fill(palette.color(forLine: line))
                 .frame(width: 5, height: 28)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: line.name)
+                Text(verbatim: name)
                     .font(.body.weight(.medium))
-                Text(.lineTrainsNow(count: line.trainsNow))
+                Text(.lineTrainsNow(count: trainsNow))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
@@ -24,13 +26,13 @@ struct LineRow: View {
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier(A11yID.Map.lineName)
             Spacer()
-            StarButton(name: line.name, starred: starred, toggle: toggleStar)
+            StarButton(kind: .line, name: name, starred: starred)
                 .accessibilityIdentifier(A11yID.Map.lineStar)
         }
     }
 }
 
 #Preview {
-    LineRow(line: LineSummary(id: 0, name: "Vilnius – Kaunas", international: false, trainsNow: 4, tripsToday: 42), starred: true) {}
+    LineRow(line: 0, name: "Vilnius – Kaunas", trainsNow: 4, starred: true)
         .padding()
 }

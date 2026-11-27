@@ -39,12 +39,21 @@ enum PanelHeight: CaseIterable {
 struct LinePanel<Header: View, Content: View>: View {
     @Binding var height: PanelHeight
     let total: CGFloat
-    @ViewBuilder let header: () -> Header
-    @ViewBuilder let content: () -> Content
+    let header: Header
+    let content: Content
     /// How far the finger has moved the panel. When the finger lifts, it goes back to 0 with the
     /// same spring as the new height, so the panel glides to its height and does not jump first.
     @GestureState(resetTransaction: Transaction(animation: .snappy)) private var drag: CGFloat = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    init(
+        height: Binding<PanelHeight>, total: CGFloat, @ViewBuilder header: () -> Header, @ViewBuilder content: () -> Content
+    ) {
+        _height = height
+        self.total = total
+        self.header = header()
+        self.content = content()
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -70,10 +79,10 @@ struct LinePanel<Header: View, Content: View>: View {
                     }
                 }
                 .accessibilityIdentifier(A11yID.Map.panel)
-            header()
+            header
                 .contentShape(.rect)
                 .gesture(resize)
-            content()
+            content
         }
         .frame(height: min(total, max(80, height.points(in: total) - drag)), alignment: .top)
         // With Reduce Motion the panel lands at once when the finger lifts.

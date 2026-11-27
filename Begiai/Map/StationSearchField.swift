@@ -3,8 +3,11 @@ import SwiftUI
 
 /// The field above the line filter that finds a station by name.
 struct StationSearchField: View {
-    @Binding var query: String
-    /// The map tab holds the focus: the field has the keyboard only while the panel is at full height.
+    @Bindable var query: StationQuery
+    /// The map tab holds the focus: it raises the panel for the keyboard, and puts the keyboard
+    /// away when the panel goes down. One FocusState, not a copy kept in step with it: two
+    /// copies that set each other can disagree while the keyboard comes and goes, and then
+    /// the field loses and takes back the keyboard, and the app does not settle.
     var focused: FocusState<Bool>.Binding
 
     var body: some View {
@@ -22,7 +25,7 @@ struct StationSearchField: View {
                 .accessibilityHidden(true)
                 .overlay {
                     // An empty prompt, so the field does not draw its label as a second prompt.
-                    TextField(text: $query, prompt: Text(verbatim: "")) {
+                    TextField(text: $query.text, prompt: Text(verbatim: "")) {
                         Text(.mapSearch)
                     }
                     .textInputAutocapitalization(.never)
@@ -32,9 +35,11 @@ struct StationSearchField: View {
                     .frame(maxHeight: .infinity)
                     .accessibilityIdentifier(A11yID.Map.search)
                 }
+            // The query keeps isEmpty as the text changes, so this body runs again only when the
+            // field empties or fills, not at each keystroke.
             if !query.isEmpty {
                 Button {
-                    query = ""
+                    query.text = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(.secondary)
@@ -56,43 +61,68 @@ struct StationResults: View {
     let names: [String]
     /// The trips that call at each station, which put the busier stations first.
     var calls: [Int] = []
-    let query: String
-    let open: (Int) -> Void
+    let query: StationQuery
+    @Binding var selection: PageSelection?
+    /// The sheet's height, which a result lowers.
+    @Binding var height: PanelHeight
 
     var body: some View {
-        let found = StationSearch.matches(query, in: names, calls: calls)
+        let found = StationSearch.matches(query.text, in: names, calls: calls).map { FoundStation(index: $0, name: names[$0]) }
         List {
-            ForEach(found, id: \.self) { station in
-                Button {
-                    open(station)
-                } label: {
-                    Text(verbatim: names[station])
-                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                        .contentShape(.rect)
-                }
-                .buttonStyle(.plain)
-                .accessibilityHint(Text(.boardStationHint))
-                .accessibilityIdentifier(A11yID.Map.searchResult)
-                .listRowBackground(Color.clear)
+            ForEach(found) { station in
+                StationResultRow(station: station, selection: $selection, height: $height)
+                    .listRowBackground(Color.clear)
             }
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .scrollDismissesKeyboard(.immediately)
+        // The note stays in place as the rider types, and shows only while nothing is found.
         .overlay {
-            if found.isEmpty {
-                ContentUnavailableView(.mapSearchNone, systemImage: "magnifyingglass")
-            }
+            ContentUnavailableView(.mapSearchNone, systemImage: "magnifyingglass")
+                .opacity(found.isEmpty ? 1 : 0)
+                .allowsHitTesting(found.isEmpty)
+                .accessibilityHidden(!found.isEmpty)
         }
     }
 }
 
+/// A station the search found.
+private struct FoundStation: Identifiable {
+    let index: Int
+    let name: String
+
+    var id: Int { index }
+}
+
+private struct StationResultRow: View {
+    let station: FoundStation
+    @Binding var selection: PageSelection?
+    @Binding var height: PanelHeight
+
+    var body: some View {
+        Button {
+            selection = .station(station.index)
+            // The search raised the panel; at half height the map shows again beside the board.
+            height = .half
+        } label: {
+            Text(verbatim: station.name)
+                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint(Text(.boardStationHint))
+        .accessibilityIdentifier(A11yID.Map.searchResult)
+    }
+}
+
 #Preview {
-    @Previewable @State var query = "kai"
+    @Previewable @State var query = StationQuery(text: "kai")
     @Previewable @FocusState var focused: Bool
     VStack {
-        StationSearchField(query: $query, focused: $focused)
+        StationSearchField(query: query, focused: $focused)
             .padding(.horizontal)
-        StationResults(names: ["Vilnius", "Kaišiadorys", "Kaunas"], query: query) { _ in }
+        StationResults(
+            names: ["Vilnius", "Kaišiadorys", "Kaunas"], query: query, selection: .constant(nil), height: .constant(.full))
     }
 }

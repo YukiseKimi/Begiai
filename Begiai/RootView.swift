@@ -13,18 +13,15 @@ struct RootView: View {
     /// True after a link to a train that no longer runs: the map says so.
     @State private var linkedTrainGone = false
     /// The page open on each tab, held here so a newer timetable waits until none is open.
-    @State private var mapSelection: PanelSelection?
-    @State private var diagramSelection: DiagramSelection?
-
-    /// Open on the first launch; closing it marks the welcome as seen.
-    private var showsWelcome: Binding<Bool> {
-        Binding(get: { mayWelcome && !welcomeSeen }, set: { if !$0 { welcomeSeen = true } })
-    }
+    @State private var mapSelection: PageSelection?
+    /// The train the map keeps in its middle, while Follow is on and the map was not moved.
+    @State private var mapFollowing: TrainState.ID?
+    @State private var diagramSelection: PageSelection?
 
     var body: some View {
         TabView(selection: $tab) {
             Tab(.tabMap, systemImage: "map", value: .map) {
-                MapTab(store: store, selection: $mapSelection)
+                MapTab(store: store, selection: $mapSelection, following: $mapFollowing)
             }
             Tab(.tabLineDiagram, systemImage: "point.topleft.down.to.point.bottomright.curvepath", value: .lineDiagram) {
                 LineDiagramTab(store: store, selection: $diagramSelection)
@@ -32,21 +29,23 @@ struct RootView: View {
         }
         .overlay(alignment: .top) {
             if linkedTrainGone {
-                TrainGoneNote { linkedTrainGone = false }
+                TrainGoneNote(shown: $linkedTrainGone)
             }
         }
         .environment(\.linePalette, LinePalette(slots: store.lineColours))
-        .modifier(MarkerStyleReader())
-        .sheet(isPresented: showsWelcome) {
-            WelcomeSheet { welcomeSeen = true }
+        .markerStyleFromSettings()
+        // Open on the first launch; closing it marks the welcome as seen.
+        .sheet(isPresented: $welcomeSeen[toShowIf: mayWelcome]) {
+            WelcomeSheet()
                 .interactiveDismissDisabled()
         }
         // On a return to the app, a newer saved timetable takes over, but only when no train
         // or station is open, so nothing the rider looks at jumps. The store asks again just
-        // before the swap, since a page can open while it reads the saved copy.
-        .onChange(of: scenePhase) { _, phase in
-            guard phase == .active, idle else { return }
-            Task { await store.adoptPending { idle } }
+        // before the swap, since a page can open while it reads the saved copy. At launch the
+        // timetable is still loading, and the store has nothing to swap.
+        .task(id: scenePhase) {
+            guard scenePhase == .active, idle else { return }
+            await store.adoptPending { idle }
         }
         .onOpenURL { url in
             link = TrainLink(url: url)
@@ -57,7 +56,8 @@ struct RootView: View {
     }
 
     /// Opens the linked train's page on the map, or, once the train has arrived, the map with
-    /// a note that says so.
+    /// a note that says so. A tap on the Live Activity asks to see its train, so the map follows
+    /// it again, also after a drag let it go.
     private func openLink() {
         guard let link, let engine = store.engine else { return }
         self.link = nil
@@ -65,6 +65,7 @@ struct RootView: View {
         if let train = engine.train(for: link, at: time.now) {
             linkedTrainGone = false
             mapSelection = .train(train.id)
+            mapFollowing = train.id
         } else {
             mapSelection = nil
             linkedTrainGone = true

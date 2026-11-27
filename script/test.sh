@@ -76,7 +76,7 @@ lane_unit() {
     echo "GREEN ${count:-0} tests · unit · $((SECONDS - start)) s"
   else
     echo "RED unit · log: $log"
-    grep -E '✘ Test .* recorded an issue at ' "$log" | sed -E "s/.*✘ Test (.+)\\(\\) recorded an issue at ([^:]+:[0-9]+:[0-9]+): (.*)/✗ \\1\\n  \\3 · \\2\\n  rerun: script\\/test.sh unit --filter '\\1'/"
+    python3 -I script/test/unit_failures.py "$log" BegiaiKit/Tests
     exit 65
   fi
 }

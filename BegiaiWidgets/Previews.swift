@@ -3,9 +3,15 @@ import SwiftUI
 import WidgetKit
 
 extension FollowedTrain {
-    /// Vilnius → Kaunas through Lentvaris, Vievis and Kaišiadorys, 22 minutes out of Vilnius.
-    static var preview: FollowedTrain {
-        let start = Date.now.addingTimeInterval(-22 * 60)
+    /// Vilnius → Kaunas through Lentvaris, Vievis and Kaišiadorys, an hour from Kaunas.
+    static var preview: FollowedTrain { vilniusKaunas(out: 22) }
+
+    /// The same train 34 minutes from Kaunas, a trip under an hour.
+    static var nearlyThere: FollowedTrain { vilniusKaunas(out: 48) }
+
+    /// Vilnius → Kaunas, `minutes` out of Vilnius: the whole trip takes 82 minutes.
+    static func vilniusKaunas(out minutes: Double) -> FollowedTrain {
+        let start = Date.now.addingTimeInterval(-minutes * 60)
         func at(_ minutes: Double) -> Date { start.addingTimeInterval(minutes * 60) }
         return FollowedTrain(
             trip: "preview", day: ServiceDate(.now).number, line: "Vilnius – Kaunas", colour: 4,
@@ -20,7 +26,8 @@ extension FollowedTrain {
 }
 
 extension FollowedTrain {
-    /// The longest names in the timetable, to check that each line ends in “…” and not at the edge.
+    /// The longest names in the timetable, to check that each line ends in “…” and not at the
+    /// edge, on a trip of over three hours.
     static var longNames: FollowedTrain {
         let start = Date.now.addingTimeInterval(-40 * 60)
         func at(_ minutes: Double) -> Date { start.addingTimeInterval(minutes * 60) }
@@ -55,6 +62,12 @@ extension FollowedTrain.Status {
     FollowedTrain.Status.arrived
 }
 
+#Preview("Compact, under an hour", as: .dynamicIsland(.compact), using: FollowedTrain.nearlyThere) {
+    FollowedTrainActivity()
+} contentStates: {
+    FollowedTrain.Status.standing
+}
+
 #Preview("Expanded", as: .dynamicIsland(.expanded), using: FollowedTrain.preview) {
     FollowedTrainActivity()
 } contentStates: {
@@ -84,4 +97,6 @@ extension FollowedTrain.Status {
     FollowedTrainActivity()
 } contentStates: {
     FollowedTrain.Status(place: .leaving(0))
+    // Once in, the arrival time stays whole and the long name gives way.
+    FollowedTrain.Status.arrived
 }

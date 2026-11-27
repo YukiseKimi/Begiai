@@ -127,6 +127,23 @@
         }
       }
     },
+    "Activity.StopAndTime %@ %@" : {
+      "comment" : "VoiceOver, compact Dynamic Island: the last station, then the time left to it in words (“34 minutes”) or, once the train is in, its arrival time.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$@"
+          }
+        },
+        "lt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$@"
+          }
+        }
+      }
+    },
     "Activity.StopsPassed" : {
       "comment" : "VoiceOver label of the Live Activity's journey bar: the stops the train has left, of all its stops.",
       "extractionState" : "manual",

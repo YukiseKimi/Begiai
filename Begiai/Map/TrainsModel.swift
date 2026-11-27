@@ -29,6 +29,10 @@ final class TrainsModel {
     // timetable they did not come from.
     private var moving: [TrainState] = []
     private var settled: [TrainState] = []
+    /// The train whose page is open, in `moving`: found once each frame, so the map's camera
+    /// keys on its place without a search of the trains.
+    private var chosen: TrainState?
+    private var chosenID: TrainState.ID?
     /// The store revision of the timetable that `moving` and `settled` come from: their trip
     /// numbers index that timetable and no other.
     private var revision: Int?
@@ -41,11 +45,10 @@ final class TrainsModel {
     private(set) var frame = Duration.seconds(1)
 
     func look(at region: MKCoordinateRegion, distance: Double) {
-        let city = distance < 80_000
-        if city != cityZoom { cityZoom = city }
+        // An Observable property does not tell its views of an equal assignment.
+        cityZoom = distance < 80_000
         self.region = region
-        let frame = Self.frame(for: region)
-        if frame != self.frame { self.frame = frame }
+        frame = Self.frame(for: region)
         lookForTrains()
     }
 
@@ -62,6 +65,22 @@ final class TrainsModel {
     /// newly shown timetable are worked out.
     func moving(for revision: Int) -> [TrainState] {
         self.revision == revision ? moving : []
+    }
+
+    /// The train whose page is open, in the trains of this frame, from the timetable of
+    /// `revision`.
+    func chosen(for revision: Int) -> TrainState? {
+        self.revision == revision ? chosen : nil
+    }
+
+    /// Opens the page of this train, or of none: from now on each frame finds it.
+    func choose(_ id: TrainState.ID?) {
+        chosenID = id
+        findChosen()
+    }
+
+    private func findChosen() {
+        chosen = chosenID.flatMap { id in moving.first { $0.id == id } }
     }
 
     /// The trains of this second, from the timetable of `revision`: none until the trains of a
@@ -83,6 +102,7 @@ final class TrainsModel {
 
     private func update(engine: MotionEngine, revision: Int, at date: Date) {
         moving = engine.trains(at: date)
+        findChosen()
         // A new timetable settles at once, so no old trip number outlives it.
         if revision != self.revision || (now.map({ abs(date.timeIntervalSince($0)) >= 0.9 }) ?? true) {
             self.revision = revision
@@ -93,8 +113,7 @@ final class TrainsModel {
     }
 
     private func lookForTrains() {
-        let seen = region.map { region in settled.contains { region.holds($0.coordinate) } } ?? false
-        if seen != trainInSight { trainInSight = seen }
+        trainInSight = region.map { region in settled.contains { region.holds($0.coordinate) } } ?? false
     }
 }
 
