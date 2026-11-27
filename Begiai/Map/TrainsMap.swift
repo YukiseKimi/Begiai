@@ -290,14 +290,13 @@ private struct StationChip: View {
         Button {
             selection = .station(station)
         } label: {
-            // The chevron says the chip opens something; it does not stand for the station,
-            // so the name and the chevron stay two views, not a label.
-            HStack(spacing: 2) {
+            Label {
                 Text(verbatim: name)
+            } icon: {
                 Image(systemName: "chevron.forward")
                     .font(.caption2.weight(.bold))
-                    .accessibilityHidden(true)
             }
+            .labelStyle(IconAfterTitle())
             .font(.caption.weight(.semibold))
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
@@ -307,9 +306,18 @@ private struct StationChip: View {
             .contentShape(.rect)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(Text(verbatim: name))
         .accessibilityHint(Text(.boardStationHint))
         .accessibilityIdentifier(A11yID.Map.stationChip)
+    }
+}
+
+/// The title, then the icon close after it: “Vievis ›”.
+private struct IconAfterTitle: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: 2) {
+            configuration.title
+            configuration.icon
+        }
     }
 }
 
