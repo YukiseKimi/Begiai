@@ -36,6 +36,18 @@ final class LineDiagramJourney: JourneyCase {
         diagram.expectLine(chosen)
     }
 
+    /// A shorter line chosen after a longer one never shows the longer line's train places.
+    @MainActor
+    func testEachLineOpensFromTheLineBefore() {
+        let journey = JourneyApp()
+        journey.launch(.map)
+
+        let diagram = LineDiagramScreen(journey: journey)
+        diagram.open()
+        diagram.chooseEachLine()
+        diagram.expectALineWithItsTrains()
+    }
+
     @MainActor
     func testASwipeMovesToTheNextLineAndBack() {
         let journey = JourneyApp()
