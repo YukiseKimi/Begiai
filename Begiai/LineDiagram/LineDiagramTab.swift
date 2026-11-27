@@ -108,10 +108,11 @@ private struct LineDiagramPage: View {
                     // open Duo shows on the right.
                     .clipped()
                 if let chosen, let engine = store.engine {
+                    let neighbours = Neighbours(of: chosen, in: lines)
                     ScrollView {
                         LineFacts(
                             name: chosen.name, frequency: engine.frequency(of: chosen.id, on: ServiceDate(now)),
-                            staleSince: engine.timetable.staleSince(on: ServiceDate(now)))
+                            staleSince: engine.timetable.staleSince(on: ServiceDate(now)), neighbours: neighbours)
                         LineSpine(
                             stations: store.diagrams[chosen.id].stations, timetable: engine.timetable,
                             color: palette.color(forLine: chosen.id),
@@ -119,6 +120,7 @@ private struct LineDiagramPage: View {
                     }
                     .contentShape(.rect)
                     .gesture(TapGesture().onEnded { selection = nil }, isEnabled: tapCloses)
+                    .modifier(LineSwipe(neighbours: neighbours))
                 } else {
                     ContentUnavailableView(.diagramNoLines, systemImage: "tram")
                 }
@@ -153,6 +155,61 @@ private struct LineDiagramPage: View {
     }
 }
 
+/// The lines before and after the chosen one, in the order of the chips.
+private struct Neighbours {
+    let previous: String?
+    let next: String?
+
+    init(of chosen: LineSummary, in lines: [LineSummary]) {
+        let index = lines.firstIndex { $0.id == chosen.id }
+        previous = index.flatMap { $0 > lines.startIndex ? lines[$0 - 1].name : nil }
+        next = index.flatMap { $0 + 1 < lines.endIndex ? lines[$0 + 1].name : nil }
+    }
+}
+
+/// A sideways swipe on the diagram chooses the next line (to the left) or the line before (to
+/// the right), as a tap on its chip does. The diagram follows the finger; past the first or the
+/// last line it follows it less and springs back, so the rider sees that no line is there.
+private struct LineSwipe: ViewModifier {
+    let neighbours: Neighbours
+    @AppStorage(ChosenLine.key) private var chosenName = ""
+    /// How far the diagram follows the finger. It springs back when the finger lifts, and when
+    /// the scroll view takes the touch, which ends the drag without `onEnded`.
+    @GestureState(resetTransaction: Transaction(animation: .snappy)) private var shift: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        content
+            .offset(x: shift)
+            // Together with the scroll view's own pan, and only when the finger goes more
+            // sideways than up or down, so a scroll, a tap on a train and the chips' row each
+            // keep working.
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 24)
+                    .updating($shift) { drag, shift, _ in
+                        let width = drag.translation.width
+                        let pull = target(of: width) == nil ? 0.15 : 0.4
+                        shift = Self.isSideways(drag.translation) ? width * pull : 0
+                    }
+                    .onEnded { drag in
+                        let width = drag.translation.width
+                        let far = abs(width) > 80 || abs(drag.predictedEndTranslation.width) > 200
+                        if Self.isSideways(drag.translation), far, let name = target(of: width) {
+                            chosenName = name
+                        }
+                    }
+            )
+    }
+
+    /// The line a swipe of `width` leads to: a swipe to the left leads to the next line.
+    private func target(of width: CGFloat) -> String? {
+        width < 0 ? neighbours.next : neighbours.previous
+    }
+
+    private static func isSideways(_ translation: CGSize) -> Bool {
+        abs(translation.width) > abs(translation.height) * 1.5
+    }
+}
+
 /// What the diagram's lines and trains are worked out again for: a new second, or a new
 /// timetable.
 private struct DiagramMoment: Equatable {
@@ -166,12 +223,22 @@ private struct LineFacts: View {
     let frequency: LineFrequency
     /// `Timetable.staleSince(on:)`, for the note on an old timetable.
     let staleSince: ServiceDate?
+    /// The lines VoiceOver's swipe up and down on the name moves to, as a sideways swipe does.
+    let neighbours: Neighbours
+    @AppStorage(ChosenLine.key) private var chosenName = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(verbatim: name)
                 .font(.title2.bold())
                 .accessibilityAddTraits(.isHeader)
+                .accessibilityAdjustableAction { direction in
+                    switch direction {
+                    case .increment: neighbours.next.map { chosenName = $0 }
+                    case .decrement: neighbours.previous.map { chosenName = $0 }
+                    @unknown default: break
+                    }
+                }
                 .accessibilityIdentifier(A11yID.LineDiagram.page)
             FrequencyText(frequency: frequency)
             Text(.trainEstimated)
