@@ -10,22 +10,26 @@ struct MapColumn<Map: View, Panel: View>: View {
     var identifier = A11yID.Map.column
     /// False while the column has nothing to show: the map then has the whole screen.
     var shows = true
+    /// True where the map stops at its safe area, so it is given what it keeps clear from its
+    /// safe area's edges rather than from the screen's.
+    var withinSafeArea = false
     /// The map, given what it keeps clear for the column, from the screen's edges. Only the
     /// column knows that, so the map is view-builder content called with it once per body.
     @ViewBuilder let map: (EdgeInsets) -> Map
     let panel: Panel
     /// True while a fold divides the screen, so the panel has a side of its own.
     @State private var divided = false
-    @State private var screenMaxX: CGFloat = 0
+    @State private var mapEdge = TrailingEdge()
     @State private var columnMinX: CGFloat = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(
-        identifier: String = A11yID.Map.column, shows: Bool = true, @ViewBuilder map: @escaping (EdgeInsets) -> Map,
-        @ViewBuilder panel: () -> Panel
+        identifier: String = A11yID.Map.column, shows: Bool = true, withinSafeArea: Bool = false,
+        @ViewBuilder map: @escaping (EdgeInsets) -> Map, @ViewBuilder panel: () -> Panel
     ) {
         self.identifier = identifier
         self.shows = shows
+        self.withinSafeArea = withinSafeArea
         self.map = map
         self.panel = panel()
     }
@@ -48,14 +52,17 @@ struct MapColumn<Map: View, Panel: View>: View {
         } secondary: {
             map(
                 divided || !shows
-                    ? EdgeInsets() : EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: max(0, screenMaxX - columnMinX))
+                    ? EdgeInsets()
+                    : EdgeInsets(
+                        top: 0, leading: 0, bottom: 0,
+                        trailing: max(0, (withinSafeArea ? mapEdge.safeMaxX : mapEdge.screenMaxX) - columnMinX))
             )
             // The map reaches under the safe area, such as the tab strip on the right of the
             // open Duo held wide, so the screen's edge is past the map's frame by that inset.
-            .onGeometryChange(for: CGFloat.self) {
-                $0.frame(in: .global).maxX + $0.safeAreaInsets.trailing
+            .onGeometryChange(for: TrailingEdge.self) {
+                TrailingEdge(safeMaxX: $0.frame(in: .global).maxX, inset: $0.safeAreaInsets.trailing)
             } action: {
-                screenMaxX = $0
+                mapEdge = $0
             }
         }
         .arrangementViewStyle(.overlay)
@@ -68,6 +75,14 @@ struct MapColumn<Map: View, Panel: View>: View {
         }
     }
 
+}
+
+/// Where the map's safe area ends on its trailing side, and the screen's edge past it.
+nonisolated private struct TrailingEdge: Equatable {
+    var safeMaxX: CGFloat = 0
+    var inset: CGFloat = 0
+
+    var screenMaxX: CGFloat { safeMaxX + inset }
 }
 
 /// The panel in a glass column; on a side of its own beside a fold, it takes that whole side.

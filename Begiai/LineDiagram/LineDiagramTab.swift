@@ -8,8 +8,6 @@ struct LineDiagramTab: View {
     @Binding var selection: PageSelection?
     /// Regular on a wide screen such as the open iPhone Duo, where a page opens in a column.
     @Environment(\.horizontalSizeClass) private var sizeClass
-    /// The diagram's own safe area on its trailing side, such as the Duo's tab strip.
-    @State private var diagramSafeTrailing: CGFloat = 0
 
     var body: some View {
         if let engine = store.engine {
@@ -17,20 +15,15 @@ struct LineDiagramTab: View {
                 if #available(iOS 27.1, *), sizeClass == .regular {
                     // On a wide screen the train or station opens in a column over the diagram's
                     // trailing side, as the map's panel does.
-                    MapColumn(identifier: A11yID.LineDiagram.column, shows: selection != nil) { insets in
-                        // The inset is from the screen's edge. The diagram stops at its safe area,
-                        // short of the tab strip on the right of the open Duo held wide, so it
-                        // pads only the rest. It changes when the Duo turns or folds.
+                    MapColumn(identifier: A11yID.LineDiagram.column, shows: selection != nil, withinSafeArea: true) {
+                        insets in
+                        // The diagram stops at its safe area, short of the tab strip on the right
+                        // of the open Duo held wide, so the inset is from that safe area's edge.
                         LineDiagramPage(
                             engine: engine, revision: store.revision, diagrams: store.diagrams, selection: $selection,
                             tapCloses: selection != nil
                         )
-                        .safeAreaPadding(.trailing, max(0, insets.trailing - diagramSafeTrailing))
-                        .onGeometryChange(for: CGFloat.self) {
-                            $0.safeAreaInsets.trailing
-                        } action: {
-                            diagramSafeTrailing = $0
-                        }
+                        .safeAreaPadding(.trailing, insets.trailing)
                     } panel: {
                         if let selection {
                             DiagramSheet(engine: engine, page: selection, close: .selection($selection))
