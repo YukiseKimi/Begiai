@@ -17,10 +17,13 @@ struct WelcomeSheet: View {
     ]
 
     var body: some View {
+        // The focus binding is the same for the sheet's life: the body takes it once and gives
+        // it to each page, so no page reads the sheet.
+        let focus = $focusedCard
         VStack(spacing: 24) {
             TabView(selection: $card) {
                 ForEach(Self.cards.indices, id: \.self) { index in
-                    WelcomePage(card: Self.cards[index], index: index, shown: card == index, focusedCard: $focusedCard)
+                    WelcomePage(card: Self.cards[index], index: index, shown: card == index, focusedCard: focus)
                         .tag(index)
                 }
             }

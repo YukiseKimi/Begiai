@@ -24,6 +24,9 @@ struct LineSpine: View {
     private var tagStep: CGFloat { typeSize.isAccessibilitySize ? tagHeight * 1.9 : tagHeight }
 
     var body: some View {
+        // The rotors' namespace is the same for the spine's life: the body takes it once and
+        // gives it to each button, so no row reads the spine.
+        let rotor = rotor
         let height = rowHeight * CGFloat(max(stations.count - 1, 0))
         let rows = stations.enumerated().map { row, station in
             SpineStation(row: row, station: station, name: timetable.stations[station].name)
