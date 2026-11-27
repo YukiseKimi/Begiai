@@ -29,6 +29,10 @@ final class TrainsModel {
     // timetable they did not come from.
     private var moving: [TrainState] = []
     private var settled: [TrainState] = []
+    /// The train whose page is open, in `moving`: found once each frame, so the map's camera
+    /// keys on its place without a search of the trains.
+    private var chosen: TrainState?
+    private var chosenID: TrainState.ID?
     /// The store revision of the timetable that `moving` and `settled` come from: their trip
     /// numbers index that timetable and no other.
     private var revision: Int?
@@ -63,6 +67,22 @@ final class TrainsModel {
         self.revision == revision ? moving : []
     }
 
+    /// The train whose page is open, in the trains of this frame, from the timetable of
+    /// `revision`.
+    func chosen(for revision: Int) -> TrainState? {
+        self.revision == revision ? chosen : nil
+    }
+
+    /// Opens the page of this train, or of none: from now on each frame finds it.
+    func choose(_ id: TrainState.ID?) {
+        chosenID = id
+        findChosen()
+    }
+
+    private func findChosen() {
+        chosen = chosenID.flatMap { id in moving.first { $0.id == id } }
+    }
+
     /// The trains of this second, from the timetable of `revision`: none until the trains of a
     /// newly shown timetable are worked out.
     func settled(for revision: Int) -> [TrainState] {
@@ -82,6 +102,7 @@ final class TrainsModel {
 
     private func update(engine: MotionEngine, revision: Int, at date: Date) {
         moving = engine.trains(at: date)
+        findChosen()
         // A new timetable settles at once, so no old trip number outlives it.
         if revision != self.revision || (now.map({ abs(date.timeIntervalSince($0)) >= 0.9 }) ?? true) {
             self.revision = revision

@@ -33,7 +33,7 @@ struct TrainsMap: View {
     var body: some View {
         let cityZoom = trains.cityZoom
         let moving = trains.moving(for: store.revision)
-        let chosen = moving.first { selection == .train($0.id) }
+        let chosen = trains.chosen(for: store.revision)
         let followed = chosen.flatMap { $0.id == following ? $0 : nil }
         // At country zoom a station's 44-point tap area reaches past its ring, so while a train
         // stands there the station keeps only its ring and the train gets the taps around it.
@@ -112,6 +112,10 @@ struct TrainsMap: View {
                 MapCamera(
                     centerCoordinate: coordinate.location, distance: min(cameraDistance, 25_000),
                     heading: cameraHeading))
+        }
+        .onChange(of: selection, initial: true) { _, selection in
+            guard case .train(let id) = selection else { return trains.choose(nil) }
+            trains.choose(id)
         }
         .onChange(of: selection) { _, selection in
             if let following, selection != .train(following) { self.following = nil }
