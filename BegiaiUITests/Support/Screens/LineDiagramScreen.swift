@@ -65,6 +65,7 @@ struct LineDiagramScreen {
     }
 
     /// Taps the first train, and gives the name of its last station.
+    @discardableResult
     func openATrain(file: StaticString = #filePath, line: UInt = #line) -> String {
         let train = journey.wait(for: journey.element(A11yID.LineDiagram.train), "a train", on: "Line Diagram", file: file, line: line)
         let destination = train.label.dropFirst("Train to ".count).prefix { $0 != "," }

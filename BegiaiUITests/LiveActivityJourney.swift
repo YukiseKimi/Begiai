@@ -19,6 +19,7 @@ final class LiveActivityJourney: JourneyCase {
         map.expectNoPage()
 
         let lockScreen = LockScreen(journey: journey)
+        lockScreen.expectIsland(destination: route.components(separatedBy: " → ").last ?? route)
         lockScreen.open()
         lockScreen.expectActivity(route: route, place: place)
         lockScreen.openActivity()
@@ -72,7 +73,7 @@ final class LiveActivityJourney: JourneyCase {
         let journey = JourneyApp()
         journey.launch(.map)
         let map = MapScreen(journey: journey)
-        _ = map.openFirstTrain()
+        map.openFirstTrain()
         let train = TrainScreen(journey: journey)
         let first = train.route()
         train.follow()

@@ -19,11 +19,11 @@ struct FollowedTrainActivity: Widget {
                     ExpandedNext(facts: facts)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    ExpandedEnd(facts: facts)
+                    ExpandedEnd(destination: facts.train.destination, time: facts.train.arrival.vilniusTime, colour: facts.colour)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     VStack(spacing: 8) {
-                        JourneyBar(train: facts.train, passed: facts.passed, standing: facts.standing, colour: facts.colour)
+                        JourneyBar(runs: facts.train.deviceRuns, passed: facts.passed, standing: facts.standing, colour: facts.colour)
                         HStack(spacing: 8) {
                             ScheduledLabel()
                             Spacer(minLength: 0)
@@ -43,7 +43,7 @@ struct FollowedTrainActivity: Widget {
             } compactTrailing: {
                 CompactEnd(facts: facts)
             } minimal: {
-                MinimalJourney(facts: facts)
+                MinimalJourney(journey: facts.journey, colour: facts.colour, title: facts.title)
             }
             .keylineTint(facts.colour)
             .widgetURL(context.attributes.link?.url)
@@ -80,15 +80,20 @@ struct TrainFacts {
         train.next(place).map { (train.stops[$0.stop], $0.time, $0.standing) }
     }
 
+    /// “Next: Kaišiadorys 08:48”, “At Kaišiadorys, leaves 08:50”, or “Arrived”.
+    var nextLine: LocalizedStringResource {
+        guard let next else { return .activityArrived }
+        return next.standing
+            ? .activityAt(station: next.stop.name, time: next.time.vilniusTime)
+            : .activityNext(station: next.stop.name, time: next.time.vilniusTime)
+    }
+
     var colour: Color { Color(lineSlot: train.colour) }
 
     var title: LocalizedStringResource { .activityTitle(origin: train.origin, destination: train.destination) }
 
-    /// From now to the last arrival, on the device clock, for the countdowns.
-    var toArrival: Range<Date> {
-        let end = train.deviceDate(train.arrival)
-        return min(Date.now, end)..<end
-    }
+    /// From the first departure to the last arrival, on the device clock, for the ring.
+    var journey: ClosedRange<Date> { train.deviceDate(train.departure)...train.deviceDate(train.arrival) }
 }
 
 private struct LockScreenView: View {
@@ -106,50 +111,50 @@ private struct LockScreenView: View {
                 Spacer(minLength: 8)
                 ScheduledLabel()
             }
-            JourneyBar(train: facts.train, passed: facts.passed, standing: facts.standing, colour: facts.colour)
+            JourneyBar(runs: facts.train.deviceRuns, passed: facts.passed, standing: facts.standing, colour: facts.colour)
             HStack(alignment: .firstTextBaseline) {
-                NextLine(facts: facts)
+                NextLine(line: facts.nextLine)
                     .font(.subheadline.weight(.medium))
                 Spacer(minLength: 8)
-                // The last stop's name gives way before its time, and before the next stop.
-                HStack(spacing: 4) {
-                    Text(verbatim: facts.train.destination)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                    Text(verbatim: facts.train.arrival.vilniusTime)
-                        .monospacedDigit()
-                        .fixedSize()
-                }
-                .font(.subheadline.weight(.semibold))
-                .layoutPriority(1)
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier(A11yID.LiveActivity.end)
+                ArrivalLine(destination: facts.train.destination, time: facts.train.arrival.vilniusTime)
+                    .layoutPriority(1)
             }
         }
         .padding(14)
     }
 }
 
-/// “Next: Kaišiadorys 08:48”, “At Kaišiadorys, leaves 08:50”, or “Arrived”.
-private struct NextLine: View {
-    let facts: TrainFacts
+/// “Kaunas 09:22”: the last stop and its arrival time. The name gives way before the time,
+/// and the line before the next stop.
+private struct ArrivalLine: View {
+    let destination: String
+    let time: String
 
     var body: some View {
-        Group {
-            if let next = facts.next {
-                if next.standing {
-                    Text(.activityAt(station: next.stop.name, time: next.time.vilniusTime))
-                } else {
-                    Text(.activityNext(station: next.stop.name, time: next.time.vilniusTime))
-                }
-            } else {
-                Text(.activityArrived)
-            }
+        HStack(spacing: 4) {
+            Text(verbatim: destination)
+                .lineLimit(1)
+                .truncationMode(.tail)
+            Text(verbatim: time)
+                .monospacedDigit()
+                .fixedSize()
         }
-        .monospacedDigit()
-        .lineLimit(1)
-        .minimumScaleFactor(0.8)
-        .accessibilityIdentifier(A11yID.LiveActivity.next)
+        .font(.subheadline.weight(.semibold))
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier(A11yID.LiveActivity.end)
+    }
+}
+
+/// “Next: Kaišiadorys 08:48”, “At Kaišiadorys, leaves 08:50”, or “Arrived”.
+private struct NextLine: View {
+    let line: LocalizedStringResource
+
+    var body: some View {
+        Text(line)
+            .monospacedDigit()
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+            .accessibilityIdentifier(A11yID.LiveActivity.next)
     }
 }
 
@@ -179,21 +184,27 @@ private struct CompactNext: View {
     let facts: TrainFacts
 
     var body: some View {
+        // The availability check is settled at launch, so the island keeps one structure.
         if #available(iOS 27.0, *) {
             NarrowIsland { narrow in
                 if narrow {
-                    MinimalJourney(facts: facts)
+                    MinimalJourney(journey: facts.journey, colour: facts.colour, title: facts.title)
                         .frame(maxWidth: 26, maxHeight: 26)
                 } else {
-                    wide
+                    NextTime(facts: facts)
                 }
             }
         } else {
-            wide
+            NextTime(facts: facts)
         }
     }
+}
 
-    private var wide: some View {
+/// “▶ 08:48”, or “✓” once the train is in.
+private struct NextTime: View {
+    let facts: TrainFacts
+
+    var body: some View {
         HStack(spacing: 3) {
             Image(systemName: facts.next == nil ? "checkmark" : "play.fill")
                 .font(.caption2)
@@ -205,44 +216,81 @@ private struct CompactNext: View {
         .font(.subheadline.weight(.semibold))
         .foregroundStyle(facts.colour)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(nextLabel)
+        .accessibilityLabel(Text(facts.nextLine))
         .accessibilityIdentifier(A11yID.LiveActivity.compactNext)
-    }
-
-    private var nextLabel: Text {
-        guard let next = facts.next else { return Text(.activityArrived) }
-        return next.standing
-            ? Text(.activityAt(station: next.stop.name, time: next.time.vilniusTime))
-            : Text(.activityNext(station: next.stop.name, time: next.time.vilniusTime))
     }
 }
 
-/// “Kaunas 34:10”: the last stop and the time left to it, which counts down by itself.
-/// Where the island is narrow, nothing, so the system hides this side, as the HIG says.
+/// “Kaunas 34m” or “Kaunas 1h 5m”: the last stop and the minutes left to it, which count
+/// down by themselves. Where both do not fit, as in Lithuanian on a 6.3-inch iPhone, the
+/// minutes alone; the expanded island and the Lock Screen name the stop. Once the train is
+/// in, its arrival time. Where the island is narrow, nothing, so the system hides this side,
+/// as the HIG says.
 private struct CompactEnd: View {
     let facts: TrainFacts
 
     var body: some View {
+        // The availability check is settled at launch, so the island keeps one structure.
         if #available(iOS 27.0, *) {
-            NarrowIsland { narrow in content(narrow: narrow) }
+            NarrowIsland { narrow in
+                if !narrow {
+                    EndMinutes(facts: facts)
+                }
+            }
         } else {
-            content(narrow: false)
+            EndMinutes(facts: facts)
         }
     }
+}
 
-    @ViewBuilder
-    private func content(narrow: Bool) -> some View {
-        if !narrow {
-            HStack(spacing: 4) {
-                Text(verbatim: facts.train.destination.shortened(to: 12))
-                    .lineLimit(1)
-                Countdown(facts: facts)
+/// The last stop and the minutes left to it, or its arrival time once the train is in.
+private struct EndMinutes: View {
+    let facts: TrainFacts
+
+    var body: some View {
+        let countdown = Countdown(end: facts.train.countdownEnd, widest: facts.train.countdownWidest(at: .now))
+        Group {
+            if facts.next == nil {
+                // The name and the time where both fit, else the time alone, never cut.
+                let time = Text(verbatim: facts.train.arrival.vilniusTime)
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 4) {
+                        Text(verbatim: facts.train.destination)
+                        time
+                    }
+                    time
+                }
+            } else {
+                // The name and the minutes where both fit, else the minutes alone.
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 4) {
+                        Text(verbatim: facts.train.destination)
+                        countdown
+                    }
+                    countdown
+                }
             }
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(facts.colour)
-            .accessibilityElement(children: .combine)
-            .accessibilityIdentifier(A11yID.LiveActivity.compactEnd)
         }
+        .lineLimit(1)
+        .monospacedDigit()
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(facts.colour)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityIdentifier(A11yID.LiveActivity.compactEnd)
+        // The system draws a live text in English unless the view sets a locale outright,
+        // whatever the format's own locale.
+        .environment(\.locale, Countdown.locale)
+    }
+
+    /// The stop, and the time left in words, “Kaunas, 34 minutes”, as “m” reads as metres; once
+    /// the train is in, the stop and its arrival time.
+    private var accessibilityLabel: Text {
+        let time =
+            facts.next == nil
+            ? Text(verbatim: facts.train.arrival.vilniusTime)
+            : Text(.dateRange(endingAt: facts.train.countdownEnd), format: Countdown.style(.wide))
+        return Text("Activity.StopAndTime \(Text(verbatim: facts.train.destination)) \(time)")
     }
 }
 
@@ -257,21 +305,29 @@ private struct NarrowIsland<Content: View>: View {
     }
 }
 
-/// The time left to the last arrival, counting down by itself. A timer text takes all the
-/// width it is offered, which would stretch the island across the screen, so it sits over a
-/// still text of its widest form, which sets its width.
+/// The minutes left to `end`, “34m” or “1h 5m”, counting down by themselves once a minute.
+/// A live text takes all the width it is offered, which would stretch the island across the
+/// screen, so it sits over a still text of its widest reading, `widest` long, which sets its
+/// width.
 private struct Countdown: View {
-    let facts: TrainFacts
+    let end: Date
+    let widest: TimeInterval
 
     var body: some View {
-        let hours = facts.train.arrival.timeIntervalSince(facts.train.departure) >= 3600
-        Text(verbatim: hours ? "0:00:00" : "00:00")
+        let now = Date.now
+        Text(verbatim: (now..<now.addingTimeInterval(widest)).formatted(Self.style(.narrow)))
             .hidden()
             .overlay(alignment: .trailing) {
-                Text(timerInterval: facts.toArrival.lowerBound...facts.toArrival.upperBound, countsDown: true)
-                    .multilineTextAlignment(.trailing)
+                Text(.dateRange(endingAt: end), format: Self.style(.narrow))
             }
-            .monospacedDigit()
+    }
+
+    /// The extension's language and region as a fixed locale. The system draws a live text
+    /// with its own current locale, which is English, so `Locale.current` itself does not do.
+    static var locale: Locale { Locale(identifier: Locale.current.identifier) }
+
+    static func style(_ style: Date.ComponentsFormatStyle.Style) -> Date.ComponentsFormatStyle {
+        Date.ComponentsFormatStyle(style: style, locale: locale, fields: [.hour, .minute])
     }
 }
 
@@ -302,22 +358,25 @@ private struct ExpandedNext: View {
     }
 }
 
+/// “Arrives Kaunas 09:22”, in the expanded island.
 private struct ExpandedEnd: View {
-    let facts: TrainFacts
+    let destination: String
+    let time: String
+    let colour: Color
 
     var body: some View {
         VStack(alignment: .trailing, spacing: 2) {
             Text(.activityArrives)
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            Text(verbatim: facts.train.destination)
+            Text(verbatim: destination)
                 .font(.headline)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-            Text(verbatim: facts.train.arrival.vilniusTime)
+            Text(verbatim: time)
                 .font(.headline)
                 .monospacedDigit()
-                .foregroundStyle(facts.colour)
+                .foregroundStyle(colour)
         }
         .padding(.trailing, 4)
         .accessibilityElement(children: .combine)
@@ -327,29 +386,20 @@ private struct ExpandedEnd: View {
 /// A ring that fills over the whole journey, around a train: the minimal presentation,
 /// beside another app's activity.
 private struct MinimalJourney: View {
-    let facts: TrainFacts
+    let journey: ClosedRange<Date>
+    let colour: Color
+    let title: LocalizedStringResource
 
     var body: some View {
-        ProgressView(
-            timerInterval: facts.train.deviceDate(facts.train.departure)...facts.train.deviceDate(facts.train.arrival),
-            countsDown: false
-        ) {
+        ProgressView(timerInterval: journey, countsDown: false) {
             EmptyView()
         } currentValueLabel: {
             Image(systemName: "tram.fill")
                 .font(.caption2)
         }
         .progressViewStyle(.circular)
-        .tint(facts.colour)
-        .foregroundStyle(facts.colour)
-        .accessibilityLabel(Text(facts.title))
-    }
-}
-
-extension String {
-    /// The first characters and “…”, for a name in the compact island, where a text cannot
-    /// truncate by itself beside a timer, which takes all the width it gets.
-    func shortened(to length: Int) -> String {
-        count <= length ? self : String(prefix(length - 1)).trimmingCharacters(in: .whitespaces) + "…"
+        .tint(colour)
+        .foregroundStyle(colour)
+        .accessibilityLabel(Text(title))
     }
 }

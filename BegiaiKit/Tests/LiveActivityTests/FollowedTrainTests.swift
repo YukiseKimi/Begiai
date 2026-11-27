@@ -87,9 +87,51 @@ struct FollowedTrainTests {
         let shifted = train.shifted(by: device.timeIntervalSince(Trains.at(8, 20)))
         #expect(shifted.status(at: device).place == .leaving(0))
         #expect(shifted.staleDate == Trains.at(15, 2))
+        #expect(shifted.deviceRuns == [Trains.at(13, 40)...Trains.at(14, 28), Trains.at(14, 30)...Trains.at(15, 2)])
+        #expect(FollowedTrain.stopFractions(of: shifted.deviceRuns) == train.stopFractions())
         #expect(shifted.nextChange(after: device) == Trains.at(14, 28))
         #expect(!shifted.hasArrived(at: Trains.at(15, 1)))
         #expect(shifted.hasArrived(at: Trains.at(15, 2)))
+    }
+
+    /// What the minutes countdown to Kaunas 09:22 reads at a time, as the Dynamic Island
+    /// formats it: `dateRange(endingAt:)` gives the format `min(end, now)..<end`.
+    func countdown(of train: FollowedTrain, at date: Date, _ seconds: TimeInterval = 0) -> String {
+        let now = date.addingTimeInterval(seconds)
+        return (min(train.countdownEnd, now)..<train.countdownEnd).formatted(Self.minutes)
+    }
+
+    static let minutes = Date.ComponentsFormatStyle(style: .narrow, locale: Locale(identifier: "en_US"), fields: [.hour, .minute])
+
+    @Test func theCountdownReadsTheMinutesLeftAsTheClockDoes() {
+        #expect(countdown(of: train, at: Trains.at(8, 47)) == "35m")
+        #expect(countdown(of: train, at: Trains.at(8, 47), 50) == "35m")
+        #expect(countdown(of: train, at: Trains.at(8, 16), 30) == "1h 6m")
+        #expect(countdown(of: train, at: Trains.at(9, 21), 59) == "1m")
+        #expect(countdown(of: train, at: Trains.at(9, 22)) == "0m")
+        // A sealed launch shifts the train onto the device clock; the countdown follows it.
+        let shifted = train.shifted(by: 3600)
+        #expect(countdown(of: shifted, at: Trains.at(9, 47)) == "35m")
+    }
+
+    /// The widest reading of the countdown from a time on, which the island takes as its width.
+    func widest(at date: Date, _ seconds: TimeInterval = 0) -> String {
+        let now = date.addingTimeInterval(seconds)
+        return (now..<now.addingTimeInterval(train.countdownWidest(at: now))).formatted(Self.minutes)
+    }
+
+    @Test func noReadingOfTheCountdownIsWiderThanItsWidest() {
+        for start in [Trains.at(7, 0), Trains.at(8, 16), Trains.at(8, 47), Trains.at(9, 15), Trains.at(9, 21)] {
+            for minute in stride(from: 0.0, through: train.countdownEnd.timeIntervalSince(start), by: 60) {
+                let reading = countdown(of: train, at: start, minute)
+                // The digits are as wide as each other, so the letters count the width.
+                #expect(reading.count <= widest(at: start).count, "\(reading) is wider than \(widest(at: start))")
+            }
+        }
+        #expect(widest(at: Trains.at(8, 16), 30) == "1h 59m")
+        // Under an hour the minutes only fall, so the island is no wider than it needs.
+        #expect(widest(at: Trains.at(8, 47), 50) == "35m")
+        #expect(widest(at: Trains.at(9, 15)) == "7m")
     }
 
     @Test func anEndedActivityStaysAShortWhileAfterTheArrivalOnly() {

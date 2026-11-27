@@ -109,6 +109,12 @@ extension FollowedTrain {
     /// a part of the bar by the time it lasts, but at least `minimumShare` of it, so that
     /// stops a short run apart keep their dots apart.
     public func stopFractions(minimumShare: Double = 0) -> [Double] {
+        Self.stopFractions(of: runs, minimumShare: minimumShare)
+    }
+
+    /// Where each stop sits on the journey bar of these runs, as `stopFractions(minimumShare:)`
+    /// says. The runs may be on either clock, as only their lengths count.
+    public static func stopFractions(of runs: [ClosedRange<Date>], minimumShare: Double = 0) -> [Double] {
         let durations = runs.map { $0.upperBound.timeIntervalSince($0.lowerBound) }
         let total = durations.reduce(0, +)
         let share = min(max(minimumShare, 0), 1 / Double(durations.count))
@@ -125,6 +131,11 @@ extension FollowedTrain {
     /// The device time of a time on the train's clock, for the timers of the Live Activity.
     public func deviceDate(_ date: Date) -> Date { date.addingTimeInterval(shift) }
 
+    /// Each run between two stops, on the device clock, for the journey bar's timers.
+    public var deviceRuns: [ClosedRange<Date>] {
+        runs.map { deviceDate($0.lowerBound)...deviceDate($0.upperBound) }
+    }
+
     /// The train's time at a device time.
     public func trainDate(_ device: Date) -> Date { device.addingTimeInterval(-shift) }
 
@@ -136,6 +147,21 @@ extension FollowedTrain {
     /// The device time after which the "Next" line no longer holds without an update: the
     /// last arrival. The activity then shows the train as arrived.
     public var staleDate: Date { deviceDate(arrival) }
+
+    /// The end of the minutes countdown to the last arrival, on the device clock. A minutes
+    /// format drops the seconds left, so the end is 59 seconds late: the countdown then reads
+    /// what the clock says, “35m” from 08:47 to a 09:22 arrival, and “0m” only at the arrival.
+    public var countdownEnd: Date { deviceDate(arrival).addingTimeInterval(59) }
+
+    /// How long the widest reading of the countdown from `device` on is: its hours and 59
+    /// minutes, or under an hour the reading at `device`, as the minutes only fall from there.
+    /// A live text takes all the width it is offered, so a still text of this reading sets its
+    /// width.
+    public func countdownWidest(at device: Date) -> TimeInterval {
+        let left = max(0, countdownEnd.timeIntervalSince(device))
+        guard left >= 3600 else { return left }
+        return (left / 3600).rounded(.down) * 3600 + 59 * 60
+    }
 
     /// How long an ended activity stays on the Lock Screen after the train arrives.
     public static let linger: TimeInterval = 15 * 60

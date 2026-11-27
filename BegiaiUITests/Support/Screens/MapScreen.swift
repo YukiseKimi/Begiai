@@ -38,6 +38,7 @@ struct MapScreen {
             names.allElementsBoundByIndex.map(\.label), [name], "Map (Starred): the list is not just \(name)", file: file, line: line)
     }
 
+    @discardableResult
     func openFirstTrain(file: StaticString = #filePath, line: UInt = #line) -> String {
         guard let train = movingTrainsAboveThePanel(file: file, line: line).first else {
             XCTFail("Map: no train shows above the panel", file: file, line: line)
@@ -46,12 +47,59 @@ struct MapScreen {
         return open(train, file: file, line: line)
     }
 
+    /// Opens the first train above the panel, or the first to one of `destinations`, in order,
+    /// for the shots. A station's name is the same in each language, so this works in any
+    /// language. A tap on the centre of a train at a station opens the station, so where that
+    /// happens it goes back and taps the train beyond the station's ring, above, below or to a
+    /// side. A tap beside the train can open a train next to it, so the page's route must end
+    /// at the station; a train that another marker covers is left for the next.
+    func openFirstTrain(to destinations: [String], file: StaticString = #filePath, line: UInt = #line) {
+        guard !destinations.isEmpty else {
+            movingTrainsAboveThePanel(file: file, line: line).first?.tap()
+            return
+        }
+        journey.wait(for: journey.element(A11yID.Map.train), "a train", on: "Map", file: file, line: line)
+        let sight = mapInSight
+        // A name can come through the environment with its letters decomposed, “e” and “˙”.
+        let names = destinations.map(\.precomposedStringWithCanonicalMapping)
+        let title = journey.element(A11yID.Train.title)
+        // The trains move on, so a train covered now may be clear a few seconds later.
+        for _ in 0..<4 {
+            let all = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
+            // “Train to Kaunas, scheduled”, “Traukinys į stotį Kaunas, pagal tvarkaraštį”.
+            let trains = names.flatMap { name in
+                all.filter {
+                    $0.label.precomposedStringWithCanonicalMapping.contains(name + ",") && $0.isHittable
+                        && sight.contains(centre(of: $0.frame))
+                }
+                .map { (name, $0.frame) }
+            }
+            for (name, train) in trains {
+                let reach = train.height * 0.38
+                let spots = [(0, 0), (0, reach), (0, -reach), (reach, 0), (-reach, 0)]
+                    .map { CGPoint(x: train.midX + $0.0, y: train.midY + $0.1) }
+                for spot in spots {
+                    journey.spot(spot).tap()
+                    if title.waitForExistence(timeout: 3) {
+                        if title.label.precomposedStringWithCanonicalMapping.hasSuffix(name) { return }
+                        TrainScreen(journey: journey).back(file: file, line: line)
+                        _ = title.waitForNonExistence(timeout: 3)
+                    }
+                    let board = journey.element(A11yID.Board.back)
+                    if board.exists { board.tap() }
+                }
+            }
+            _ = XCTWaiter.wait(for: [XCTestExpectation(description: "move")], timeout: 5)
+        }
+        XCTFail("Map: no train to \(destinations.formatted()) opens from above the panel", file: file, line: line)
+    }
+
     /// Opens the first train whose page has another route than `route` (“Vilnius → Kaunas”),
     /// and returns its route. Each train with that route opens and closes again.
     func openFirstTrain(otherThan route: String, file: StaticString = #filePath, line: UInt = #line) -> String {
         let page = TrainScreen(journey: journey)
         for train in movingTrainsAboveThePanel(file: file, line: line) {
-            _ = open(train, file: file, line: line)
+            open(train, file: file, line: line)
             let opened = page.route(file: file, line: line)
             if opened != route { return opened }
             page.back(file: file, line: line)
@@ -76,6 +124,7 @@ struct MapScreen {
     }
 
     /// Taps a train and returns its destination, from its VoiceOver label.
+    @discardableResult
     private func open(_ train: XCUIElement, file: StaticString, line: UInt) -> String {
         let label = train.label
         train.tap()
@@ -367,7 +416,7 @@ struct MapScreen {
         journey.wait(for: journey.element(A11yID.Map.train), "a train", on: "Map", timeout: 15, file: file, line: line)
         let sight = clearOfThePanel(by: 0, file: file, line: line)
         return journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
-            .filter { sight.contains(CGPoint(x: $0.frame.midX, y: $0.frame.midY)) }.count
+            .count { sight.contains(CGPoint(x: $0.frame.midX, y: $0.frame.midY)) }
     }
 
     /// The width of a train marker on the map, in points.
