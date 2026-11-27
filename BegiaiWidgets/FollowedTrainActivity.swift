@@ -251,9 +251,14 @@ private struct EndMinutes: View {
         let countdown = Countdown(end: facts.train.countdownEnd, widest: facts.train.countdownWidest(at: .now))
         Group {
             if facts.next == nil {
-                HStack(spacing: 4) {
-                    Text(verbatim: facts.train.destination)
-                    Text(verbatim: facts.train.arrival.vilniusTime)
+                // The name and the time where both fit, else the time alone, never cut.
+                let time = Text(verbatim: facts.train.arrival.vilniusTime)
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 4) {
+                        Text(verbatim: facts.train.destination)
+                        time
+                    }
+                    time
                 }
             } else {
                 // The name and the minutes where both fit, else the minutes alone.
@@ -278,11 +283,14 @@ private struct EndMinutes: View {
         .environment(\.locale, Countdown.locale)
     }
 
-    /// The stop, and the time left in words, “Kaunas, 34 minutes”, as “m” reads as metres.
+    /// The stop, and the time left in words, “Kaunas, 34 minutes”, as “m” reads as metres; once
+    /// the train is in, the stop and its arrival time.
     private var accessibilityLabel: Text {
-        let destination = Text(verbatim: "\(facts.train.destination), ")
-        guard facts.next != nil else { return destination + Text(verbatim: facts.train.arrival.vilniusTime) }
-        return destination + Text(.dateRange(endingAt: facts.train.countdownEnd), format: Countdown.style(.wide))
+        let time =
+            facts.next == nil
+            ? Text(verbatim: facts.train.arrival.vilniusTime)
+            : Text(.dateRange(endingAt: facts.train.countdownEnd), format: Countdown.style(.wide))
+        return Text("Activity.StopAndTime \(Text(verbatim: facts.train.destination)) \(time)")
     }
 }
 

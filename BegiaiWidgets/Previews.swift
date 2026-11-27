@@ -97,4 +97,6 @@ extension FollowedTrain.Status {
     FollowedTrainActivity()
 } contentStates: {
     FollowedTrain.Status(place: .leaving(0))
+    // Once in, the arrival time stays whole and the long name gives way.
+    FollowedTrain.Status.arrived
 }
