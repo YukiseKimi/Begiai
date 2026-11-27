@@ -60,6 +60,22 @@ struct LineDiagramScreen {
         return name
     }
 
+    /// Taps each line chip in turn, from the first to the last, and waits for each line to show.
+    func chooseEachLine(file: StaticString = #filePath, line: UInt = #line) {
+        let chips = journey.app.descendants(matching: .any).matching(identifier: A11yID.LineDiagram.chip)
+        journey.wait(for: chips.firstMatch, "a line chip", on: "Line Diagram", file: file, line: line)
+        let title = journey.element(A11yID.LineDiagram.page)
+        for name in chips.allElementsBoundByIndex.map(\.label) {
+            let chip = chips.matching(NSPredicate(format: "label == %@", name)).firstMatch
+            for _ in 0..<6 where !chip.isHittable { chips.firstMatch.swipeLeft() }
+            chip.tap()
+            let shown = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", name), object: title)
+            XCTAssertEqual(
+                XCTWaiter.wait(for: [shown], timeout: 5), .completed, "Line Diagram: the line did not change to \(name)",
+                file: file, line: line)
+        }
+    }
+
     func expectLine(_ name: String, file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertEqual(lineName, name, "Line Diagram: it opened on \(lineName), not on \(name)", file: file, line: line)
     }

@@ -89,14 +89,18 @@ private struct LineDiagramPage: View {
     @State private var placed: [SpineTrain] = []
     /// The revision `lines` and `placed` come from: their indices hold in that timetable only.
     @State private var workedOut: Int?
+    /// The line `placed` is worked out for: its rows hold on that line's stations only.
+    @State private var placedLine: Int?
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { _ in
             let now = time.now
             // Until the lines of a new timetable are worked out, the old ones are not shown.
             let lines = workedOut == store.revision ? lines : []
-            let placed = workedOut == store.revision ? placed : []
             let chosen = lines.first { $0.name == chosenName } ?? lines.first
+            // A newly chosen line shows no trains until its own are worked out: the rows of
+            // the line before may lie past its last station.
+            let placed = workedOut == store.revision && placedLine == chosen?.id ? placed : []
             VStack(spacing: 0) {
                 LineChips(lines: lines, chosen: chosen?.id)
                     // A scroll view draws its content into the safe area along its axis; the chips
@@ -137,12 +141,14 @@ private struct LineDiagramPage: View {
         let trains = engine.trains(at: now)
         let latest = engine.lineSummaries(at: now, trains: trains, starred: stars.names(.line))
         if latest != lines { lines = latest }
-        let diagram = (latest.first { $0.name == chosenName } ?? latest.first).map { store.diagrams[$0.id] }
+        let line = (latest.first { $0.name == chosenName } ?? latest.first)?.id
+        let diagram = line.map { store.diagrams[$0] }
         let latestPlaced =
             diagram.map { diagram in
                 trains.compactMap { train in diagram.place(of: train).map { SpineTrain(train: train, place: $0) } }
             } ?? []
         if latestPlaced != placed { placed = latestPlaced }
+        placedLine = line
         workedOut = store.revision
     }
 }
