@@ -59,7 +59,7 @@ struct MapScreen {
             return
         }
         journey.wait(for: journey.element(A11yID.Map.train), "a train", on: "Map", file: file, line: line)
-        let sight = mapInSight
+        let sight = mapInSight(file: file, line: line)
         // A name can come through the environment with its letters decomposed, “e” and “˙”.
         let names = destinations.map(\.precomposedStringWithCanonicalMapping)
         let title = journey.element(A11yID.Train.title)
@@ -113,7 +113,7 @@ struct MapScreen {
     /// not its station, and clear of every station marker.
     private func movingTrainsAboveThePanel(file: StaticString, line: UInt) -> LazyFilterSequence<[XCUIElement]> {
         journey.wait(for: journey.element(A11yID.Map.train), "a train", on: "Map", file: file, line: line)
-        let sight = mapInSight
+        let sight = mapInSight(file: file, line: line)
         let trains = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
         let stations = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.station).allElementsBoundByIndex
             .map(\.frame)
@@ -143,7 +143,7 @@ struct MapScreen {
     /// Returns the station's name, or nil when no train stands at a station.
     func openTrainStandingAtAStation(file: StaticString = #filePath, line: UInt = #line) -> String? {
         journey.wait(for: journey.element(A11yID.Map.train), "a train", on: "Map", file: file, line: line)
-        let sight = mapInSight
+        let sight = mapInSight(file: file, line: line)
         let stations = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.station).allElementsBoundByIndex
             .map(\.frame)
         let trains = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
@@ -242,18 +242,23 @@ struct MapScreen {
     /// The map that the camera keeps a followed train in the middle of. Above the sheet it starts
     /// under the status bar, where the Locate button stands at the top of the map's safe area.
     private func followSight(file: StaticString, line: UInt) -> CGRect {
-        guard !column.exists else { return mapInSight }
+        guard !column.exists else { return mapInSight(file: file, line: line) }
         let top = journey.wait(for: journey.element(A11yID.Map.locate), "the Locate button", on: "Map", file: file, line: line)
             .frame.minY
         let panel = journey.wait(for: journey.element(A11yID.Map.panel), "the panel's handle", on: "Map", file: file, line: line)
         return CGRect(x: 0, y: top, width: journey.window.frame.width, height: panel.frame.minY - top)
     }
 
-    /// The map where the panel does not cover it: above a half-height sheet, or before the column.
-    private var mapInSight: CGRect {
+    /// The map where the panel does not cover it, above a half-height sheet or before the column,
+    /// and inside the map's safe area. The Locate button stands at the top and trailing edges of
+    /// that area. Outside it, iOS takes a tap: on the open iPhone Duo the status bar stands down
+    /// the top right of the map, and a tap on a station there opens Control Centre.
+    private func mapInSight(file: StaticString, line: UInt) -> CGRect {
+        let locate = journey.wait(for: journey.element(A11yID.Map.locate), "the Locate button", on: "Map", file: file, line: line)
+            .frame
         let size = journey.window.frame.size
-        guard column.exists else { return CGRect(x: 0, y: 0, width: size.width, height: size.height * 0.45) }
-        return CGRect(x: 0, y: 0, width: column.frame.minX, height: size.height)
+        let bottom = column.exists ? size.height : size.height * 0.45
+        return CGRect(x: 0, y: locate.minY, width: locate.maxX, height: bottom - locate.minY)
     }
 
     /// The map where the panel does not cover it, `margin` points from the panel's edge.
@@ -352,7 +357,7 @@ struct MapScreen {
 
     func openStationAboveThePanel(file: StaticString = #filePath, line: UInt = #line) -> String {
         journey.wait(for: journey.element(A11yID.Map.station), "a station", on: "Map", file: file, line: line)
-        let sight = mapInSight
+        let sight = mapInSight(file: file, line: line)
         let stations = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.station).allElementsBoundByIndex
         let trains = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex.map(\.frame)
         let clear = { (station: XCUIElement) in trains.allSatisfy { !$0.intersects(station.frame) } }
@@ -369,7 +374,7 @@ struct MapScreen {
     /// or nil when no train covers a station above the panel.
     func openStationUnderATrain(file: StaticString = #filePath, line: UInt = #line) -> String? {
         journey.wait(for: journey.element(A11yID.Map.station), "a station", on: "Map", file: file, line: line)
-        let sight = mapInSight
+        let sight = mapInSight(file: file, line: line)
         let trains = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.train).allElementsBoundByIndex
             .map { (frame: $0.frame, standing: ($0.value as? String) == Self.standing) }
         let stations = journey.app.descendants(matching: .any).matching(identifier: A11yID.Map.station).allElementsBoundByIndex
