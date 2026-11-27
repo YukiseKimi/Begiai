@@ -19,11 +19,8 @@ struct LineDiagramTab: View {
                         insets in
                         // The diagram stops at its safe area, short of the tab strip on the right
                         // of the open Duo held wide, so the inset is from that safe area's edge.
-                        LineDiagramPage(
-                            engine: engine, revision: store.revision, diagrams: store.diagrams, selection: $selection,
-                            tapCloses: selection != nil
-                        )
-                        .safeAreaPadding(.trailing, insets.trailing)
+                        LineDiagramPage(store: store, selection: $selection, tapCloses: selection != nil)
+                            .safeAreaPadding(.trailing, insets.trailing)
                     } panel: {
                         if let selection {
                             DiagramSheet(engine: engine, page: selection)
@@ -34,16 +31,13 @@ struct LineDiagramTab: View {
                         }
                     }
                 } else {
-                    LineDiagramPage(
-                        engine: engine, revision: store.revision, diagrams: store.diagrams, selection: $selection, tapCloses: false)
+                    LineDiagramPage(store: store, selection: $selection, tapCloses: false)
                 }
             }
             // The sheet holds the page only on a narrow screen: a fold or an unfold moves the page
             // between the sheet and the column, and the dismissed sheet does not close it.
             .sheet(item: $selection[shownIf: !inColumn]) { chosen in
-                // Close dismisses the sheet, which clears the open page; the content leaves the
-                // state that presents it alone.
-                DiagramSheet(engine: engine, page: chosen)
+                DiagramSheetContent(engine: engine, page: chosen)
                     .presentationDetents([.medium, .large])
             }
         } else {
@@ -64,13 +58,23 @@ private enum ChosenLine {
     static let key = "lineDiagram.line"
 }
 
+/// The page in the sheet on a narrow screen: Close dismisses the sheet, which clears the open
+/// page, and the content leaves the state that presents it alone.
+private struct DiagramSheetContent: View {
+    let engine: MotionEngine
+    let page: PageSelection
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        DiagramSheet(engine: engine, page: page)
+            .environment(\.pageClose, .dismiss(dismiss))
+    }
+}
+
 /// The Line Diagram, once a second: the chips of the lines, and the chosen line's facts and spine.
 private struct LineDiagramPage: View {
-    let engine: MotionEngine
-    /// The store revision of the engine's timetable.
-    let revision: Int
-    /// The diagram of each line, by line index.
-    let diagrams: [LineDiagram]
+    /// The timetable's engine, its revision and the diagram of each line.
+    let store: TimetableStore
     @Binding var selection: PageSelection?
     /// True where a tap away from the trains and stations closes the open page: in the column,
     /// as a tap on the map closes the map's page. A sheet closes on such a tap by itself.
@@ -90,8 +94,8 @@ private struct LineDiagramPage: View {
         TimelineView(.periodic(from: .now, by: 1)) { _ in
             let now = time.now
             // Until the lines of a new timetable are worked out, the old ones are not shown.
-            let lines = workedOut == revision ? lines : []
-            let placed = workedOut == revision ? placed : []
+            let lines = workedOut == store.revision ? lines : []
+            let placed = workedOut == store.revision ? placed : []
             let chosen = lines.first { $0.name == chosenName } ?? lines.first
             VStack(spacing: 0) {
                 LineChips(lines: lines, chosen: chosen?.id)
@@ -99,14 +103,14 @@ private struct LineDiagramPage: View {
                     // stay in the row's own frame, clear of the status bar and the tab strip that the
                     // open Duo shows on the right.
                     .clipped()
-                if let chosen {
-                    let diagram = diagrams[chosen.id]
+                if let chosen, let engine = store.engine {
                     ScrollView {
                         LineFacts(
                             name: chosen.name, frequency: engine.frequency(of: chosen.id, on: ServiceDate(now)),
                             staleSince: engine.timetable.staleSince(on: ServiceDate(now)))
                         LineSpine(
-                            stations: diagram.stations, timetable: engine.timetable, color: palette.color(forLine: chosen.id),
+                            stations: store.diagrams[chosen.id].stations, timetable: engine.timetable,
+                            color: palette.color(forLine: chosen.id),
                             trains: placed, selection: $selection)
                     }
                     .contentShape(.rect)
@@ -115,10 +119,12 @@ private struct LineDiagramPage: View {
                     ContentUnavailableView(.diagramNoLines, systemImage: "tram")
                 }
             }
-            .onChange(
-                of: DiagramMoment(revision: revision, now: now, chosenName: chosenName, starred: stars.names(.line)),
-                initial: true
-            ) {
+            // A line's star changes on the map's tab; the lines take it at their next second,
+            // which comes as soon as this tab shows again.
+            .onChange(of: DiagramMoment(revision: store.revision, now: now), initial: true) {
+                update(at: now)
+            }
+            .onChange(of: chosenName) {
                 update(at: now)
             }
         }
@@ -127,26 +133,25 @@ private struct LineDiagramPage: View {
     /// Works out the lines and the chosen line's trains, and keeps each that is the same as
     /// before, so the chips and the spine get the same array and compare it cheaply.
     private func update(at now: Date) {
+        guard let engine = store.engine else { return }
         let trains = engine.trains(at: now)
         let latest = engine.lineSummaries(at: now, trains: trains, starred: stars.names(.line))
         if latest != lines { lines = latest }
-        let diagram = (latest.first { $0.name == chosenName } ?? latest.first).map { diagrams[$0.id] }
+        let diagram = (latest.first { $0.name == chosenName } ?? latest.first).map { store.diagrams[$0.id] }
         let latestPlaced =
             diagram.map { diagram in
                 trains.compactMap { train in diagram.place(of: train).map { SpineTrain(train: train, place: $0) } }
             } ?? []
         if latestPlaced != placed { placed = latestPlaced }
-        workedOut = revision
+        workedOut = store.revision
     }
 }
 
-/// What the diagram's lines and trains are worked out again for: a new second, a new timetable,
-/// another chosen line, or another starred line.
+/// What the diagram's lines and trains are worked out again for: a new second, or a new
+/// timetable.
 private struct DiagramMoment: Equatable {
     let revision: Int
     let now: Date
-    let chosenName: String
-    let starred: Set<String>
 }
 
 /// The chosen line's name, how often its trains leave, and the notes on what the diagram shows.

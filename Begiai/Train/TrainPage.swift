@@ -12,13 +12,13 @@ enum PageExit {
 /// leaves the state that presents it alone.
 enum PageClose {
     case selection(Binding<PageSelection?>)
-    case dismiss
+    case dismiss(DismissAction)
 }
 
 extension EnvironmentValues {
-    /// How the open page closes, which its Back or Close button reads: a page outside a sheet
-    /// is given the binding that opened it.
-    @Entry var pageClose = PageClose.dismiss
+    /// How the open page closes, which its Back or Close button reads: the binding that
+    /// opened it, or the dismiss action of the sheet that shows it.
+    @Entry var pageClose: PageClose?
 }
 
 /// What the fixed top of a train's page shows: its heading, and where the train is now.
@@ -309,7 +309,6 @@ struct IconOnlyAtLargeSizes: LabelStyle {
 struct PageExitButton: View {
     let exit: PageExit
     @Environment(\.pageClose) private var close
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         switch exit {
@@ -325,7 +324,8 @@ struct PageExitButton: View {
     private func perform() {
         switch close {
         case .selection(let selection): selection.wrappedValue = nil
-        case .dismiss: dismiss()
+        case .dismiss(let dismiss): dismiss()
+        case nil: break
         }
     }
 }
