@@ -4,7 +4,8 @@ import SwiftUI
 /// The stations of one line at equal spaces down a coloured spine. Trains toward the last
 /// station go on the left, trains toward the first station on the right.
 struct LineSpine: View {
-    let diagram: LineDiagram
+    /// The line's stations, first to last, by their index in the timetable.
+    let stations: [Int]
     let timetable: Timetable
     let color: Color
     let trains: [(train: TrainState, place: LineDiagram.Place)]
@@ -23,8 +24,8 @@ struct LineSpine: View {
     private var tagStep: CGFloat { typeSize.isAccessibilitySize ? tagHeight * 1.9 : tagHeight }
 
     var body: some View {
-        let height = rowHeight * CGFloat(max(diagram.stations.count - 1, 0))
-        let stations = diagram.stations.enumerated().map { row, station in
+        let height = rowHeight * CGFloat(max(stations.count - 1, 0))
+        let rows = stations.enumerated().map { row, station in
             SpineStation(row: row, station: station, name: timetable.stations[station].name)
         }
         let tags = spread(.down) + spread(.up)
@@ -34,7 +35,7 @@ struct LineSpine: View {
             Capsule()
                 .fill(color)
                 .layoutValue(key: SpinePlace.self, value: .spine)
-            ForEach(stations) { station in
+            ForEach(rows) { station in
                 SpineStationButton(station: station, color: color, selection: $selection)
                     .accessibilitySortPriority(-Double(station.row) * rowHeight)
                     .layoutValue(key: SpinePlace.self, value: .station(row: station.row))
@@ -59,7 +60,7 @@ struct LineSpine: View {
             }
         }
         .accessibilityRotor(Text(.diagramRotorStations)) {
-            ForEach(stations) { station in
+            ForEach(rows) { station in
                 AccessibilityRotorEntry(Text(verbatim: station.name), id: station.row, in: rotor)
             }
         }
@@ -73,7 +74,7 @@ struct LineSpine: View {
     }
 
     private func label(_ train: TrainState, _ place: LineDiagram.Place) -> Text {
-        let name = { (row: Int) in timetable.stations[diagram.stations[row]].name }
+        let name = { (row: Int) in timetable.stations[stations[row]].name }
         return place.fraction > 0
             ? Text(.diagramTrainBetween(station: destination(of: train), from: name(place.from), to: name(place.to)))
             : Text(.diagramTrainAt(station: destination(of: train), at: name(place.from)))

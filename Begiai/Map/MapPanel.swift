@@ -8,7 +8,8 @@ import SwiftUI
 
 /// The top of the map's panel: the count and the search, a train's page, or a station's name.
 struct MapPanelHeader: View {
-    let engine: MotionEngine
+    /// The name of each station, by its index in the timetable.
+    let stationNames: [String]
     let now: Date
     /// How many trains the map shows, which the header counts.
     let running: Int
@@ -32,11 +33,12 @@ struct MapPanelHeader: View {
         switch selection {
         case .train:
             TrainPage(
-                timeline: timeline, color: color, now: now, following: following, onLockScreen: onLockScreen,
+                heading: timeline.map { TrainHeading(timeline: $0, now: now) }, color: color, following: following,
+                onLockScreen: onLockScreen,
                 close: .selection($selection), stationPage: $selection)
         case .station(let index):
-            if engine.timetable.stations.indices.contains(index) {
-                let name = engine.stationNames[index]
+            if stationNames.indices.contains(index) {
+                let name = stationNames[index]
                 StationHeader(name: name, starred: stars.names(.station).contains(name), close: .selection($selection))
             }
         case nil:
@@ -103,7 +105,9 @@ struct MapPanelContent: View {
             switch selection {
             case .train(let train):
                 if let timeline {
-                    StopList(train: train, timeline: timeline, color: color)
+                    StopList(
+                        train: train, stops: timeline.stops, standingAt: timeline.standingAt, nextStop: timeline.nextStop,
+                        progressToNext: timeline.progressToNext, color: color)
                 }
             case .station(let index):
                 if engine.timetable.stations.indices.contains(index) {
@@ -162,7 +166,7 @@ private struct LineList: View {
             }
             Section {
                 ForEach(lines) { line in
-                    LineRow(line: line, starred: starred.contains(line.name))
+                    LineRow(line: line.id, name: line.name, trainsNow: line.trainsNow, starred: starred.contains(line.name))
                         .listRowBackground(Color.clear)
                 }
             } header: {

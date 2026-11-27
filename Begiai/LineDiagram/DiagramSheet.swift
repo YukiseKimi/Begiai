@@ -26,9 +26,12 @@ struct DiagramSheet: View {
                     let timeline = train.map(engine.timeline(of:))
                     let color = palette.color(forLine: engine.timetable.trips[id.trip].line)
                     TrainPage(
-                        timeline: timeline, color: color, now: now, exit: .close, close: close, stationPage: $opened)
+                        heading: timeline.map { TrainHeading(timeline: $0, now: now) }, color: color, exit: .close, close: close,
+                        stationPage: $opened)
                     if let timeline {
-                        StopList(train: id, timeline: timeline, color: color)
+                        StopList(
+                            train: id, stops: timeline.stops, standingAt: timeline.standingAt, nextStop: timeline.nextStop,
+                            progressToNext: timeline.progressToNext, color: color)
                     }
                 case .station(let station):
                     let name = engine.stationNames[station]

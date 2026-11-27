@@ -45,7 +45,7 @@ struct MapTab: View {
                     if store.state == .ready, let engine = store.engine, let now = trains.now {
                         VStack(spacing: 0) {
                             MapPanelHeader(
-                                engine: engine, now: now, running: settled.count, timeline: timeline, color: color,
+                                stationNames: engine.stationNames, now: now, running: settled.count, timeline: timeline, color: color,
                                 selection: $selection, following: followState, onLockScreen: follower.onLockScreen,
                                 height: panelHeight, filter: $filter, query: query, searchFocused: $searchFocused, stars: stars)
                             MapPanelContent(
@@ -67,7 +67,7 @@ struct MapTab: View {
                             // as a number, so a reader gives it rather than a layout.
                             LinePanel(height: $panelHeight, total: proxy.size.height) {
                                 MapPanelHeader(
-                                    engine: engine, now: now, running: settled.count, timeline: timeline, color: color,
+                                    stationNames: engine.stationNames, now: now, running: settled.count, timeline: timeline, color: color,
                                     selection: $selection, following: followState, onLockScreen: follower.onLockScreen,
                                     height: panelHeight, filter: $filter, query: query, searchFocused: $searchFocused, stars: stars)
                             } content: {

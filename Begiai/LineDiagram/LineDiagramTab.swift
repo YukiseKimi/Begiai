@@ -115,9 +115,11 @@ private struct LineDiagramPage: View {
                 if let chosen {
                     let diagram = diagrams[chosen.id]
                     ScrollView {
-                        LineFacts(line: chosen, engine: engine, now: now)
+                        LineFacts(
+                            name: chosen.name, frequency: engine.frequency(of: chosen.id, on: ServiceDate(now)),
+                            staleSince: engine.timetable.staleSince(on: ServiceDate(now)))
                         LineSpine(
-                            diagram: diagram, timetable: engine.timetable, color: palette.color(forLine: chosen.id),
+                            stations: diagram.stations, timetable: engine.timetable, color: palette.color(forLine: chosen.id),
                             trains: trains.compactMap { train in diagram.place(of: train).map { (train, $0) } },
                             selection: $selection)
                     }
@@ -133,21 +135,22 @@ private struct LineDiagramPage: View {
 
 /// The chosen line's name, how often its trains leave, and the notes on what the diagram shows.
 private struct LineFacts: View {
-    let line: LineSummary
-    let engine: MotionEngine
-    let now: Date
+    let name: String
+    let frequency: LineFrequency
+    /// `Timetable.staleSince(on:)`, for the note on an old timetable.
+    let staleSince: ServiceDate?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(verbatim: line.name)
+            Text(verbatim: name)
                 .font(.title2.bold())
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier(A11yID.LineDiagram.page)
-            FrequencyText(frequency: engine.frequency(of: line.id, on: ServiceDate(now)))
+            FrequencyText(frequency: frequency)
             Text(.trainEstimated)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
-            StaleNote(since: engine.timetable.staleSince(on: ServiceDate(now)))
+            StaleNote(since: staleSince)
             NoticesLink()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -164,7 +167,7 @@ private struct LineChips: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(lines) { line in
-                    LineChip(line: line, isChosen: line.id == chosen)
+                    LineChip(line: line.id, name: line.name, isChosen: line.id == chosen)
                 }
             }
             .scrollTargetLayout()
@@ -177,25 +180,27 @@ private struct LineChips: View {
 }
 
 private struct LineChip: View {
-    let line: LineSummary
+    /// The line's index in the timetable, which picks its colour.
+    let line: Int
+    let name: String
     let isChosen: Bool
     @AppStorage(ChosenLine.key) private var chosenName = ""
     @Environment(\.linePalette) private var palette
 
     var body: some View {
         Button {
-            chosenName = line.name
+            chosenName = name
         } label: {
-            Text(verbatim: line.name)
+            Text(verbatim: name)
                 .font(.subheadline.weight(.medium))
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .foregroundStyle(
                     isChosen
-                        ? AnyShapeStyle(ReadableText(background: palette.color(forLine: line.id)))
+                        ? AnyShapeStyle(ReadableText(background: palette.color(forLine: line)))
                         : AnyShapeStyle(Color.primary)
                 )
-                .background(isChosen ? palette.color(forLine: line.id) : Color.secondary.opacity(0.15), in: .capsule)
+                .background(isChosen ? palette.color(forLine: line) : Color.secondary.opacity(0.15), in: .capsule)
                 // The chip looks small; its tap area is the full 44 points high.
                 .frame(minHeight: 44)
                 .contentShape(.rect)
