@@ -23,6 +23,9 @@ struct MapTab: View {
     @State private var filter: LineFilter = .all
     @State private var position: MapCameraPosition = .region(.lithuania)
     @State private var query = StationQuery()
+    /// The search field's focus. The tab holds it and the field reads it, so the field has the
+    /// keyboard only while the panel is at full height.
+    @FocusState private var searchFocused: Bool
     @State private var locationNote: LocationNote?
     @Query private var stars: [Star]
     @Environment(\.linePalette) private var palette
@@ -46,7 +49,7 @@ struct MapTab: View {
                             MapPanelHeader(
                                 stationNames: engine.stationNames, now: now, running: settled.count, timeline: timeline, color: color,
                                 selection: $selection, following: followState,
-                                height: panelHeight, filter: $filter, query: query, stars: stars)
+                                height: panelHeight, filter: $filter, query: query, searchFocused: $searchFocused, stars: stars)
                             MapPanelContent(
                                 engine: engine, now: now, settled: settled, timeline: timeline, color: color, selection: $selection,
                                 height: $panelHeight, filter: filter, query: query, locationNote: $locationNote, stars: stars)
@@ -68,7 +71,7 @@ struct MapTab: View {
                                 MapPanelHeader(
                                     stationNames: engine.stationNames, now: now, running: settled.count, timeline: timeline, color: color,
                                     selection: $selection, following: followState,
-                                    height: panelHeight, filter: $filter, query: query, stars: stars)
+                                    height: panelHeight, filter: $filter, query: query, searchFocused: $searchFocused, stars: stars)
                             } content: {
                                 MapPanelContent(
                                     engine: engine, now: now, settled: settled, timeline: timeline, color: color,
@@ -102,11 +105,11 @@ struct MapTab: View {
             // At the accessibility text sizes a page's fixed top is taller than a half panel.
             if selection != nil, typeSize.isAccessibilitySize { panelHeight = .full }
         }
-        .onChange(of: query.focused) { _, focused in
+        .onChange(of: searchFocused) { _, focused in
             if focused { panelHeight = .full }
         }
         .onChange(of: panelHeight) { _, height in
-            if height != .full { query.focused = false }
+            if height != .full { searchFocused = false }
         }
         .onChange(of: scenePhase) { _, phase in
             // Access is granted in Settings, so the note goes when the rider comes back with it.

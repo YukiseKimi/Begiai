@@ -14,9 +14,6 @@ final class StationQuery {
     private(set) var isEmpty = true
     /// True while the field holds more than spaces: its results take the lines' place.
     private(set) var searching = false
-    /// True while the field has the keyboard. The map tab sets it false to put the keyboard
-    /// away: the field has the keyboard only while the panel is at full height.
-    var focused = false
 
     init(text: String = "") {
         self.text = text

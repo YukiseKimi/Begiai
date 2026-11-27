@@ -24,6 +24,8 @@ struct MapPanelHeader: View {
     let height: PanelHeight
     @Binding var filter: LineFilter
     let query: StationQuery
+    /// The search field's focus, which the map tab holds.
+    var searchFocused: FocusState<Bool>.Binding
     let stars: [Star]
 
     var body: some View {
@@ -42,7 +44,7 @@ struct MapPanelHeader: View {
                     .environment(\.pageClose, .selection($selection))
             }
         case nil:
-            LinesHeader(running: running, height: height, filter: $filter, query: query)
+            LinesHeader(running: running, height: height, filter: $filter, query: query, focused: searchFocused)
         }
     }
 }
@@ -53,6 +55,7 @@ private struct LinesHeader: View {
     let height: PanelHeight
     @Binding var filter: LineFilter
     let query: StationQuery
+    var focused: FocusState<Bool>.Binding
 
     var body: some View {
         VStack(spacing: 10) {
@@ -65,7 +68,7 @@ private struct LinesHeader: View {
                     .padding(.horizontal)
             }
             // At night, with no trains, the field still finds a station's first trains.
-            StationSearchField(query: query)
+            StationSearchField(query: query, focused: focused)
                 .dynamicTypeSize(...DynamicTypeSize.accessibility2)
                 .padding(.horizontal)
             // A Small panel keeps the count and the field; the filter needs room for the lines,

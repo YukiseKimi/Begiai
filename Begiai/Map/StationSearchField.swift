@@ -4,7 +4,11 @@ import SwiftUI
 /// The field above the line filter that finds a station by name.
 struct StationSearchField: View {
     @Bindable var query: StationQuery
-    @FocusState private var focused: Bool
+    /// The map tab holds the focus: it raises the panel for the keyboard, and puts the keyboard
+    /// away when the panel goes down. One FocusState, not a copy kept in step with it: two
+    /// copies that set each other can disagree while the keyboard comes and goes, and then
+    /// the field loses and takes back the keyboard, and the app does not settle.
+    var focused: FocusState<Bool>.Binding
 
     var body: some View {
         HStack(spacing: 6) {
@@ -27,7 +31,7 @@ struct StationSearchField: View {
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .submitLabel(.search)
-                    .focused($focused)
+                    .focused(focused)
                     .frame(maxHeight: .infinity)
                     .accessibilityIdentifier(A11yID.Map.search)
                 }
@@ -49,10 +53,6 @@ struct StationSearchField: View {
         .padding(.leading, 12)
         // A capsule while the field is one line high; taller, its corners keep that radius.
         .background(.fill.tertiary, in: .rect(cornerRadius: 22))
-        // The query carries the focus to the map tab, which raises the panel for the keyboard
-        // and puts the keyboard away when the panel goes down.
-        .onChange(of: focused) { _, focused in query.focused = focused }
-        .onChange(of: query.focused) { _, focused in self.focused = focused }
     }
 }
 
@@ -118,8 +118,9 @@ private struct StationResultRow: View {
 
 #Preview {
     @Previewable @State var query = StationQuery(text: "kai")
+    @Previewable @FocusState var focused: Bool
     VStack {
-        StationSearchField(query: query)
+        StationSearchField(query: query, focused: $focused)
             .padding(.horizontal)
         StationResults(
             names: ["Vilnius", "Kaišiadorys", "Kaunas"], query: query, selection: .constant(nil), height: .constant(.full))
