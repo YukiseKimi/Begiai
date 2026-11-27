@@ -36,6 +36,15 @@ runtime where StoreKit testing works).
 The sealed launch (`--sealed --reset --now <ISO time>`) works only when the Info.plist key
 `BegiaiSealedLaunch` is `YES` (Debug). It pins the clock and keeps the stars in a temporary folder; `--reset` empties that folder.
 
+Another session may be running journeys. `script/test.sh` then prints `BUSY test run <pid>`
+and runs nothing: wait for that run (if a loop of groups started it, wait for the loop), never
+stop it. To check a journey for flakiness, use `/journey-repeat`.
+
+## Conventions
+
+- When you offer numbered options, give each a one-line recommendation and keep the numbers
+  stable, so a reply such as "push 1, drop 3" is clear.
+
 ## Gotcha
 
 An `.accessibilityIdentifier` on a container replaces the identifiers of the views inside it,
