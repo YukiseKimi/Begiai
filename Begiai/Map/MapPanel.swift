@@ -31,12 +31,15 @@ struct MapPanelHeader: View {
         case .train:
             TrainPage(
                 heading: timeline.map { TrainHeading(timeline: $0, now: now) }, color: color, following: following,
-
-                stationPage: $selection)
+                stationPage: $selection
+            )
+            // Back clears the panel's page.
+            .environment(\.pageClose, .selection($selection))
         case .station(let index):
             if stationNames.indices.contains(index) {
                 let name = stationNames[index]
                 StationHeader(name: name, starred: stars.names(.station).contains(name))
+                    .environment(\.pageClose, .selection($selection))
             }
         case nil:
             LinesHeader(running: running, height: height, filter: $filter, query: query)
