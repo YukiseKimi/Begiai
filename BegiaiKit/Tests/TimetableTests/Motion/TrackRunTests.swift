@@ -45,7 +45,7 @@ struct TrackRunTests {
     }
 
     @Test func theShippedTimetableDrawsTheVilniusKaunasRailOnceForSeveralLines() throws {
-        let url = URL(filePath: #filePath).deletingLastPathComponent()
+        let url = URL(filePath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
             .appending(path: "../../../Fixtures/timetable-20261117.json").standardizedFileURL
         let timetable = try JSONDecoder().decode(Timetable.self, from: Data(contentsOf: url))
         let runs = timetable.trackRuns()

@@ -6,8 +6,11 @@ prototypes are in `research/`, which git ignores.
 
 ## Layout
 
-- `Begiai/` the app: views, scenes, the launch. Text lives in `Begiai/Localizable.xcstrings`.
-- `BegiaiKit/` the logic package: models, stores, the motion engine. Its tests run headless.
+- `Begiai/` the app. `App/` the launch and root view, `Features/<Screen>/` one folder per screen
+  (Map, Board, LineDiagram, Train, Follow, About, Welcome), `Shared/` views used by more than one
+  screen, `Testing/` the hermetic launch. Text lives in `Begiai/Localizable.xcstrings`.
+- `BegiaiKit/` the logic package, by domain: `Timetable/`, `Motion/`, `Lines/`, `Follow/`,
+  `Stars/`, `Support/`. `TimetableTests/` mirrors those folders. Its tests run headless.
 - `BegiaiUITests/` the journeys, through screen helpers in `Support/Screens/`.
 - `Begiai/A11yID.swift` the identifier registry; `A11yID.md` is generated from it.
 - Change the Xcode project with `xcrun xcodeproj`, never by hand. The scheme is hand-written.
