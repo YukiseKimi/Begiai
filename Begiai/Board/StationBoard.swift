@@ -8,8 +8,20 @@ struct StationBoard: View {
     let engine: MotionEngine
     let station: Int
     let now: Date
+    /// The next departures, the same array while they stay the same, so the board compares
+    /// them cheaply each second.
+    @State private var departures: [Departure] = []
 
     var body: some View {
-        LEDBoard(departures: engine.departures(from: station, at: now), now: now)
+        LEDBoard(departures: departures, now: now)
+            .onChange(of: BoardMoment(station: station, now: now), initial: true) {
+                let latest = engine.departures(from: station, at: now)
+                if latest != departures { departures = latest }
+            }
     }
+}
+
+private struct BoardMoment: Equatable {
+    let station: Int
+    let now: Date
 }

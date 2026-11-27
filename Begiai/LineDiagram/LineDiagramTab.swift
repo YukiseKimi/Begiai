@@ -22,7 +22,8 @@ struct LineDiagramTab: View {
                         // short of the tab strip on the right of the open Duo held wide, so it
                         // pads only the rest. It changes when the Duo turns or folds.
                         LineDiagramPage(
-                            engine: engine, diagrams: store.diagrams, selection: $selection, tapCloses: selection != nil
+                            engine: engine, revision: store.revision, diagrams: store.diagrams, selection: $selection,
+                            tapCloses: selection != nil
                         )
                         .safeAreaPadding(.trailing, max(0, insets.trailing - diagramSafeTrailing))
                         .onGeometryChange(for: CGFloat.self) {
@@ -38,7 +39,8 @@ struct LineDiagramTab: View {
                         }
                     }
                 } else {
-                    LineDiagramPage(engine: engine, diagrams: store.diagrams, selection: $selection, tapCloses: false)
+                    LineDiagramPage(
+                        engine: engine, revision: store.revision, diagrams: store.diagrams, selection: $selection, tapCloses: false)
                 }
             }
             // The sheet holds the page only on a narrow screen: a fold or an unfold moves the page
@@ -89,6 +91,8 @@ private enum ChosenLine {
 /// The Line Diagram, once a second: the chips of the lines, and the chosen line's facts and spine.
 private struct LineDiagramPage: View {
     let engine: MotionEngine
+    /// The store revision of the engine's timetable.
+    let revision: Int
     /// The diagram of each line, by line index.
     let diagrams: [LineDiagram]
     @Binding var selection: PageSelection?
@@ -99,12 +103,19 @@ private struct LineDiagramPage: View {
     @AppStorage(ChosenLine.key) private var chosenName = ""
     @Query private var stars: [Star]
     @Environment(\.linePalette) private var palette
+    /// The lines this second, the same array while they stay the same.
+    @State private var lines: [LineSummary] = []
+    /// The chosen line's trains with their places on it, the same array while they stay the same.
+    @State private var placed: [SpineTrain] = []
+    /// The revision `lines` and `placed` come from: their indices hold in that timetable only.
+    @State private var workedOut: Int?
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { _ in
             let now = time.now
-            let trains = engine.trains(at: now)
-            let lines = engine.lineSummaries(at: now, trains: trains, starred: stars.names(.line))
+            // Until the lines of a new timetable are worked out, the old ones are not shown.
+            let lines = workedOut == revision ? lines : []
+            let placed = workedOut == revision ? placed : []
             let chosen = lines.first { $0.name == chosenName } ?? lines.first
             VStack(spacing: 0) {
                 LineChips(lines: lines, chosen: chosen?.id)
@@ -120,8 +131,7 @@ private struct LineDiagramPage: View {
                             staleSince: engine.timetable.staleSince(on: ServiceDate(now)))
                         LineSpine(
                             stations: diagram.stations, timetable: engine.timetable, color: palette.color(forLine: chosen.id),
-                            trains: trains.compactMap { train in diagram.place(of: train).map { (train, $0) } },
-                            selection: $selection)
+                            trains: placed, selection: $selection)
                     }
                     .contentShape(.rect)
                     .gesture(TapGesture().onEnded { selection = nil }, isEnabled: tapCloses)
@@ -129,8 +139,38 @@ private struct LineDiagramPage: View {
                     ContentUnavailableView(.diagramNoLines, systemImage: "tram")
                 }
             }
+            .onChange(
+                of: DiagramMoment(revision: revision, now: now, chosenName: chosenName, starred: stars.names(.line)),
+                initial: true
+            ) {
+                update(at: now)
+            }
         }
     }
+
+    /// Works out the lines and the chosen line's trains, and keeps each that is the same as
+    /// before, so the chips and the spine get the same array and compare it cheaply.
+    private func update(at now: Date) {
+        let trains = engine.trains(at: now)
+        let latest = engine.lineSummaries(at: now, trains: trains, starred: stars.names(.line))
+        if latest != lines { lines = latest }
+        let diagram = (latest.first { $0.name == chosenName } ?? latest.first).map { diagrams[$0.id] }
+        let latestPlaced =
+            diagram.map { diagram in
+                trains.compactMap { train in diagram.place(of: train).map { SpineTrain(train: train, place: $0) } }
+            } ?? []
+        if latestPlaced != placed { placed = latestPlaced }
+        workedOut = revision
+    }
+}
+
+/// What the diagram's lines and trains are worked out again for: a new second, a new timetable,
+/// another chosen line, or another starred line.
+private struct DiagramMoment: Equatable {
+    let revision: Int
+    let now: Date
+    let chosenName: String
+    let starred: Set<String>
 }
 
 /// The chosen line's name, how often its trains leave, and the notes on what the diagram shows.

@@ -8,7 +8,7 @@ struct LineSpine: View {
     let stations: [Int]
     let timetable: Timetable
     let color: Color
-    let trains: [(train: TrainState, place: LineDiagram.Place)]
+    let trains: [SpineTrain]
     /// The Line Diagram's open page: a tap on a station or a train opens it.
     @Binding var selection: PageSelection?
 
@@ -85,7 +85,8 @@ struct LineSpine: View {
         var last = -CGFloat.infinity
         return trains.filter { $0.place.direction == direction }
             .sorted { $0.place.row < $1.place.row }
-            .map { train, place in
+            .map { item in
+                let (train, place) = (item.train, item.place)
                 let y = max(CGFloat(place.row) * rowHeight, last + tagStep + 4)
                 last = y
                 return SpineTag(
@@ -93,6 +94,12 @@ struct LineSpine: View {
                     row: place.row, y: y)
             }
     }
+}
+
+/// A train of the line, with its place on the line.
+struct SpineTrain: Equatable {
+    let train: TrainState
+    let place: LineDiagram.Place
 }
 
 /// A station on the spine, as its button shows it.
