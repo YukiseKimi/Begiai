@@ -69,11 +69,14 @@ struct LineDiagramScreen {
         let stations = journey.app.descendants(matching: .any).matching(identifier: A11yID.LineDiagram.station)
         journey.wait(for: stations.firstMatch, "a station", on: "Line Diagram", file: file, line: line)
         let y = (stations.element(boundBy: 0).frame.midY + stations.element(boundBy: 1).frame.midY) / 2
-        // From a quarter into the window to three quarters, clear of the edges the system keeps.
+        // Across most of the window, clear of the edges the system keeps: a page turns when it is
+        // dragged past half its width.
         let window = journey.window.frame
-        let near = journey.spot(CGPoint(x: window.width * (left ? 0.75 : 0.25), y: y))
-        let far = journey.spot(CGPoint(x: window.width * (left ? 0.25 : 0.75), y: y))
-        near.press(forDuration: 0.01, thenDragTo: far, withVelocity: .fast, thenHoldForDuration: 0)
+        let near = journey.spot(CGPoint(x: window.width * (left ? 0.85 : 0.15), y: y))
+        // As a thumb swipes: a little up as well as sideways, and not at full speed, so the
+        // diagram's own up-and-down scroll sees the touch too.
+        let far = journey.spot(CGPoint(x: window.width * (left ? 0.15 : 0.85), y: y - 30))
+        near.press(forDuration: 0.05, thenDragTo: far, withVelocity: .default, thenHoldForDuration: 0)
         let changed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label != %@", before), object: title)
         XCTAssertEqual(
             XCTWaiter.wait(for: [changed], timeout: 5), .completed,
@@ -89,7 +92,9 @@ struct LineDiagramScreen {
         for name in chips.allElementsBoundByIndex.map(\.label) {
             let chip = chips.matching(NSPredicate(format: "label == %@", name)).firstMatch
             for _ in 0..<6 where !chip.isHittable { chips.firstMatch.swipeLeft() }
-            chip.tap()
+            // A chip at the row's right end can lie half under the tab strip of the folded Duo,
+            // where a tap at its centre lands on the strip; its left part is always in view.
+            chip.coordinate(withNormalizedOffset: CGVector(dx: 0.2, dy: 0.5)).tap()
             let shown = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", name), object: title)
             XCTAssertEqual(
                 XCTWaiter.wait(for: [shown], timeout: 5), .completed, "Line Diagram: the line did not change to \(name)",

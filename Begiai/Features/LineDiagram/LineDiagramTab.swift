@@ -71,7 +71,8 @@ private struct DiagramSheetContent: View {
     }
 }
 
-/// The Line Diagram, once a second: the chips of the lines, and the chosen line's facts and spine.
+/// The Line Diagram, once a second: the chips of the lines, and a page for each line with its
+/// facts and spine. The pages sit side by side, so a sideways swipe slides to the next line.
 private struct LineDiagramPage: View {
     /// The timetable's engine, its revision and the diagram of each line.
     let store: TimetableStore
@@ -82,25 +83,24 @@ private struct LineDiagramPage: View {
     @Environment(\.timeSource) private var time
     @AppStorage(ChosenLine.key) private var chosenName = ""
     @Query private var stars: [Star]
-    @Environment(\.linePalette) private var palette
     /// The lines this second, the same array while they stay the same.
     @State private var lines: [LineSummary] = []
-    /// The chosen line's trains with their places on it, the same array while they stay the same.
-    @State private var placed: [SpineTrain] = []
+    /// The trains with their places, for the chosen line and the lines beside it, so a page
+    /// slides in with its trains. Each line's rows hold on its own stations only.
+    @State private var placed: [Int: [SpineTrain]] = [:]
     /// The revision `lines` and `placed` come from: their indices hold in that timetable only.
     @State private var workedOut: Int?
-    /// The line `placed` is worked out for: its rows hold on that line's stations only.
-    @State private var placedLine: Int?
+    /// The line of the page in view; it follows the finger, and the chosen line follows it when
+    /// the scroll stops.
+    @State private var page: Int?
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { _ in
             let now = time.now
             // Until the lines of a new timetable are worked out, the old ones are not shown.
-            let lines = workedOut == store.revision ? lines : []
+            let current = workedOut == store.revision
+            let lines = current ? lines : []
             let chosen = lines.first { $0.name == chosenName } ?? lines.first
-            // A newly chosen line shows no trains until its own are worked out: the rows of
-            // the line before may lie past its last station.
-            let placed = workedOut == store.revision && placedLine == chosen?.id ? placed : []
             VStack(spacing: 0) {
                 LineChips(lines: lines, chosen: chosen?.id)
                     // A scroll view draws its content into the safe area along its axis; the chips
@@ -108,19 +108,42 @@ private struct LineDiagramPage: View {
                     // open Duo shows on the right.
                     .clipped()
                 if let chosen, let engine = store.engine {
-                    let neighbours = Neighbours(of: chosen, in: lines)
-                    ScrollView {
-                        LineFacts(
-                            name: chosen.name, frequency: engine.frequency(of: chosen.id, on: ServiceDate(now)),
-                            staleSince: engine.timetable.staleSince(on: ServiceDate(now)), neighbours: neighbours)
-                        LineSpine(
-                            stations: store.diagrams[chosen.id].stations, timetable: engine.timetable,
-                            color: palette.color(forLine: chosen.id),
-                            trains: placed, selection: $selection)
+                    ScrollView(.horizontal) {
+                        LazyHStack(spacing: 0) {
+                            ForEach(lines) { line in
+                                LinePage(
+                                    line: line, store: store, engine: engine, now: now,
+                                    neighbours: Neighbours(of: line, in: lines),
+                                    trains: current ? placed[line.id] ?? [] : [], selection: $selection,
+                                    tapCloses: tapCloses
+                                )
+                                .containerRelativeFrame(.horizontal)
+                                // Only the chosen line's page is read out and found by the journeys;
+                                // the pages beside it are built so that they can slide in.
+                                .accessibilityHidden(line.id != chosen.id)
+                            }
+                        }
+                        .scrollTargetLayout()
                     }
-                    .contentShape(.rect)
-                    .gesture(TapGesture().onEnded { selection = nil }, isEnabled: tapCloses)
-                    .modifier(LineSwipe(neighbours: neighbours))
+                    // Each page comes to rest at its own edge, one page a swipe. Paging by the scroll
+                    // view's width would drift where the scroll view runs under the tab strip that
+                    // the Duo shows on the right, and the pages, sized to the visible width, do not.
+                    .scrollTargetBehavior(.viewAligned(limitBehavior: .always))
+                    .scrollIndicators(.hidden)
+                    // As the chips do: the next page does not show under that tab strip.
+                    .clipped()
+                    .scrollPosition(id: $page)
+                    .onScrollPhaseChange { _, phase in
+                        // The chosen line changes when the pages come to rest, not on the way.
+                        if phase == .idle, let name = lines.first(where: { $0.id == page })?.name, name != chosenName {
+                            chosenName = name
+                        }
+                    }
+                    .onChange(of: chosen.id, initial: true) { old, new in
+                        // A chip or VoiceOver chose the line: slide to its page.
+                        guard page != new else { return }
+                        if old == new { page = new } else { withAnimation(.snappy) { page = new } }
+                    }
                 } else {
                     ContentUnavailableView(.diagramNoLines, systemImage: "tram")
                 }
@@ -136,26 +159,56 @@ private struct LineDiagramPage: View {
         }
     }
 
-    /// Works out the lines and the chosen line's trains, and keeps each that is the same as
-    /// before, so the chips and the spine get the same array and compare it cheaply.
+    /// Works out the lines and the trains of the chosen line and the lines beside it, and keeps
+    /// each that is the same as before, so the chips and the spines get the same arrays and
+    /// compare them cheaply.
     private func update(at now: Date) {
         guard let engine = store.engine else { return }
         let trains = engine.trains(at: now)
         let latest = engine.lineSummaries(at: now, trains: trains, starred: stars.names(.line))
         if latest != lines { lines = latest }
-        let line = (latest.first { $0.name == chosenName } ?? latest.first)?.id
-        let diagram = line.map { store.diagrams[$0] }
-        let latestPlaced =
-            diagram.map { diagram in
-                trains.compactMap { train in diagram.place(of: train).map { SpineTrain(train: train, place: $0) } }
-            } ?? []
+        var latestPlaced: [Int: [SpineTrain]] = [:]
+        if let index = latest.firstIndex(where: { $0.name == chosenName }) ?? (latest.isEmpty ? nil : 0) {
+            for line in latest[max(index - 1, 0)...min(index + 1, latest.count - 1)] {
+                let diagram = store.diagrams[line.id]
+                latestPlaced[line.id] = trains.compactMap { train in
+                    diagram.place(of: train).map { SpineTrain(train: train, place: $0) }
+                }
+            }
+        }
         if latestPlaced != placed { placed = latestPlaced }
-        placedLine = line
         workedOut = store.revision
     }
 }
 
-/// The lines before and after the chosen one, in the order of the chips.
+/// One line's page: its facts and its spine, scrolling up and down.
+private struct LinePage: View {
+    let line: LineSummary
+    let store: TimetableStore
+    let engine: MotionEngine
+    let now: Date
+    let neighbours: Neighbours
+    let trains: [SpineTrain]
+    @Binding var selection: PageSelection?
+    let tapCloses: Bool
+    @Environment(\.linePalette) private var palette
+
+    var body: some View {
+        ScrollView {
+            LineFacts(
+                name: line.name, frequency: engine.frequency(of: line.id, on: ServiceDate(now)),
+                staleSince: engine.timetable.staleSince(on: ServiceDate(now)), neighbours: neighbours)
+            LineSpine(
+                stations: store.diagrams[line.id].stations, timetable: engine.timetable,
+                color: palette.color(forLine: line.id),
+                trains: trains, selection: $selection)
+        }
+        .contentShape(.rect)
+        .gesture(TapGesture().onEnded { selection = nil }, isEnabled: tapCloses)
+    }
+}
+
+/// The lines before and after a line, in the order of the chips.
 private struct Neighbours {
     let previous: String?
     let next: String?
@@ -164,49 +217,6 @@ private struct Neighbours {
         let index = lines.firstIndex { $0.id == chosen.id }
         previous = index.flatMap { $0 > lines.startIndex ? lines[$0 - 1].name : nil }
         next = index.flatMap { $0 + 1 < lines.endIndex ? lines[$0 + 1].name : nil }
-    }
-}
-
-/// A sideways swipe on the diagram chooses the next line (to the left) or the line before (to
-/// the right), as a tap on its chip does. The diagram follows the finger; past the first or the
-/// last line it follows it less and springs back, so the rider sees that no line is there.
-private struct LineSwipe: ViewModifier {
-    let neighbours: Neighbours
-    @AppStorage(ChosenLine.key) private var chosenName = ""
-    /// How far the diagram follows the finger. It springs back when the finger lifts, and when
-    /// the scroll view takes the touch, which ends the drag without `onEnded`.
-    @GestureState(resetTransaction: Transaction(animation: .snappy)) private var shift: CGFloat = 0
-
-    func body(content: Content) -> some View {
-        content
-            .offset(x: shift)
-            // Together with the scroll view's own pan, and only when the finger goes more
-            // sideways than up or down, so a scroll, a tap on a train and the chips' row each
-            // keep working.
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 24)
-                    .updating($shift) { drag, shift, _ in
-                        let width = drag.translation.width
-                        let pull = target(of: width) == nil ? 0.15 : 0.4
-                        shift = Self.isSideways(drag.translation) ? width * pull : 0
-                    }
-                    .onEnded { drag in
-                        let width = drag.translation.width
-                        let far = abs(width) > 80 || abs(drag.predictedEndTranslation.width) > 200
-                        if Self.isSideways(drag.translation), far, let name = target(of: width) {
-                            chosenName = name
-                        }
-                    }
-            )
-    }
-
-    /// The line a swipe of `width` leads to: a swipe to the left leads to the next line.
-    private func target(of width: CGFloat) -> String? {
-        width < 0 ? neighbours.next : neighbours.previous
-    }
-
-    private static func isSideways(_ translation: CGSize) -> Bool {
-        abs(translation.width) > abs(translation.height) * 1.5
     }
 }
 
