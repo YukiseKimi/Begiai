@@ -44,6 +44,9 @@ stop it. To check a journey for flakiness, use `/journey-repeat`.
 
 - When you offer numbered options, give each a one-line recommendation and keep the numbers
   stable, so a reply such as "push 1, drop 3" is clear.
+- Sessions work in several worktrees at once. The main checkout is the repo root, not
+  `.claude/worktrees/*`, and a worktree does not have its uncommitted fixes. Before you rely on
+  a fix or edit a shared file, check the main checkout's `git status` and `git log --oneline -3`.
 
 ## Gotcha
 
