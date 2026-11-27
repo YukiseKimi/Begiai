@@ -37,6 +37,20 @@ final class LineDiagramJourney: JourneyCase {
     }
 
     @MainActor
+    func testASwipeMovesToTheNextLineAndBack() {
+        let journey = JourneyApp()
+        journey.launch(.map)
+
+        let diagram = LineDiagramScreen(journey: journey)
+        diagram.open()
+        let first = diagram.lineName
+        let next = diagram.swipeToAnotherLine(left: true)
+        XCTAssertNotEqual(next, first)
+        diagram.swipeToAnotherLine(left: false)
+        diagram.expectLine(first)
+    }
+
+    @MainActor
     func testATapOpensTheTrainPageAndTheStationBoard() {
         let journey = JourneyApp()
         journey.launch(.map)

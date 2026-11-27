@@ -60,6 +60,27 @@ struct LineDiagramScreen {
         return name
     }
 
+    /// Swipes the diagram sideways between its first two stations, where no button is, and
+    /// gives the name of the line it shows after.
+    @discardableResult
+    func swipeToAnotherLine(left: Bool, file: StaticString = #filePath, line: UInt = #line) -> String {
+        let title = journey.element(A11yID.LineDiagram.page)
+        let before = title.label
+        let stations = journey.app.descendants(matching: .any).matching(identifier: A11yID.LineDiagram.station)
+        journey.wait(for: stations.firstMatch, "a station", on: "Line Diagram", file: file, line: line)
+        let y = (stations.element(boundBy: 0).frame.midY + stations.element(boundBy: 1).frame.midY) / 2
+        // From a quarter into the window to three quarters, clear of the edges the system keeps.
+        let window = journey.window.frame
+        let near = journey.spot(CGPoint(x: window.width * (left ? 0.75 : 0.25), y: y))
+        let far = journey.spot(CGPoint(x: window.width * (left ? 0.25 : 0.75), y: y))
+        near.press(forDuration: 0.01, thenDragTo: far, withVelocity: .fast, thenHoldForDuration: 0)
+        let changed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label != %@", before), object: title)
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [changed], timeout: 5), .completed,
+            "Line Diagram: a swipe to the \(left ? "left" : "right") left the line at \(before)", file: file, line: line)
+        return title.label
+    }
+
     func expectLine(_ name: String, file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertEqual(lineName, name, "Line Diagram: it opened on \(lineName), not on \(name)", file: file, line: line)
     }
