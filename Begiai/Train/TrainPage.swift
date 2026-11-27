@@ -329,7 +329,9 @@ struct PageExitButton: View {
         switch close {
         case .selection(let selection): selection.wrappedValue = nil
         case .dismiss(let dismiss): dismiss()
-        case nil: break
+        // Each place that shows a page sets how it closes; a page that forgets would have a
+        // Back button that does nothing, so a debug build stops here.
+        case nil: assertionFailure("A page's exit button has no pageClose in its environment")
         }
     }
 }
