@@ -6,6 +6,9 @@ struct WelcomeSheet: View {
     /// Start closes the sheet, which marks the welcome as seen.
     @Environment(\.dismiss) private var dismiss
     @State private var card = 0
+    /// The card whose title VoiceOver reads. It moves on with the shown card, also to a page
+    /// that the TabView builds only as it shows it.
+    @AccessibilityFocusState private var focusedCard: Int?
 
     private static let cards = [
         WelcomeCardText(symbol: "clock.arrow.circlepath", title: .welcomeEstimateTitle, text: .welcomeEstimateText),
@@ -17,12 +20,14 @@ struct WelcomeSheet: View {
         VStack(spacing: 24) {
             TabView(selection: $card) {
                 ForEach(Self.cards.indices, id: \.self) { index in
-                    WelcomePage(card: Self.cards[index], shown: card == index)
+                    WelcomePage(card: Self.cards[index], index: index, shown: card == index, focusedCard: $focusedCard)
                         .tag(index)
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .always))
             .indexViewStyle(.page(backgroundDisplayMode: .always))
+            // VoiceOver reads the new card, not the Next button again.
+            .onChange(of: card) { focusedCard = card }
 
             Button {
                 if card < Self.cards.count - 1 {
@@ -55,15 +60,17 @@ private struct WelcomeCardText {
 /// One card: centred when it fits; it scrolls at large text sizes.
 private struct WelcomePage: View {
     let card: WelcomeCardText
+    let index: Int
     /// True while this card is the one the sheet shows.
     let shown: Bool
+    var focusedCard: AccessibilityFocusState<Int?>.Binding
 
     var body: some View {
         ViewThatFits(in: .vertical) {
-            WelcomeCard(card: card, shown: shown)
+            WelcomeCard(card: card, index: index, shown: shown, focusedCard: focusedCard)
                 .frame(maxHeight: .infinity)
             ScrollView {
-                WelcomeCard(card: card, shown: shown)
+                WelcomeCard(card: card, index: index, shown: shown, focusedCard: focusedCard)
             }
         }
     }
@@ -71,8 +78,10 @@ private struct WelcomePage: View {
 
 private struct WelcomeCard: View {
     let card: WelcomeCardText
+    let index: Int
     let shown: Bool
-    @AccessibilityFocusState private var titleFocused: Bool
+    /// The card whose title VoiceOver reads, which the sheet moves on.
+    var focusedCard: AccessibilityFocusState<Int?>.Binding
 
     var body: some View {
         VStack(spacing: 16) {
@@ -85,7 +94,7 @@ private struct WelcomeCard: View {
                 .multilineTextAlignment(.center)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier(shown ? A11yID.Welcome.title : "")
-                .accessibilityFocused($titleFocused)
+                .accessibilityFocused(focusedCard, equals: index)
             if card.showsMarkers {
                 HStack(spacing: 24) {
                     TrainCapsule(color: LinePalette().color(forLine: 0), heading: 90, destination: nil, atStation: false, showsLabel: false)
@@ -100,10 +109,6 @@ private struct WelcomeCard: View {
         }
         .padding(.horizontal, 32)
         .padding(.vertical, 24)
-        // VoiceOver reads the new card, not the Next button again.
-        .onChange(of: shown) {
-            if shown { titleFocused = true }
-        }
     }
 }
 
