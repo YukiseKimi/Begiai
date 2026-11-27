@@ -36,21 +36,19 @@ struct LineSpine: View {
                 .fill(color)
                 .layoutValue(key: SpinePlace.self, value: .spine)
             ForEach(rows) { station in
-                SpineStationButton(station: station, color: color, selection: $selection)
+                SpineStationButton(station: station, color: color, selection: $selection, rotor: rotor)
                     .accessibilitySortPriority(-Double(station.row) * rowHeight)
                     .layoutValue(key: SpinePlace.self, value: .station(row: station.row))
             }
             ForEach(tags) { tag in
                 SpineTrainButton(
                     train: tag.id, down: tag.down, destination: tag.destination, label: tag.label, color: color,
-                    selection: $selection
+                    selection: $selection, rotor: rotor
                 )
                 .accessibilitySortPriority(-Double(tag.y) - 0.5)
                 .layoutValue(key: SpinePlace.self, value: tag.down ? .down(y: tag.y) : .up(y: tag.y))
             }
         }
-        // The buttons give their rotor entries in this namespace.
-        .environment(\.spineRotor, rotor)
         // VoiceOver reads down the line, each train after the station above it, and its
         // rotor jumps from train to train or from station to station.
         .accessibilityElement(children: .contain)
@@ -127,17 +125,12 @@ private struct SpineTag: Identifiable {
     let y: CGFloat
 }
 
-extension EnvironmentValues {
-    /// The namespace of a line spine's VoiceOver rotors. The spine sets it around the only
-    /// buttons that read it, so they unwrap it.
-    @Entry fileprivate var spineRotor: Namespace.ID?
-}
-
 private struct SpineStationButton: View {
     let station: SpineStation
     let color: Color
     @Binding var selection: PageSelection?
-    @Environment(\.spineRotor) private var rotor
+    /// The namespace of the spine's VoiceOver rotors, where the button gives its entry.
+    let rotor: Namespace.ID
 
     var body: some View {
         Button {
@@ -152,7 +145,7 @@ private struct SpineStationButton: View {
                 .overlay(RoundedRectangle(cornerRadius: 8).stroke(color, lineWidth: 2))
         }
         .buttonStyle(.plain)
-        .accessibilityRotorEntry(id: station.row, in: rotor!)
+        .accessibilityRotorEntry(id: station.row, in: rotor)
         .accessibilityHint(Text(.boardStationHint))
         .accessibilityIdentifier(A11yID.LineDiagram.station)
     }
@@ -165,7 +158,8 @@ private struct SpineTrainButton: View {
     let label: Text
     let color: Color
     @Binding var selection: PageSelection?
-    @Environment(\.spineRotor) private var rotor
+    /// The namespace of the spine's VoiceOver rotors, where the button gives its entry.
+    let rotor: Namespace.ID
 
     var body: some View {
         Button {
@@ -175,7 +169,7 @@ private struct SpineTrainButton: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)
-        .accessibilityRotorEntry(id: train, in: rotor!)
+        .accessibilityRotorEntry(id: train, in: rotor)
         .accessibilityIdentifier(A11yID.LineDiagram.train)
     }
 }
