@@ -9,11 +9,14 @@ import XCTest
 /// a train to that station, or to the first of `Panevėžys|Kybartai` that a tap opens, and
 /// `TEST_RUNNER_BEGIAI_ACTIVITY_NOW` sets the sealed time: at 2026-11-17T17:45:00Z, Klaipėda is
 /// over an hour away, and Panevėžys, Kybartai and Turmantas under half an hour.
+/// `TEST_RUNNER_BEGIAI_ACTIVITY_WAIT=100` waits that many seconds on the Home Screen first, so a
+/// train due then is in: at 2026-11-17T09:32:30Z, Rīgas Centrālā stacija is 90 seconds away.
 final class LiveActivityShots: JourneyCase {
     private var folder: URL!
     private var locale: String?
     private var destinations: [String] = []
     private var now = JourneyApp.sealedNow
+    private var wait: TimeInterval = 0
 
     override func setUpWithError() throws {
         try super.setUpWithError()
@@ -25,6 +28,8 @@ final class LiveActivityShots: JourneyCase {
         locale = environment["BEGIAI_ACTIVITY_LOCALE"].flatMap { $0.isEmpty ? nil : $0 }
         destinations = (environment["BEGIAI_ACTIVITY_TO"] ?? "").split(separator: "|").map(String.init)
         now = environment["BEGIAI_ACTIVITY_NOW"].flatMap { $0.isEmpty ? nil : $0 } ?? now
+        wait = environment["BEGIAI_ACTIVITY_WAIT"].flatMap(TimeInterval.init) ?? 0
+        executionTimeAllowance = 120 + wait
     }
 
     /// The compact Dynamic Island over the Home Screen, the expanded one, and the Lock Screen
@@ -45,6 +50,7 @@ final class LiveActivityShots: JourneyCase {
         let island = springboard.descendants(matching: .any)
             .matching(NSPredicate(format: "identifier BEGINSWITH %@", "jindo-container-view")).firstMatch
         journey.wait(for: island, "the Dynamic Island", on: "Home Screen")
+        if wait > 0 { _ = XCTWaiter.wait(for: [XCTestExpectation(description: "arrive")], timeout: wait) }
         // The island blurs while the Home Screen comes in.
         save("compact", settle: 3)
         island.press(forDuration: 1.2)

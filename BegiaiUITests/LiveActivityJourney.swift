@@ -19,6 +19,7 @@ final class LiveActivityJourney: JourneyCase {
         map.expectNoPage()
 
         let lockScreen = LockScreen(journey: journey)
+        lockScreen.expectIsland(destination: route.components(separatedBy: " → ").last ?? route)
         lockScreen.open()
         lockScreen.expectActivity(route: route, place: place)
         lockScreen.openActivity()
