@@ -93,6 +93,9 @@ private struct LineDiagramPage: View {
     /// The line of the page in view; it follows the finger, and the chosen line follows it when
     /// the scroll stops.
     @State private var page: Int?
+    /// Where the pages are as they slide, for the chips alone: the pages do not read it, so they
+    /// are not drawn again on each frame of a slide.
+    @State private var progress = PageProgress()
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { _ in
@@ -102,7 +105,7 @@ private struct LineDiagramPage: View {
             let lines = current ? lines : []
             let chosen = lines.first { $0.name == chosenName } ?? lines.first
             VStack(spacing: 0) {
-                LineChips(lines: lines, chosen: chosen?.id)
+                LineChips(lines: lines, chosen: chosen?.id, progress: progress)
                     // A scroll view draws its content into the safe area along its axis; the chips
                     // stay in the row's own frame, clear of the status bar and the tab strip that the
                     // open Duo shows on the right.
@@ -133,6 +136,13 @@ private struct LineDiagramPage: View {
                     // As the chips do: the next page does not show under that tab strip.
                     .clipped()
                     .scrollPosition(id: $page)
+                    .onScrollGeometryChange(for: Double.self) { geometry in
+                        // The pages are the same width, so the offset over that width is the page.
+                        let width = geometry.contentSize.width / CGFloat(max(lines.count, 1))
+                        return width > 0 ? (geometry.contentOffset.x + geometry.contentInsets.leading) / width : 0
+                    } action: { _, position in
+                        progress.value = position
+                    }
                     .onScrollPhaseChange { _, phase in
                         // The chosen line changes when the pages come to rest, not on the way.
                         if phase == .idle, let name = lines.first(where: { $0.id == page })?.name, name != chosenName {
@@ -262,32 +272,111 @@ private struct LineFacts: View {
     }
 }
 
+/// Where the pages are as they slide: the index of the page in view, and the fraction of the way
+/// to the next one.
+@Observable private final class PageProgress {
+    var value: Double = 0
+}
+
+/// The chips of the lines. The row and its coloured highlight follow the pages as they slide.
 private struct LineChips: View {
     let lines: [LineSummary]
     let chosen: Int?
+    let progress: PageProgress
+    @Environment(\.linePalette) private var palette
+    /// Each chip's capsule in the row, by its index.
+    @State private var capsules: [Int: CGRect] = [:]
+    @State private var width: CGFloat = 0
+    @State private var position = ScrollPosition()
 
     var body: some View {
-        // A plain stack: a timetable has about twenty lines, and the row scrolls to the chosen one.
+        let at = min(max(progress.value, 0), Double(max(lines.count - 1, 0)))
+        let lit = Int(at.rounded())
+        // A plain stack: a timetable has about twenty lines, and the row follows the pages.
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(lines) { line in
-                    LineChip(line: line.id, name: line.name, isChosen: line.id == chosen)
+                ForEach(Array(lines.enumerated()), id: \.element.id) { index, line in
+                    LineChip(
+                        line: line.id, name: line.name, isChosen: line.id == chosen, isLit: index == lit,
+                        highlight: max(0, 1 - abs(at - Double(index)))
+                    ) { capsules[index] = $0 }
                 }
             }
-            .scrollTargetLayout()
+            .background(alignment: .topLeading) {
+                if let shown = highlight(at: at) {
+                    Capsule()
+                        .fill(shown.color)
+                        .frame(width: shown.frame.width, height: shown.frame.height)
+                        .offset(x: shown.frame.minX, y: shown.frame.minY)
+                        .accessibilityHidden(true)
+                }
+            }
+            .coordinateSpace(.named(ChipRow.space))
             .padding(.horizontal)
             .padding(.vertical, 2)
         }
-        .scrollPosition(id: .constant(chosen), anchor: .center)
+        .scrollPosition($position)
+        .onGeometryChange(for: CGFloat.self) {
+            $0.size.width
+        } action: {
+            width = $0
+        }
+        .onChange(of: RowFollow(at: at, width: width, chips: capsules.count), initial: true) {
+            follow(at)
+        }
         .sensoryFeedback(.selection, trigger: chosen)
     }
+
+    /// The highlight between the chips of the pages either side of `at`: its frame and its colour
+    /// move from one to the other as the page does.
+    private func highlight(at: Double) -> (frame: CGRect, color: Color)? {
+        let lower = Int(at.rounded(.down))
+        guard let from = capsules[lower], lines.indices.contains(lower) else { return nil }
+        let upper = min(lower + 1, lines.count - 1)
+        let to = capsules[upper] ?? from
+        let fraction = at - Double(lower)
+        let frame = CGRect(
+            x: from.minX + (to.minX - from.minX) * fraction, y: from.minY,
+            width: from.width + (to.width - from.width) * fraction, height: from.height)
+        let color = palette.color(forLine: lines[lower].id).mix(with: palette.color(forLine: lines[upper].id), by: fraction)
+        return (frame, color)
+    }
+
+    /// Scrolls the row so the highlight stays in the middle, as far as the row's ends allow.
+    private func follow(_ at: Double) {
+        let lower = Int(at.rounded(.down))
+        guard width > 0, let from = capsules[lower], let last = capsules[capsules.count - 1] else { return }
+        let to = capsules[min(lower + 1, capsules.count - 1)] ?? from
+        let middle = from.midX + (to.midX - from.midX) * (at - Double(lower))
+        // The row's padding of 16 points either side, as `padding(.horizontal)` gives it.
+        let end = max(last.maxX + 32 - width, 0)
+        position.scrollTo(x: min(max(middle + 16 - width / 2, 0), end))
+    }
+}
+
+/// What the chip row scrolls again for: the pages moving, its width, or its chips laid out.
+private struct RowFollow: Equatable {
+    let at: Double
+    let width: CGFloat
+    let chips: Int
+}
+
+private enum ChipRow {
+    static let space = "lineChips"
 }
 
 private struct LineChip: View {
     /// The line's index in the timetable, which picks its colour.
     let line: Int
     let name: String
+    /// The chosen line, for VoiceOver.
     let isChosen: Bool
+    /// True while the highlight is mostly on this chip: its name is then written to read on it.
+    let isLit: Bool
+    /// How much of the highlight is on this chip, from 0 to 1: its own grey fades as it comes.
+    let highlight: Double
+    /// Gives the chip's capsule in the row, for the highlight.
+    let onCapsule: (CGRect) -> Void
     @AppStorage(ChosenLine.key) private var chosenName = ""
     @Environment(\.linePalette) private var palette
 
@@ -300,11 +389,16 @@ private struct LineChip: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .foregroundStyle(
-                    isChosen
+                    isLit
                         ? AnyShapeStyle(ReadableText(background: palette.color(forLine: line)))
                         : AnyShapeStyle(Color.primary)
                 )
-                .background(isChosen ? palette.color(forLine: line) : Color.secondary.opacity(0.15), in: .capsule)
+                .background(Color.secondary.opacity(0.15 * (1 - highlight)), in: .capsule)
+                .onGeometryChange(for: CGRect.self) {
+                    $0.frame(in: .named(ChipRow.space))
+                } action: {
+                    onCapsule($0)
+                }
                 // The chip looks small; its tap area is the full 44 points high.
                 .frame(minHeight: 44)
                 .contentShape(.rect)
