@@ -5,12 +5,11 @@ struct StationHeader: View {
     let name: String
     let starred: Bool
     var exit = PageExit.back
-    let close: PageClose
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                PageExitButton(exit: exit, close: close)
+                PageExitButton(exit: exit)
                     .accessibilityIdentifier(A11yID.Board.back)
                 Spacer()
                 StarButton(kind: .station, name: name, starred: starred)

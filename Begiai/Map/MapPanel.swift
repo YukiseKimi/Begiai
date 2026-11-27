@@ -20,13 +20,10 @@ struct MapPanelHeader: View {
     /// Follow on the train's page: it keeps the train in the middle of the map and on the Lock
     /// Screen; nil hides the button.
     let following: Binding<FollowState>?
-    /// True while the followed train's Live Activity shows.
-    let onLockScreen: Bool
     /// The sheet's height. The column shows the panel at the last height the sheet had.
     let height: PanelHeight
     @Binding var filter: LineFilter
     let query: StationQuery
-    var searchFocused: FocusState<Bool>.Binding
     let stars: [Star]
 
     var body: some View {
@@ -34,15 +31,15 @@ struct MapPanelHeader: View {
         case .train:
             TrainPage(
                 heading: timeline.map { TrainHeading(timeline: $0, now: now) }, color: color, following: following,
-                onLockScreen: onLockScreen,
-                close: .selection($selection), stationPage: $selection)
+
+                stationPage: $selection)
         case .station(let index):
             if stationNames.indices.contains(index) {
                 let name = stationNames[index]
-                StationHeader(name: name, starred: stars.names(.station).contains(name), close: .selection($selection))
+                StationHeader(name: name, starred: stars.names(.station).contains(name))
             }
         case nil:
-            LinesHeader(running: running, height: height, filter: $filter, query: query, searchFocused: searchFocused)
+            LinesHeader(running: running, height: height, filter: $filter, query: query)
         }
     }
 }
@@ -53,7 +50,6 @@ private struct LinesHeader: View {
     let height: PanelHeight
     @Binding var filter: LineFilter
     let query: StationQuery
-    var searchFocused: FocusState<Bool>.Binding
 
     var body: some View {
         VStack(spacing: 10) {
@@ -66,7 +62,7 @@ private struct LinesHeader: View {
                     .padding(.horizontal)
             }
             // At night, with no trains, the field still finds a station's first trains.
-            StationSearchField(query: query, focused: searchFocused)
+            StationSearchField(query: query)
                 .dynamicTypeSize(...DynamicTypeSize.accessibility2)
                 .padding(.horizontal)
             // A Small panel keeps the count and the field; the filter needs room for the lines,

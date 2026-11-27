@@ -26,7 +26,9 @@ struct LineDiagramTab: View {
                         .safeAreaPadding(.trailing, insets.trailing)
                     } panel: {
                         if let selection {
-                            DiagramSheet(engine: engine, page: selection, close: .selection($selection))
+                            DiagramSheet(engine: engine, page: selection)
+                                // Close clears the page open in the column.
+                                .environment(\.pageClose, .selection($selection))
                                 // A new train or station starts its page afresh, as a new sheet does.
                                 .id(selection)
                         }
@@ -39,7 +41,9 @@ struct LineDiagramTab: View {
             // The sheet holds the page only on a narrow screen: a fold or an unfold moves the page
             // between the sheet and the column, and the dismissed sheet does not close it.
             .sheet(item: $selection[shownIf: !inColumn]) { chosen in
-                DiagramSheetContent(engine: engine, page: chosen)
+                // Close dismisses the sheet, which clears the open page; the content leaves the
+                // state that presents it alone.
+                DiagramSheet(engine: engine, page: chosen)
                     .presentationDetents([.medium, .large])
             }
         } else {
@@ -60,18 +64,6 @@ extension Optional {
     subscript(shownIf shown: Bool) -> Wrapped? {
         get { shown ? self : nil }
         set { if shown { self = newValue } }
-    }
-}
-
-/// The page in the sheet on a narrow screen: Close dismisses the sheet, which clears the open
-/// page, and the content leaves the state that presents it alone.
-private struct DiagramSheetContent: View {
-    let engine: MotionEngine
-    let page: PageSelection
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        DiagramSheet(engine: engine, page: page, close: .dismiss(dismiss))
     }
 }
 

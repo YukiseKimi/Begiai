@@ -12,7 +12,13 @@ enum PageExit {
 /// leaves the state that presents it alone.
 enum PageClose {
     case selection(Binding<PageSelection?>)
-    case dismiss(DismissAction)
+    case dismiss
+}
+
+extension EnvironmentValues {
+    /// How the open page closes, which its Back or Close button reads: a page outside a sheet
+    /// is given the binding that opened it.
+    @Entry var pageClose = PageClose.dismiss
 }
 
 /// What the fixed top of a train's page shows: its heading, and where the train is now.
@@ -71,10 +77,7 @@ struct TrainPage: View {
     let color: Color
     /// Nil where nothing can follow the train: the page then shows no Follow button.
     var following: Binding<FollowState>?
-    /// True while the followed train's Live Activity shows: Follow then says so to VoiceOver.
-    var onLockScreen = false
     var exit = PageExit.back
-    let close: PageClose
     /// Where the place line opens its station's board, so the station of a train is one tap
     /// away, also where trains cover its marker on the map: the panel's own page, or a page in
     /// place in the Line Diagram's sheet, so the sheet stays up.
@@ -83,11 +86,11 @@ struct TrainPage: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                PageExitButton(exit: exit, close: close)
+                PageExitButton(exit: exit)
                     .accessibilityIdentifier(A11yID.Train.back)
                 Spacer()
                 if heading != nil, let following {
-                    FollowButton(state: following, color: color, onLockScreen: onLockScreen)
+                    FollowButton(state: following, color: color)
                         .accessibilityIdentifier(A11yID.Train.follow)
                 }
             }
@@ -148,8 +151,8 @@ private struct TrainTitle: View {
 private struct FollowButton: View {
     @Binding var state: FollowState
     let color: Color
-    /// True while the followed train's Live Activity shows.
-    let onLockScreen: Bool
+    /// Says whether the followed train's Live Activity shows.
+    @Environment(TrainFollower.self) private var follower
 
     var body: some View {
         Button {
@@ -174,7 +177,7 @@ private struct FollowButton: View {
             case .released: nil
             }
         }
-        .accessibilityValue(state.isFollowed && onLockScreen ? Text(.trainOnLockScreen) : Text(verbatim: ""))
+        .accessibilityValue(state.isFollowed && follower.onLockScreen ? Text(.trainOnLockScreen) : Text(verbatim: ""))
     }
 
     /// As in Maps: filled while the map keeps the train in the middle, an outline when not.
@@ -305,7 +308,8 @@ struct IconOnlyAtLargeSizes: LabelStyle {
 /// “< Lines” in the panel; the system Close button in a sheet, where Back would mean a step back.
 struct PageExitButton: View {
     let exit: PageExit
-    let close: PageClose
+    @Environment(\.pageClose) private var close
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         switch exit {
@@ -321,7 +325,7 @@ struct PageExitButton: View {
     private func perform() {
         switch close {
         case .selection(let selection): selection.wrappedValue = nil
-        case .dismiss(let dismiss): dismiss()
+        case .dismiss: dismiss()
         }
     }
 }
@@ -453,5 +457,5 @@ private struct StopMark: View {
 
 #Preview {
     TrainPage(
-        heading: nil, color: .blue, following: .constant(.off), close: .selection(.constant(nil)), stationPage: .constant(nil))
+        heading: nil, color: .blue, following: .constant(.off), stationPage: .constant(nil))
 }

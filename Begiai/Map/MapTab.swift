@@ -23,7 +23,6 @@ struct MapTab: View {
     @State private var filter: LineFilter = .all
     @State private var position: MapCameraPosition = .region(.lithuania)
     @State private var query = StationQuery()
-    @FocusState private var searchFocused: Bool
     @State private var locationNote: LocationNote?
     @Query private var stars: [Star]
     @Environment(\.linePalette) private var palette
@@ -46,8 +45,8 @@ struct MapTab: View {
                         VStack(spacing: 0) {
                             MapPanelHeader(
                                 stationNames: engine.stationNames, now: now, running: settled.count, timeline: timeline, color: color,
-                                selection: $selection, following: followState, onLockScreen: follower.onLockScreen,
-                                height: panelHeight, filter: $filter, query: query, searchFocused: $searchFocused, stars: stars)
+                                selection: $selection, following: followState,
+                                height: panelHeight, filter: $filter, query: query, stars: stars)
                             MapPanelContent(
                                 engine: engine, now: now, settled: settled, timeline: timeline, color: color, selection: $selection,
                                 height: $panelHeight, filter: filter, query: query, locationNote: $locationNote, stars: stars)
@@ -68,8 +67,8 @@ struct MapTab: View {
                             LinePanel(height: $panelHeight, total: proxy.size.height) {
                                 MapPanelHeader(
                                     stationNames: engine.stationNames, now: now, running: settled.count, timeline: timeline, color: color,
-                                    selection: $selection, following: followState, onLockScreen: follower.onLockScreen,
-                                    height: panelHeight, filter: $filter, query: query, searchFocused: $searchFocused, stars: stars)
+                                    selection: $selection, following: followState,
+                                    height: panelHeight, filter: $filter, query: query, stars: stars)
                             } content: {
                                 MapPanelContent(
                                     engine: engine, now: now, settled: settled, timeline: timeline, color: color,
@@ -103,11 +102,11 @@ struct MapTab: View {
             // At the accessibility text sizes a page's fixed top is taller than a half panel.
             if selection != nil, typeSize.isAccessibilitySize { panelHeight = .full }
         }
-        .onChange(of: searchFocused) { _, focused in
+        .onChange(of: query.focused) { _, focused in
             if focused { panelHeight = .full }
         }
         .onChange(of: panelHeight) { _, height in
-            if height != .full { searchFocused = false }
+            if height != .full { query.focused = false }
         }
         .onChange(of: scenePhase) { _, phase in
             // Access is granted in Settings, so the note goes when the rider comes back with it.

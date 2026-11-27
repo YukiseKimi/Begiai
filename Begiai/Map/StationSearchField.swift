@@ -4,8 +4,7 @@ import SwiftUI
 /// The field above the line filter that finds a station by name.
 struct StationSearchField: View {
     @Bindable var query: StationQuery
-    /// The map tab holds the focus: the field has the keyboard only while the panel is at full height.
-    var focused: FocusState<Bool>.Binding
+    @FocusState private var focused: Bool
 
     var body: some View {
         HStack(spacing: 6) {
@@ -28,7 +27,7 @@ struct StationSearchField: View {
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .submitLabel(.search)
-                    .focused(focused)
+                    .focused($focused)
                     .frame(maxHeight: .infinity)
                     .accessibilityIdentifier(A11yID.Map.search)
                 }
@@ -50,6 +49,10 @@ struct StationSearchField: View {
         .padding(.leading, 12)
         // A capsule while the field is one line high; taller, its corners keep that radius.
         .background(.fill.tertiary, in: .rect(cornerRadius: 22))
+        // The query carries the focus to the map tab, which raises the panel for the keyboard
+        // and puts the keyboard away when the panel goes down.
+        .onChange(of: focused) { _, focused in query.focused = focused }
+        .onChange(of: query.focused) { _, focused in self.focused = focused }
     }
 }
 
@@ -115,9 +118,8 @@ private struct StationResultRow: View {
 
 #Preview {
     @Previewable @State var query = StationQuery(text: "kai")
-    @Previewable @FocusState var focused: Bool
     VStack {
-        StationSearchField(query: query, focused: $focused)
+        StationSearchField(query: query)
             .padding(.horizontal)
         StationResults(
             names: ["Vilnius", "Kaišiadorys", "Kaunas"], query: query, selection: .constant(nil), height: .constant(.full))
