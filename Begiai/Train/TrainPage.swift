@@ -28,7 +28,9 @@ struct TrainHeading: Equatable {
     let origin: String
     let destination: String
     let place: TrainPlace?
+}
 
+extension TrainHeading {
     init(timeline: TrainTimeline, now: Date) {
         time = timeline.firstDeparture.vilniusTime
         origin = timeline.origin
@@ -47,7 +49,9 @@ struct TrainPlace: Equatable {
     let stationIndex: Int
     let time: String
     let minutes: Int
+}
 
+extension TrainPlace {
     /// Nil once the train has no stop ahead.
     init?(timeline: TrainTimeline, now: Date) {
         let stop: TrainTimeline.Stop
