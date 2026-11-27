@@ -39,8 +39,9 @@ struct TrainCapsule: View {
                         .padding(.horizontal, 4)
                         .background(.regularMaterial, in: .rect(cornerRadius: 4))
                         // The overlay offers the label only the marker's width; the label is one
-                        // line that hangs beside the marker, so it keeps its own width too.
-                        .fixedSize()
+                        // line that hangs beside the marker, so it keeps its own width. The marker
+                        // is taller than the line, so the height it offers holds it.
+                        .fixedSize(horizontal: true, vertical: false)
                         .offset(x: size * 1.15 + 4)
                 }
             }

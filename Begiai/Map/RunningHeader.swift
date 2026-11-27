@@ -17,12 +17,14 @@ struct RunningHeader: View {
                     .accessibilityHidden(true)
                 scheduled
             }
+            // Each line keeps the height it needs to wrap.
             VStack(spacing: 2) {
                 running
+                    .fixedSize(horizontal: false, vertical: true)
                 scheduled
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .multilineTextAlignment(.center)
-            .fixedSize(horizontal: false, vertical: true)
         }
         .font(.subheadline.weight(.semibold))
     }

@@ -153,7 +153,7 @@ private struct BoardTime: View {
         Text(verbatim: time.vilniusTime)
             .monospacedDigit()
             // A clock time never breaks across lines, on purpose; the minutes beside it wrap instead.
-            .fixedSize()
+            .fixedSize(horizontal: true, vertical: false)
     }
 }
 
