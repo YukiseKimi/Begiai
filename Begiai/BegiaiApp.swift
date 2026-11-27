@@ -36,9 +36,14 @@ struct BegiaiApp: App {
                     await refreshFeed()
                 }
                 .onChange(of: scenePhase) { _, phase in
-                    guard phase == .active else { return }
-                    follower.review()
-                    Task { await refreshFeed() }
+                    if phase == .active { follower.review() }
+                }
+                // A return to the app asks for a newer timetable; leaving the app again cancels
+                // the ask, and the next return asks again. At launch the store is still loading,
+                // so this returns at once and the launch task asks once it has loaded.
+                .task(id: scenePhase) {
+                    guard scenePhase == .active else { return }
+                    await refreshFeed()
                 }
         }
         .modelContainer(stars)
