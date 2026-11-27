@@ -58,15 +58,6 @@ struct LineDiagramTab: View {
     }
 }
 
-extension Optional {
-    /// This value while `shown`, else nil; a write while it shows passes through. A sheet bound
-    /// this way presents the value only where it should show it.
-    subscript(shownIf shown: Bool) -> Wrapped? {
-        get { shown ? self : nil }
-        set { if shown { self = newValue } }
-    }
-}
-
 /// Where the Line Diagram keeps the name of the last line the rider looked at; a name stays the
 /// same in a new timetable.
 private enum ChosenLine {

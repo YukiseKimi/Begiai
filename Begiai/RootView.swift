@@ -78,15 +78,6 @@ struct RootView: View {
     }
 }
 
-extension Bool {
-    /// True while `allowed` and this flag, which says a thing was seen, is false: what is still
-    /// to show. Setting it to false marks the thing seen.
-    subscript(toShowIf allowed: Bool) -> Bool {
-        get { allowed && !self }
-        set { if !newValue { self = true } }
-    }
-}
-
 private enum RootTab: Hashable {
     case map
     case lineDiagram
